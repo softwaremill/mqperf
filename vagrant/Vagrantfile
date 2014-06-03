@@ -29,12 +29,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     chef.json = {
       "sender" => {
         "image" => "adamw/mqperf:latest",
-        "cmdline" => [ "com.softwaremill.mqperf.Sender", "10", "x" ] 
+        "cmdline" => [ "com.softwaremill.mqperf.Sender", "10", "x" ],
+        "env" => {
+          "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
+          "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY']
+        }
       }
     }
  
     # Chef, use this recipe:
     chef.add_recipe "docker::setup"
+    chef.add_recipe "docker::kill_containers"
     chef.add_recipe "docker::sender"
  
     # config.vm.synced_folder "localpath", "vmpath"
