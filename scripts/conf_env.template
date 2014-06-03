@@ -1,0 +1,2 @@
+export EC2_ACCESS_KEY_ID=
+export EC2_SECRET_ACCESS_KEY=
