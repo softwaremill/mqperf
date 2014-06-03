@@ -1,0 +1,42 @@
+VAGRANTFILE_API_VERSION = "2"
+ 
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # http://www.vagrantbox.es/
+  config.vm.box = "ubuntu-12.04-docker"
+  config.vm.box_url = "https://oss-binaries.phusionpassenger.com/vagrant/boxes/latest/ubuntu-12.04-amd64-vbox.box"
+ 
+  # Sets the ip we'll use to access the box
+  config.vm.network :private_network, ip: "10.0.0.10"
+  config.vm.hostname = "mqperf"
+ 
+  # Configures the amount of RAM
+  config.vm.provider "virtualbox" do |box|
+    box.customize ["modifyvm", :id, "--memory", "1024"]
+  end
+ 
+  # We need to have the docker apt repository available
+  config.vm.provision :shell, path: "setup_docker_apt.sh"
+
+  # Specifies the chef version Opsworks is running
+  config.omnibus.chef_version = "11.10.0"
+ 
+  # Chef related configs
+  config.vm.provision :chef_solo do |chef|
+    chef.cookbooks_path = "../../mqperf-chef"
+    chef.log_level = :info
+ 
+    # Config as in opsworks
+    chef.json = {
+      "sender" => {
+        "image" => "adamw/mqperf:latest",
+        "cmdline" => [ "com.softwaremill.mqperf.Sender", "10", "x" ] 
+      }
+    }
+ 
+    # Chef, use this recipe:
+    chef.add_recipe "docker::setup"
+    chef.add_recipe "docker::sender"
+ 
+    # config.vm.synced_folder "localpath", "vmpath"
+  end
+end
