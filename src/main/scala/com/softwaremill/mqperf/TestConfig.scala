@@ -12,7 +12,7 @@ case class TestConfig(
   receiveMsgBatchSize: Int)
 
 object TestConfig {
-  def from(json: String) = {
+  def from(json: String): TestConfig = {
     val parsed = parseJson(json)
     val tcs = for {
       JObject(fields) <- parsed

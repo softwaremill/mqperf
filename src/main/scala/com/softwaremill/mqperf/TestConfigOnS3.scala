@@ -43,13 +43,13 @@ class TestConfigOnS3 {
         .withCannedAcl(CannedAccessControlList.PublicRead))
   }
 
-  def whenChanged(block: String => Unit) {
+  def whenChanged(block: TestConfig => Unit) {
     var lastMod = lastModified()
     while (true) {
       Thread.sleep(whenChangedPollEveryMs)
       val newMod = lastModified()
       if (newMod != lastMod) {
-        block(read())
+        block(TestConfig.from(read()))
       }
 
       lastMod = newMod

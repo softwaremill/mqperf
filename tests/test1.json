@@ -2,7 +2,7 @@
     "sender_threads": 10,
     "msg_count_per_thread": 100000,
     "msg_size": 100,
-    "max_send_msg_batch_size": 20,
+    "max_send_msg_batch_size": 10,
     "receiver_threads": 10,
-    "receive_msg_batch_size": 20
+    "receive_msg_batch_size": 10
 }
