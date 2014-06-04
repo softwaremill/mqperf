@@ -1,6 +1,6 @@
 package com.softwaremill.mqperf.mq
 
-trait MQ2 {
+trait Mq {
   type MsgId
 
   /**

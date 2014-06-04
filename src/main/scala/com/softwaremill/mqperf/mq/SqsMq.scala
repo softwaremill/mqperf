@@ -6,7 +6,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import scala.collection.JavaConverters._
 import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
 
-class SqsMQ2 extends MQ2 {
+class SqsMq extends Mq {
   private val asyncClient = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
   private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient)
 
