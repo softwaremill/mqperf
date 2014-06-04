@@ -31,8 +31,8 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults,
   override def run() = {
     val start = System.currentTimeMillis()
     doSend()
-    val took = System.currentTimeMillis() - start
-    reportResults.reportSendingComplete(took)
+    val end = System.currentTimeMillis()
+    reportResults.reportSendingComplete(start, end)
   }
 
   private def doSend() {
