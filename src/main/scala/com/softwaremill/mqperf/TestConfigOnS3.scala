@@ -6,7 +6,7 @@ import scala.collection.JavaConversions._
 import java.io.File
 import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectRequest}
 
-class S3TestConfig {
+class TestConfigOnS3 {
   private val s3Client = new AmazonS3Client(AWSCredentialsFromEnv())
   private val bucketName = "mqperf"
   private val objectName = "test_config.json"
@@ -57,7 +57,7 @@ class S3TestConfig {
   }
 }
 
-object S3TestConfigWriter extends App {
+object WriteTestConfigOnS3 extends App {
   if (args.size == 0) {
     println("Usage:")
     println("java ... S3TestConfigWriter [testName]")
@@ -67,7 +67,7 @@ object S3TestConfigWriter extends App {
     if (!sourceFile.exists()) {
       println(s"File ${sourceFile.getAbsolutePath} does not exist!")
     } else {
-      new S3TestConfig().write(sourceFile)
+      new TestConfigOnS3().write(sourceFile)
     }
   }
 }
