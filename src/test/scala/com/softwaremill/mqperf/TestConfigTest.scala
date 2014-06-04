@@ -8,6 +8,8 @@ class TestConfigTest extends FlatSpec with Matchers {
     val json =
       """
         |{
+        |    "name": "sqs1",
+        |    "mq_type": "Sqs",
         |    "sender_threads": 10,
         |    "msg_count_per_thread": 100000,
         |    "msg_size": 100,
@@ -21,6 +23,6 @@ class TestConfigTest extends FlatSpec with Matchers {
     val tc = TestConfig.from(json)
 
     // then
-    tc should be (TestConfig(10, 100000, 100L, 20, 11, 25))
+    tc should be (TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25))
   }
 }

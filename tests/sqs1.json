@@ -1,4 +1,6 @@
 {
+    "name": "sqs1",
+    "mq_type": "Sqs"
     "sender_threads": 10,
     "msg_count_per_thread": 100000,
     "msg_size": 100,
