@@ -23,10 +23,12 @@ function copy_if_changed {
 }
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR
 
 # build jars
-(cd $DIR/.. && sbt assembly assemblyPackageDependency)
+cd $DIR/..
+sbt assembly assemblyPackageDependency
+
+cd $DIR
 
 # Only copy jars if they are changed, so that the docker cache (which for ADD, looks at timestamps) works.
 mkdir -p target
