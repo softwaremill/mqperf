@@ -6,12 +6,12 @@ import com.softwaremill.mqperf.config.TestConfigOnS3
 
 object Sender extends App {
   new TestConfigOnS3().whenChanged { testConfig =>
-    println(s"Starting test with config: $testConfig")
+    println(s"Starting test (sender) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
-    val rr = new ReportResults(testConfig.name)
+    val report = new ReportResults(testConfig.name)
     val sr = new SenderRunnable(
-      mq, rr,
+      mq, report,
       "0" * testConfig.msgSize,
       testConfig.msgCountPerThread, testConfig.maxSendMsgBatchSize
     )
