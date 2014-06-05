@@ -14,26 +14,40 @@ class ReportResults(testConfigName: String) {
   def reportSendingComplete(start: Long, end: Long) {
     val df = newDateFormat
 
+    val testResultName = s"${System.currentTimeMillis()}-$testConfigName-s-${Random.nextInt(1000)}"
+    val took = (end - start).toString
+    val startStr = new Date(start)
+    val endStr = new Date(end)
+
     dynamoClient.putItem(new PutItemRequest()
       .withTableName(tableName)
-      .addItemEntry("test_result_name", new AttributeValue(s"${System.currentTimeMillis()}-$testConfigName-s-${Random.nextInt(1000)}"))
-      .addItemEntry("took", new AttributeValue().withN((end - start).toString))
-      .addItemEntry("start", new AttributeValue(df.format(new Date(start))))
-      .addItemEntry("end", new AttributeValue(df.format(new Date(end))))
+      .addItemEntry("test_result_name", new AttributeValue(testResultName))
+      .addItemEntry("took", new AttributeValue().withN(took))
+      .addItemEntry("start", new AttributeValue(df.format(startStr)))
+      .addItemEntry("end", new AttributeValue(df.format(endStr)))
     )
+
+    println(s"$testResultName: $took ($startStr -> $endStr")
   }
 
   def reportReceivingComplete(start: Long, end: Long, msgsReceived: Int) {
     val df = newDateFormat
 
+    val testResultName = s"${System.currentTimeMillis()}-$testConfigName-r-${Random.nextInt(1000)}"
+    val took = (end - start).toString
+    val startStr = new Date(start)
+    val endStr = new Date(end)
+
     dynamoClient.putItem(new PutItemRequest()
       .withTableName(tableName)
-      .addItemEntry("test_result_name", new AttributeValue(s"${System.currentTimeMillis()}-$testConfigName-r-${Random.nextInt(1000)}"))
-      .addItemEntry("took", new AttributeValue().withN((end - start).toString))
+      .addItemEntry("test_result_name", new AttributeValue(testResultName))
       .addItemEntry("msgs_received", new AttributeValue().withN(msgsReceived.toString))
-      .addItemEntry("start", new AttributeValue(df.format(new Date(start))))
-      .addItemEntry("end", new AttributeValue(df.format(new Date(end))))
+      .addItemEntry("took", new AttributeValue().withN(took))
+      .addItemEntry("start", new AttributeValue(df.format(startStr)))
+      .addItemEntry("end", new AttributeValue(df.format(endStr)))
     )
+
+    println(s"$testResultName (${msgsReceived.toString}): $took ($startStr -> $endStr")
   }
 
   def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
