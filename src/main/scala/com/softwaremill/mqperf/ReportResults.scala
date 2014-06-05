@@ -1,59 +1,40 @@
 package com.softwaremill.mqperf
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import scala.util.Random
 import java.text.SimpleDateFormat
 import java.util.Date
-import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
-import com.amazonaws.regions.{Regions, Region}
 
-class ReportResults(testConfigName: String) {
-  private val dynamoClient = {
-    val c = new AmazonDynamoDBClient(AWSCredentialsFromEnv())
-    c.setRegion(Region.getRegion(Regions.EU_WEST_1))
-    c
-  }
-  private val tableName = "mqperf-results"
+class ReportResults(testConfigName: String) extends DynamoResultsTable {
 
-  def reportSendingComplete(start: Long, end: Long) {
-    val df = newDateFormat
-
-    val testResultName = s"${System.currentTimeMillis()}-$testConfigName-s-${Random.nextInt(1000)}"
-    val took = (end - start).toString
-    val startStr = new Date(start)
-    val endStr = new Date(end)
-
-    dynamoClient.putItem(new PutItemRequest()
-      .withTableName(tableName)
-      .addItemEntry("test_result_name", new AttributeValue(testResultName))
-      .addItemEntry("took", new AttributeValue().withN(took))
-      .addItemEntry("start", new AttributeValue(df.format(startStr)))
-      .addItemEntry("end", new AttributeValue(df.format(endStr)))
-    )
-
-    println(s"$testResultName: $took ($startStr -> $endStr")
+  def reportSendingComplete(start: Long, end: Long, msgsSent: Int) {
+    doReport(start, end, msgsSent, typeReceive)
   }
 
   def reportReceivingComplete(start: Long, end: Long, msgsReceived: Int) {
+    doReport(start, end, msgsReceived, typeReceive)
+  }
+
+  private def doReport(start: Long, end: Long, msgsCount: Int, _type: String) {
     val df = newDateFormat
 
-    val testResultName = s"${System.currentTimeMillis()}-$testConfigName-r-${Random.nextInt(1000)}"
+    val testResultName = s"$testConfigName-${_type}-${Random.nextInt(100000)}"
     val took = (end - start).toString
     val startStr = new Date(start)
     val endStr = new Date(end)
 
     dynamoClient.putItem(new PutItemRequest()
       .withTableName(tableName)
-      .addItemEntry("test_result_name", new AttributeValue(testResultName))
-      .addItemEntry("msgs_received", new AttributeValue().withN(msgsReceived.toString))
-      .addItemEntry("took", new AttributeValue().withN(took))
-      .addItemEntry("start", new AttributeValue(df.format(startStr)))
-      .addItemEntry("end", new AttributeValue(df.format(endStr)))
+      .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
+      .addItemEntry(msgsCountColumn, new AttributeValue().withN(msgsCount.toString))
+      .addItemEntry(tookColumn, new AttributeValue().withN(took))
+      .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
+      .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
+      .addItemEntry(typeColumn, new AttributeValue(_type))
     )
 
-    println(s"$testResultName (${msgsReceived.toString}): $took ($startStr -> $endStr")
+    println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
   }
 
-  def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+  private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
 }

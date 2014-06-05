@@ -33,7 +33,7 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults,
     val start = System.currentTimeMillis()
     doSend()
     val end = System.currentTimeMillis()
-    reportResults.reportSendingComplete(start, end)
+    reportResults.reportSendingComplete(start, end, msgCount)
   }
 
   private def doSend() {

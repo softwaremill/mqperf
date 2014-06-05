@@ -3,8 +3,8 @@ package com.softwaremill.mqperf.config
 import com.amazonaws.services.s3.AmazonS3Client
 import scala.io.Source
 import scala.collection.JavaConversions._
-import java.io.File
-import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectRequest}
+import java.io.{ByteArrayInputStream, File}
+import com.amazonaws.services.s3.model.{ObjectMetadata, CannedAccessControlList, PutObjectRequest}
 
 class TestConfigOnS3 {
   private val s3Client = new AmazonS3Client(AWSCredentialsFromEnv())
@@ -38,8 +38,13 @@ class TestConfigOnS3 {
   }
 
   def write(file: File) {
+    val content = Source.fromFile(file).getLines().toList
+      .map(_.replace("$runid", System.currentTimeMillis().toString))
+
+    val is = new ByteArrayInputStream(content.mkString("\n").getBytes)
+
     s3Client.putObject(
-      new PutObjectRequest(bucketName, objectName, file)
+      new PutObjectRequest(bucketName, objectName, is, new ObjectMetadata())
         .withCannedAcl(CannedAccessControlList.PublicRead))
   }
 
