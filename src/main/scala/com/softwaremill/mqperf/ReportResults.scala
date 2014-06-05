@@ -6,9 +6,14 @@ import scala.util.Random
 import java.text.SimpleDateFormat
 import java.util.Date
 import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
+import com.amazonaws.regions.{Regions, Region}
 
 class ReportResults(testConfigName: String) {
-  private val dynamoClient = new AmazonDynamoDBClient(AWSCredentialsFromEnv())
+  private val dynamoClient = {
+    val c = new AmazonDynamoDBClient(AWSCredentialsFromEnv())
+    c.setRegion(Region.getRegion(Regions.EU_WEST_1))
+    c
+  }
   private val tableName = "mqperf-results"
 
   def reportSendingComplete(start: Long, end: Long) {
