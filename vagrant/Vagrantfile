@@ -29,7 +29,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     chef.json = {
       "sender" => {
         "image" => "adamw/mqperf:latest",
-        "cmdline" => [ "com.softwaremill.mqperf.Sender", "10", "x" ],
+        "cmdline" => [ "com.softwaremill.mqperf.Sender" ],
+        "env" => {
+          "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
+          "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY']
+        }
+      },
+      "receiver" => {
+        "image" => "adamw/mqperf:latest",
+        "cmdline" => [ "com.softwaremill.mqperf.Receiver" ],
         "env" => {
           "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
           "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY']
