@@ -1,4 +1,4 @@
-package com.softwaremill.mqperf
+package com.softwaremill.mqperf.config
 
 import org.json4s._
 import org.json4s.native._

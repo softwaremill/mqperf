@@ -1,6 +1,7 @@
 package com.softwaremill.mqperf
 
 import org.scalatest.{Matchers, FlatSpec}
+import com.softwaremill.mqperf.config.TestConfig
 
 class TestConfigTest extends FlatSpec with Matchers {
   it should "parse an example json" in {

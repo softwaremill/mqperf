@@ -1,4 +1,4 @@
-package com.softwaremill.mqperf
+package com.softwaremill.mqperf.config
 
 import com.amazonaws.auth.BasicAWSCredentials
 

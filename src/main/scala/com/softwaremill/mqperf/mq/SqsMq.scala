@@ -1,10 +1,10 @@
 package com.softwaremill.mqperf.mq
 
-import com.softwaremill.mqperf.AWSCredentialsFromEnv
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
 import scala.collection.JavaConverters._
 import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
+import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 
 class SqsMq extends Mq {
   private val asyncClient = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())

@@ -1,5 +1,7 @@
 package com.softwaremill.mqperf.mq
 
+import com.softwaremill.mqperf.config.TestConfig
+
 trait Mq {
   type MsgId
 
@@ -14,4 +16,10 @@ trait Mq {
    * Can be asynchronous
    */
   def ack(ids: List[MsgId])
+}
+
+object Mq {
+  def instantiate(testConfig: TestConfig) = {
+    Class.forName(testConfig.mqClassName).newInstance().asInstanceOf[Mq]
+  }
 }

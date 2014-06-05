@@ -5,6 +5,7 @@ import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import scala.util.Random
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 
 class ReportResults(testConfigName: String) {
   private val dynamoClient = new AmazonDynamoDBClient(AWSCredentialsFromEnv())
