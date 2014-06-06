@@ -37,9 +37,9 @@ class TestConfigOnS3 {
       .getOrElse(0)
   }
 
-  def write(file: File) {
+  def write(file: File, runId: String) {
     val content = Source.fromFile(file).getLines().toList
-      .map(_.replace("$runid", System.currentTimeMillis().toString))
+      .map(_.replace("$runid", runId))
 
     val is = new ByteArrayInputStream(content.mkString("\n").getBytes)
 
@@ -72,7 +72,8 @@ object WriteTestConfigOnS3 extends App {
     if (!sourceFile.exists()) {
       println(s"File ${sourceFile.getAbsolutePath} does not exist!")
     } else {
-      new TestConfigOnS3().write(sourceFile)
+      val runId = if (args.size >= 2) args(1) else System.currentTimeMillis().toString
+      new TestConfigOnS3().write(sourceFile, runId)
     }
   }
 }
