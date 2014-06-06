@@ -4,15 +4,22 @@ import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import scala.util.Random
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.softwaremill.mqperf.util.Retry._
 
 class ReportResults(testConfigName: String) extends DynamoResultsTable {
 
   def reportSendingComplete(start: Long, end: Long, msgsSent: Int) {
-    doReport(start, end, msgsSent, typeReceive)
+    tryDoReport(start, end, msgsSent, typeSend)
   }
 
   def reportReceivingComplete(start: Long, end: Long, msgsReceived: Int) {
-    doReport(start, end, msgsReceived, typeReceive)
+    tryDoReport(start, end, msgsReceived, typeReceive)
+  }
+
+  private def tryDoReport(start: Long, end: Long, msgsCount: Int, _type: String) {
+    retry(10, () => Thread.sleep(1000L)) {
+      doReport(start, end, msgsCount, _type)
+    }
   }
 
   private def doReport(start: Long, end: Long, msgsCount: Int, _type: String) {
