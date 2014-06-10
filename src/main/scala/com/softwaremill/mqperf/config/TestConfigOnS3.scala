@@ -65,7 +65,7 @@ class TestConfigOnS3 {
 object WriteTestConfigOnS3 extends App {
   if (args.size == 0) {
     println("Usage:")
-    println("java ... S3TestConfigWriter [testName]")
+    println("java ... S3TestConfigWriter [testName] [runid]")
     println("where [testName] is name of a file in the tests directory, without the .json suffix")
   } else {
     val sourceFile = new File(s"./tests/${args(0)}.json")
