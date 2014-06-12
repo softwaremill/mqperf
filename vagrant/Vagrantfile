@@ -42,13 +42,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
           "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY']
         }
+      },
+      "mongo" => {
+        "image" => "mongo",
+        "docker" => "-p 27017:27107"
       }
     }
  
     # Chef, use this recipe:
     chef.add_recipe "docker::setup"
     chef.add_recipe "docker::kill_containers"
-    chef.add_recipe "docker::sender"
+    chef.add_recipe "docker::mongo"
  
     # config.vm.synced_folder "localpath", "vmpath"
   end
