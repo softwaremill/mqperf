@@ -3,13 +3,15 @@ package com.softwaremill.mqperf.mq
 import com.mongodb.{DBObject, BasicDBObject, WriteConcern, MongoClient}
 import org.bson.types.ObjectId
 
-class MongoMq(client: MongoClient) extends Mq {
+class MongoMq(configMap: Map[String, String]) extends Mq {
 
   private val IdField = "_id"
   private val NextDeliveryField = "next_delivery"
   private val MessageField = "message"
 
   private val VisibilityTimeoutMillis = 10 * 1000L
+
+  private val client = new MongoClient(configMap("host"))
 
   private val db = client.getDB("mq")
 

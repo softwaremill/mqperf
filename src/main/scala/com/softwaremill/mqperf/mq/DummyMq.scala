@@ -1,6 +1,6 @@
 package com.softwaremill.mqperf.mq
 
-class DummyMq extends Mq {
+class DummyMq(configMap: Map[String, String]) extends Mq {
   override type MsgId = String
 
   override def send(msgs: List[String]) {}

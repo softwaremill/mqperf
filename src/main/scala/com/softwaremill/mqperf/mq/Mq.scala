@@ -20,6 +20,6 @@ trait Mq {
 
 object Mq {
   def instantiate(testConfig: TestConfig) = {
-    Class.forName(testConfig.mqClassName).newInstance().asInstanceOf[Mq]
+    Class.forName(testConfig.mqClassName).getConstructors()(0).newInstance(testConfig.mqConfigMap).asInstanceOf[Mq]
   }
 }

@@ -7,7 +7,7 @@ import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageReq
 import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 import com.amazonaws.regions.{Region, Regions}
 
-class SqsMq extends Mq {
+class SqsMq(configMap: Map[String, String]) extends Mq {
   private val asyncClient = {
     val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
     c.setRegion(Region.getRegion(Regions.EU_WEST_1))
