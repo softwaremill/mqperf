@@ -11,7 +11,8 @@ case class TestConfig(
   msgSize: Int,
   maxSendMsgBatchSize: Int,
   receiverThreads: Int,
-  receiveMsgBatchSize: Int) {
+  receiveMsgBatchSize: Int,
+  mqConfigMap: Map[String, String]) {
 
   def mqClassName = s"com.softwaremill.mqperf.mq.${mqType}Mq"
 }
@@ -19,6 +20,15 @@ case class TestConfig(
 object TestConfig {
   def from(json: String): TestConfig = {
     val parsed = parseJson(json)
+
+    val mqConfigPairs = for {
+      JObject(fields) <- parsed
+      JField("mq", JObject(mqFields)) <- fields
+      JField(mqFieldName, mqFieldValue) <- mqFields
+    } yield mqFieldName -> mqFieldValue.values.toString
+
+    val mqConfigMap = Map(mqConfigPairs: _*)
+
     val tcs = for {
       JObject(fields) <- parsed
       JField("name", JString(name)) <- fields
@@ -32,7 +42,8 @@ object TestConfig {
     } yield TestConfig(
       name, mqType,
       senderThreads.intValue(), msgCountPerThread.intValue(), msgSize.intValue(),
-      maxSendMsgBatchSize.intValue(), receiverThreads.intValue(), receiveMsgBatchSize.intValue())
+      maxSendMsgBatchSize.intValue(), receiverThreads.intValue(), receiveMsgBatchSize.intValue(),
+      mqConfigMap)
 
     tcs.headOption.getOrElse(throw new IllegalArgumentException(s"Invalid json: $json"))
   }
