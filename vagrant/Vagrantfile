@@ -45,7 +45,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       },
       "mongo" => {
         "image" => "mongo",
-        "docker" => "-p 27017:27107"
+        "docker" => "-p 27017:27017"
       }
     }
  
