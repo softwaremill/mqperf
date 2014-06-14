@@ -15,7 +15,7 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
 
   private val db = client.getDB("mq")
 
-  private val concern = WriteConcern.ACKNOWLEDGED
+  private val concern = WriteConcern.REPLICA_ACKNOWLEDGED
 
   private val coll = {
     val c = db.getCollection("mq")
