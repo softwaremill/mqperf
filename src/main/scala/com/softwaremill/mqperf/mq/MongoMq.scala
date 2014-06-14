@@ -31,66 +31,64 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
 
   override type MsgId = ObjectId
 
-  /**
-   * Synchronous - must wait for the messages to be sent
-   */
-  override def send(msgs: List[String]) = {
-    val docs = msgs.map { msg =>
-      val doc = new BasicDBObject()
-      doc.put(MessageField, msg)
-      doc.put(NextDeliveryField, System.currentTimeMillis())
-      doc
-    }
+  override def createSender() = new MqSender {
+    override def send(msgs: List[String]) = {
+      val docs = msgs.map { msg =>
+        val doc = new BasicDBObject()
+        doc.put(MessageField, msg)
+        doc.put(NextDeliveryField, System.currentTimeMillis())
+        doc
+      }
 
-    coll.insert(docs.toArray[DBObject], concern)
+      coll.insert(docs.toArray[DBObject], concern)
+    }
   }
 
-  override def receive(maxMsgCount: Int) = {
-    if (maxMsgCount == 0) {
-      Nil
-    } else {
-      receiveSingle() match {
-        case None => Nil
-        case Some(idAndMsg) => idAndMsg :: receive(maxMsgCount - 1)
+  override def createReceiver() = new MqReceiver {
+    override def receive(maxMsgCount: Int) = {
+      if (maxMsgCount == 0) {
+        Nil
+      } else {
+        receiveSingle() match {
+          case None => Nil
+          case Some(idAndMsg) => idAndMsg :: receive(maxMsgCount - 1)
+        }
       }
     }
-  }
 
-  private def receiveSingle() = {
-    val now = System.currentTimeMillis()
+    private def receiveSingle() = {
+      val now = System.currentTimeMillis()
 
-    val lteNow = new BasicDBObject()
-    lteNow.put("$lte", now)
+      val lteNow = new BasicDBObject()
+      lteNow.put("$lte", now)
 
-    val query = new BasicDBObject()
-    query.put(NextDeliveryField, lteNow)
+      val query = new BasicDBObject()
+      query.put(NextDeliveryField, lteNow)
 
-    val newNextDelivery = new BasicDBObject()
-    newNextDelivery.put(NextDeliveryField, now + VisibilityTimeoutMillis)
+      val newNextDelivery = new BasicDBObject()
+      newNextDelivery.put(NextDeliveryField, now + VisibilityTimeoutMillis)
 
-    val mutations = new BasicDBObject()
-    mutations.put("$set", newNextDelivery)
+      val mutations = new BasicDBObject()
+      mutations.put("$set", newNextDelivery)
 
-    val result = coll.findAndModify(query, mutations)
+      val result = coll.findAndModify(query, mutations)
 
-    if (result == null) {
-      None
-    } else {
-      val id = result.get(IdField).asInstanceOf[ObjectId]
-      val messageContent = result.get(MessageField).asInstanceOf[String]
-      Some((id, messageContent))
+      if (result == null) {
+        None
+      } else {
+        val id = result.get(IdField).asInstanceOf[ObjectId]
+        val messageContent = result.get(MessageField).asInstanceOf[String]
+        Some((id, messageContent))
+      }
     }
-  }
 
-  /**
-   * Can be asynchronous
-   */
-  override def ack(ids: List[MsgId]) = {
-    ids.foreach { id =>
-      val doc = new BasicDBObject()
-      doc.put(IdField, id)
+    override def ack(ids: List[MsgId]) = {
+      ids.foreach { id =>
+        val doc = new BasicDBObject()
+        doc.put(IdField, id)
 
-      coll.remove(doc, WriteConcern.UNACKNOWLEDGED)
+        coll.remove(doc, WriteConcern.UNACKNOWLEDGED)
+      }
     }
   }
 }

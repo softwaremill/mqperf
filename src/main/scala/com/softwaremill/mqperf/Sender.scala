@@ -29,6 +29,8 @@ object Sender extends App {
 class SenderRunnable(mq: Mq, reportResults: ReportResults,
   msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
 
+  private val mqSender = mq.createSender()
+
   override def run() = {
     val start = System.currentTimeMillis()
     doSend()
@@ -40,7 +42,7 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults,
     var leftToSend = msgCount
     while (leftToSend > 0) {
       val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
-      mq.send(List.fill(batchSize)(msg))
+      mqSender.send(List.fill(batchSize)(msg))
       leftToSend -= batchSize
     }
   }

@@ -29,6 +29,8 @@ class ReceiverRunnable(
   reportResults: ReportResults,
   receiveMsgBatchSize: Int) extends Runnable {
 
+  private val mqReceiver = mq.createReceiver()
+
   override def run() = {
     val start = System.currentTimeMillis()
     var lastReceived = System.currentTimeMillis()
@@ -48,10 +50,10 @@ class ReceiverRunnable(
   }
 
   private def doReceive() = {
-    val msgs = mq.receive(receiveMsgBatchSize)
+    val msgs = mqReceiver.receive(receiveMsgBatchSize)
     val ids = msgs.map(_._1)
     if (ids.size > 0) {
-      mq.ack(ids)
+      mqReceiver.ack(ids)
     }
 
     ids.size

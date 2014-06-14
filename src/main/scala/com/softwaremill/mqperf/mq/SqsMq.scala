@@ -20,22 +20,26 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override type MsgId = String
 
-  override def send(msgs: List[String]) = {
-    asyncClient.sendMessageBatch(queueUrl,
-      msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m) }.asJava
-    )
+  override def createSender() = new MqSender {
+    override def send(msgs: List[String]) = {
+      asyncClient.sendMessageBatch(queueUrl,
+        msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m)}.asJava
+      )
+    }
   }
 
-  override def receive(maxMsgCount: Int) = {
-    asyncBufferedClient
-      .receiveMessage(new ReceiveMessageRequest(queueUrl).withMaxNumberOfMessages(maxMsgCount))
-      .getMessages
-      .asScala
-      .map(m => (m.getReceiptHandle, m.getBody))
-      .toList
-  }
+  override def createReceiver() = new MqReceiver {
+    override def receive(maxMsgCount: Int) = {
+      asyncBufferedClient
+        .receiveMessage(new ReceiveMessageRequest(queueUrl).withMaxNumberOfMessages(maxMsgCount))
+        .getMessages
+        .asScala
+        .map(m => (m.getReceiptHandle, m.getBody))
+        .toList
+    }
 
-  override def ack(ids: List[MsgId]) = {
-    ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id)) }
+    override def ack(ids: List[MsgId]) = {
+      ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
+    }
   }
 }
