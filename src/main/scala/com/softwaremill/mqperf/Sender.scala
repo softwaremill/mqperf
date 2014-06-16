@@ -36,6 +36,7 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults,
     doSend()
     val end = System.currentTimeMillis()
     reportResults.reportSendingComplete(start, end, msgCount)
+    mqSender.close()
   }
 
   private def doSend() {

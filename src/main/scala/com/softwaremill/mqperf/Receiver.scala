@@ -47,6 +47,7 @@ class ReceiverRunnable(
     }
 
     reportResults.reportReceivingComplete(start, lastReceived, totalReceived)
+    mqReceiver.close()
   }
 
   private def doReceive() = {
