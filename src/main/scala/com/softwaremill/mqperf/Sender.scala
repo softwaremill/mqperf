@@ -23,6 +23,8 @@ object Sender extends App {
     }
 
     threads.foreach(_.join())
+
+    mq.close()
   }
 }
 

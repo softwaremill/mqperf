@@ -27,6 +27,8 @@ trait Mq {
 
   def createSender(): MqSender
   def createReceiver(): MqReceiver
+
+  def close() {}
 }
 
 object Mq {
