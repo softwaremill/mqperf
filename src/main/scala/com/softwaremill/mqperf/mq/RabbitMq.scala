@@ -44,7 +44,7 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
 
   override def createReceiver() = new MqReceiver {
     val channel = newChannel()
-    channel.basicQos(10, true) // fair dispatch - up to 10 unack can be received
+    channel.basicQos(configMap("qos").toInt, true) // fair dispatch - up to 10 unack can be received
 
     val consumer = new QueueingConsumer(channel)
     channel.basicConsume(QueueName, false, consumer)
