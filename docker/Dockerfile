@@ -7,9 +7,6 @@ FROM dockerfile/java
 # that's me!
 MAINTAINER Adam Warski, adam@warski.org
 
-# we need this because the workdir is modified in dockerfile/java
-WORKDIR /
-
 # run the (java) server as the daemon user
 USER daemon
 
