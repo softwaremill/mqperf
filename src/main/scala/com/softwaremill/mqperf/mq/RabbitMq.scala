@@ -11,8 +11,8 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
   val props = new AMQP.BasicProperties.Builder().deliveryMode(2).contentType("text/plain").build()
   val cf = new ConnectionFactory()
   cf.setHost(configMap("host"))
-  cf.setUsername("admin")
-  cf.setPassword("password")
+  cf.setUsername("guest")
+  cf.setPassword("guest")
   val conn = cf.newConnection()
 
   override type MsgId = Long
