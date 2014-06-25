@@ -38,10 +38,6 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
 
       channel.waitForConfirms()
     }
-
-    override def close() {
-      channel.close()
-    }
   }
 
   override def createReceiver() = new MqReceiver {
@@ -73,10 +69,6 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
       ids.foreach { id =>
         channel.basicAck(id, false)
       }
-    }
-
-    override def close() {
-      channel.close()
     }
   }
 }
