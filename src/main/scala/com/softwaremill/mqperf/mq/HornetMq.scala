@@ -116,7 +116,7 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
 }
 
 object X1 extends App {
-  val cfg = Map("host" -> "localhost", "port" -> "5445")
+  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
   val mq = new HornetMq(cfg)
   val sender = mq.createSender()
   sender.send(List("1", "2", "3", "4", "5"))
@@ -126,7 +126,7 @@ object X1 extends App {
 }
 
 object X2 extends App {
-  val cfg = Map("host" -> "localhost", "port" -> "5445")
+  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
   val mq = new HornetMq(cfg)
   val receiver = mq.createReceiver()
   val msgs = receiver.receive(1)
