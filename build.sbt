@@ -13,6 +13,8 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.2.9",
   "org.mongodb" % "mongo-java-driver" % "2.12.2",
   "com.rabbitmq" % "amqp-client" % "3.3.2",
+  "org.hornetq" % "hornetq-native" % "2.4.0.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.0.Final/hornetq-native-2.4.0.Final.jar",
+  "org.hornetq" % "hornetq-core-client" % "2.4.0.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-core-client/2.4.0.Final/hornetq-core-client-2.4.0.Final.jar",
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "org.slf4j" % "jcl-over-slf4j" % "1.7.7",
