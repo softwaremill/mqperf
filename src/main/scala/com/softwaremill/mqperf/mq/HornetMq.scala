@@ -1,9 +1,7 @@
 package com.softwaremill.mqperf.mq
 
-import java.util.concurrent.Semaphore
-
+import org.hornetq.api.core.TransportConfiguration
 import org.hornetq.api.core.client._
-import org.hornetq.api.core.{Message, TransportConfiguration}
 import org.hornetq.core.remoting.impl.netty.{NettyConnectorFactory, TransportConstants}
 
 import scala.annotation.tailrec
@@ -28,13 +26,12 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
 
     sl.setConfirmationWindowSize(1048576)
 
-    sl.setBlockOnDurableSend(false)
     sl.setBlockOnAcknowledge(false)
 
     sl
   }
 
-  def createSession(sf: ClientSessionFactory) = sf.createSession(true, true, 0)
+  def createSession(sf: ClientSessionFactory) = sf.createSession(false, true, 0)
 
   val sf = {
     val sf = serverLocator.createSessionFactory()
@@ -56,13 +53,6 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
     val session = createSession(sf)
     val producer = session.createProducer(QueueName)
 
-    val semaphore = new Semaphore(0)
-    session.setSendAcknowledgementHandler(new SendAcknowledgementHandler {
-      override def sendAcknowledged(message: Message) = {
-        semaphore.release(1)
-      }
-    })
-
     override def send(msgs: List[String]) {
       for (rawMsg <- msgs) {
         val msg = session.createMessage(true)
@@ -70,7 +60,7 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
         producer.send(msg)
       }
 
-      semaphore.acquire(msgs.size)
+      session.commit()
     }
 
     override def close() {
@@ -116,22 +106,38 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
 }
 
 object X1 extends App {
-  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
+  val cfg = Map("host" -> "localhost", "port" -> "5445")
+//  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
   val mq = new HornetMq(cfg)
   val sender = mq.createSender()
-  sender.send(List("1", "2", "3", "4", "5"))
+  val start = System.currentTimeMillis()
+  for (j <- 1 to 10) {
+    sender.send((for (i <- 1 to 10) yield "m" + i).toList)
+    val end = System.currentTimeMillis()
+    println("I", end-start)
+  }
+  val end = System.currentTimeMillis()
+  println((end-start)/1000L)
   //sender.send(List("a", "b", "c", "d", "e", "f", "g", "h"))
   sender.close()
   mq.close()
 }
 
 object X2 extends App {
-  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
+  val cfg = Map("host" -> "localhost", "port" -> "5445")
+  //  val cfg = Map("host" -> "ec2-54-220-200-183.eu-west-1.compute.amazonaws.com", "port" -> "5445")
   val mq = new HornetMq(cfg)
   val receiver = mq.createReceiver()
-  val msgs = receiver.receive(1)
-  println(msgs.map(_._2))
-  receiver.ack(msgs.map(_._1))
+  val start = System.currentTimeMillis()
+  for (j <- 1 to 10) {
+    val msgs = receiver.receive(1)
+    println(msgs.map(_._2))
+    receiver.ack(msgs.map(_._1))
+    val end = System.currentTimeMillis()
+    println("I", end-start)
+  }
+  val end = System.currentTimeMillis()
+  println((end-start)/1000L)
   receiver.close()
   mq.close()
 }
