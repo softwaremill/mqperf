@@ -38,8 +38,9 @@ object ShowStats extends App with DynamoResultsTable {
     results.foreach { r =>
       println("%05.2f m/s: %dms, %d messages (%s -> %s)".format(r.msgsPerSecond, r.took, r.msgsCount, r.start, r.end))
     }
-    val avg = results.map(_.msgsCount).sum.toDouble / results.map(_.took).sum * 1000
-    println("Average: %05.2f msgs/second".format(avg))
+    val totalMsgs = results.map(_.msgsCount).sum
+    val avg = totalMsgs.toDouble / results.map(_.took).sum * 1000
+    println("Average: %05.2f msgs/second (%d msgs)".format(avg, totalMsgs))
 
     println("---\n")
   }
