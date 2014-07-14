@@ -1,19 +1,22 @@
 package com.softwaremill.mqperf.mq
 
 import java.util.Properties
-import java.util.concurrent.{ConcurrentLinkedQueue, Executors}
+import java.util.concurrent.{ConcurrentLinkedQueue, Semaphore}
 
-import kafka.consumer.{Consumer, ConsumerConfig}
-import kafka.producer.{KeyedMessage, ProducerConfig, Producer}
+import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, KafkaStream}
+import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
-
-import scala.annotation.tailrec
 
 class KafkaMq(configMap: Map[String, String]) extends Mq {
   private val GroupId = "mq-group"
   private val Topic = "mq"
 
   override type MsgId = String
+
+  // assuming that the topic is created
+  // replication factor: 3; number of partitions: at least the number of threads
+
+  private var onClose = () => ()
 
   override def createSender() = new MqSender {
     val producersProps = new Properties()
@@ -29,78 +32,112 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     }
   }
 
-  override def createReceiver() = new MqReceiver {
+  // will only be run for receivers
+  lazy val (receiverStreams, commitSemaphore) = {
     val consumerProps = new Properties()
     consumerProps.put("zookeeper.connect", configMap("zookeeper"))
     consumerProps.put("group.id", GroupId)
-    consumerProps.put("auto.commit.interval.ms", "1000")
+    consumerProps.put("auto.commit.enable", "false")
+    consumerProps.put("auto.offset.reset", "smallest")
+    consumerProps.put("consumer.timeout.ms", "10000") // 10 seconds
 
     val consumerConfig = new ConsumerConfig(consumerProps)
     val consumerConnector = Consumer.create(consumerConfig)
 
+    onClose = () => consumerConnector.shutdown()
+
+    // This must be the same as the number of receiver threads. We have to know the number of threads upfront.
     val consumerThreads = configMap("consumerThreads").toInt
 
-    // with Kafka consumers, thread number must be known upfront, so we are always going to use 1 receiver
-    // thread, and create threads here.
-    val messageStreams = consumerConnector.createMessageStreams(
+    val commitSemaphore = new Semaphore(consumerThreads)
+    val commitMs = configMap("commitMs").toLong
+
+    val commitOffsetsThread = new Thread() {
+      override def run() = {
+        while (true) {
+          Thread.sleep(commitMs)
+
+          commitSemaphore.acquire(consumerThreads)
+          consumerConnector.commitOffsets
+          commitSemaphore.release()
+        }
+      }
+    }
+    commitOffsetsThread.setDaemon(true)
+    commitOffsetsThread.start()
+
+    val streams = consumerConnector.createMessageStreams(
       Map(Topic -> consumerThreads),
       new StringDecoder(),
       new StringDecoder()).apply(Topic)
 
-    val executor = Executors.newFixedThreadPool(consumerThreads)
+    val streamsQueue = new ConcurrentLinkedQueue[KafkaStream[String, String]]()
+    streams.foreach(streamsQueue.offer)
 
-    val msgQueue = new ConcurrentLinkedQueue[String]()
+    (streamsQueue, commitSemaphore)
+  }
 
-    messageStreams.foreach { stream =>
-      executor.submit(new Runnable() {
-        override def run() = {
-          val it = stream.iterator()
-          while (it.hasNext()) {
-            msgQueue.add(it.next().message())
-          }
+  override def createReceiver() = new MqReceiver {
+    val it = receiverStreams.poll().iterator()
+
+    override def receive(maxMsgCount: Int) = {
+      commitSemaphore.acquire()
+
+      var msgs: List[(String, String)] = Nil
+
+      try {
+        while (msgs.size < maxMsgCount && it.hasNext()) {
+          val msg = it.next().message()
+          msgs = (msg, msg) :: msgs
         }
-      })
-    }
 
-    override def receive(maxMsgCount: Int) = doReceive(Nil, waitForMsgs = true, maxMsgCount)
-
-    @tailrec
-    private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Boolean, count: Int): List[(MsgId, String)] = {
-      if (count == 0) {
-        acc
-      } else {
-        val msg = msgQueue.poll()
-        if (msg == null) {
-          if (waitForMsgs) {
-            Thread.sleep(1000L)
-            doReceive(acc, waitForMsgs, count)
-          } else {
-            acc
-          }
-        } else {
-          doReceive((msg, msg) :: acc, waitForMsgs = false, count-1)
-        }
+        msgs
+      } catch {
+        case e: ConsumerTimeoutException => msgs
       }
     }
 
     override def ack(ids: List[MsgId]) {
-      // not supported by the high-level Kafka consumer
+      // ids are ignored - we allow ack-ing all received messages asynchronously
+      commitSemaphore.release()
     }
+  }
 
-    override def close() {
-      consumerConnector.shutdown()
-      executor.shutdownNow()
-    }
+  override def close() = {
+    onClose()
   }
 }
 
+object KafkaMqTest {
+  val config = Map(
+    "host" -> "localhost:9092",
+    "acks" -> "1",
+    "zookeeper" -> "localhost:2181",
+    "consumerThreads" -> "1",
+    "commitMs" -> "1000")
+}
+
 object KafkaMqTestSend extends App {
-  val config = Map("host" -> "localhost:9092", "acks" -> "1", "zookeeper" -> "", "consumerThreads" -> "1")
-  val mq = new KafkaMq(config)
+  val mq = new KafkaMq(KafkaMqTest.config)
 
   val sender = mq.createSender()
   sender.send(List("1a", "2b", "3c"))
   sender.close()
+
+  mq.close()
+}
+
+object KafkaMqTestReceive extends App {
+  val mq = new KafkaMq(KafkaMqTest.config)
+
+  val receiver = mq.createReceiver()
+  val msgs = receiver.receive(2)
+  println(msgs.map(_._2))
+  receiver.ack(msgs.map(_._1))
+
+  Thread.sleep(5000L)
+
+  receiver.close()
 
   mq.close()
 }
