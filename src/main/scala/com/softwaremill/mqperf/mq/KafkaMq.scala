@@ -85,7 +85,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
 
       var msgs: List[(String, String)] = Nil
 
-      try {
+      val result = try {
         while (msgs.size < maxMsgCount && it.hasNext()) {
           val msg = it.next().message()
           msgs = (msg, msg) :: msgs
@@ -94,7 +94,17 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
         msgs
       } catch {
         case e: ConsumerTimeoutException => msgs
+        case e: Exception => {
+          commitSemaphore.release()
+          throw e
+        }
       }
+
+      if (result.size == 0) {
+        commitSemaphore.release()
+      }
+
+      result
     }
 
     override def ack(ids: List[MsgId]) {
