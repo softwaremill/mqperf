@@ -71,6 +71,9 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     onClose = () => {
       commitOffsetsThread.interrupt()
       commitOffsetsThread.join()
+
+      consumerConnector.commitOffsets
+
       consumerConnector.shutdown()
     }
 
