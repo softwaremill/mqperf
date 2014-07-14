@@ -61,7 +61,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
 
           commitSemaphore.acquire(consumerThreads)
           consumerConnector.commitOffsets
-          commitSemaphore.release()
+          commitSemaphore.release(consumerThreads)
         }
       }
     }
