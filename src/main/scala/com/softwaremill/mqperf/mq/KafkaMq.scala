@@ -48,8 +48,6 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     val consumerConfig = new ConsumerConfig(consumerProps)
     val consumerConnector = Consumer.create(consumerConfig)
 
-    onClose = () => consumerConnector.shutdown()
-
     // This must be the same as the number of receiver threads. We have to know the number of threads upfront.
     val consumerThreads = configMap("consumerThreads").toInt
 
@@ -69,6 +67,12 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     }
     commitOffsetsThread.setDaemon(true)
     commitOffsetsThread.start()
+
+    onClose = () => {
+      commitOffsetsThread.interrupt()
+      commitOffsetsThread.join()
+      consumerConnector.shutdown()
+    }
 
     val streams = consumerConnector.createMessageStreams(
       Map(Topic -> consumerThreads),
