@@ -59,7 +59,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
         while (true) {
           Thread.sleep(commitMs)
 
-          commitSemaphore.acquire(consumerThreads)
+          for (i <- 1 to consumerThreads) commitSemaphore.acquire()
           consumerConnector.commitOffsets
           commitSemaphore.release(consumerThreads)
         }
