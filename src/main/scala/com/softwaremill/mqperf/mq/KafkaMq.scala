@@ -7,6 +7,8 @@ import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, Kafka
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 
+import scala.util.Random
+
 class KafkaMq(configMap: Map[String, String]) extends Mq {
   private val GroupId = "mq-group"
   private val Topic = "mq"
@@ -27,8 +29,10 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     val producerConfig = new ProducerConfig(producersProps)
     val producer = new Producer[String, String](producerConfig)
 
+    val r = new Random()
+
     override def send(msgs: List[String]) {
-      producer.send(msgs.map(msg => new KeyedMessage[String, String](Topic, msg)): _*)
+      producer.send(msgs.map(msg => new KeyedMessage[String, String](Topic, r.nextString(5), msg)): _*)
     }
   }
 
