@@ -1,8 +1,10 @@
 package com.softwaremill.mqperf.mq
 
 import java.util.Properties
-import java.util.concurrent.{ConcurrentLinkedQueue, Semaphore}
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
+import com.softwaremill.mqperf.{ReceiverRunnable, ReportResults}
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, KafkaStream}
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
@@ -37,7 +39,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
   }
 
   // will only be run for receivers
-  lazy val (receiverStreams, commitSemaphore) = {
+  lazy val (receiverStreams, commitLock) = {
     val consumerProps = new Properties()
     consumerProps.put("zookeeper.connect", configMap("zookeeper"))
     consumerProps.put("group.id", GroupId)
@@ -51,17 +53,16 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     // This must be the same as the number of receiver threads. We have to know the number of threads upfront.
     val consumerThreads = configMap("consumerThreads").toInt
 
-    val commitSemaphore = new Semaphore(consumerThreads)
+    val commitLock = new ReentrantReadWriteLock()
     val commitMs = configMap("commitMs").toLong
 
     val commitOffsetsThread = new Thread() {
       override def run() = {
         while (true) {
           Thread.sleep(commitMs)
-
-          for (i <- 1 to consumerThreads) commitSemaphore.acquire()
+          commitLock.writeLock().lockInterruptibly()
           consumerConnector.commitOffsets
-          commitSemaphore.release(consumerThreads)
+          commitLock.writeLock().unlock()
         }
       }
     }
@@ -85,14 +86,14 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
     val streamsQueue = new ConcurrentLinkedQueue[KafkaStream[String, String]]()
     streams.foreach(streamsQueue.offer)
 
-    (streamsQueue, commitSemaphore)
+    (streamsQueue, commitLock)
   }
 
   override def createReceiver() = new MqReceiver {
     val it = receiverStreams.poll().iterator()
 
     override def receive(maxMsgCount: Int) = {
-      commitSemaphore.acquire()
+      commitLock.readLock().lockInterruptibly()
 
       var msgs: List[(String, String)] = Nil
 
@@ -105,14 +106,13 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
         msgs
       } catch {
         case e: ConsumerTimeoutException => msgs
-        case e: Exception => {
-          commitSemaphore.release()
+        case e: Exception =>
+          commitLock.readLock().unlock()
           throw e
-        }
       }
 
       if (result.size == 0) {
-        commitSemaphore.release()
+        commitLock.readLock().unlock()
       }
 
       result
@@ -120,7 +120,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
 
     override def ack(ids: List[MsgId]) {
       // ids are ignored - we allow ack-ing all received messages asynchronously
-      commitSemaphore.release()
+      commitLock.readLock().unlock()
     }
   }
 
@@ -134,18 +134,24 @@ object KafkaMqTest {
     "host" -> "localhost:9092",
     "acks" -> "1",
     "zookeeper" -> "localhost:2181",
-    "consumerThreads" -> "1",
+    "consumerThreads" -> "2",
     "commitMs" -> "1000")
 }
 
 object KafkaMqTestSend extends App {
   val mq = new KafkaMq(KafkaMqTest.config)
 
+  val start = System.currentTimeMillis()
+
   val sender = mq.createSender()
-  sender.send(List("1a", "2b", "3c"))
+  for (i <- 1 to 100000) {
+    sender.send(List("a", "b", "c", "d", "e", "f", "g", "h", "i", "j").map(_ + i))
+  }
   sender.close()
 
   mq.close()
+
+  println("Done " + (System.currentTimeMillis() - start))
 }
 
 object KafkaMqTestReceive extends App {
@@ -159,6 +165,26 @@ object KafkaMqTestReceive extends App {
   Thread.sleep(5000L)
 
   receiver.close()
+
+  mq.close()
+}
+
+object KafkaMqTestReceive2 extends App {
+  println(s"Starting test (receiver)")
+
+  val mq = new KafkaMq(KafkaMqTest.config)
+  val report = new ReportResults("x")
+  val rr = new ReceiverRunnable(
+    mq, report, 10
+  )
+
+  val threads = (1 to 2).map { _ =>
+    val t = new Thread(rr)
+    t.start()
+    t
+  }
+
+  threads.foreach(_.join())
 
   mq.close()
 }
