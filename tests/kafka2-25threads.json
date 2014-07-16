@@ -1,17 +1,17 @@
 {
-    "name": "kafka-1thread-$runid",
+    "name": "kafka2-25threads-$runid",
     "mq_type": "Kafka"
-    "sender_threads": 1,
+    "sender_threads": 25,
     "msg_count_per_thread": 500000,
     "msg_size": 100,
     "max_send_msg_batch_size": 10,
-    "receiver_threads": 1,
+    "receiver_threads": 25,
     "receive_msg_batch_size": 1,
     "mq": {
         "host": "ip-10-83-0-233.eu-west-1.compute.internal:9092",
         "acks": 1,
         "zookeeper": "ip-10-83-0-233.eu-west-1.compute.internal:2181",
-        "consumerThreads": 1,
-        "commitMs": 1000
+        "consumerThreads": 25,
+        "commitMs": 10000
     }
 }

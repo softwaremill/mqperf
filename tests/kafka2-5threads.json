@@ -1,5 +1,5 @@
 {
-    "name": "kafka-5threads-$runid",
+    "name": "kafka2-5threads-$runid",
     "mq_type": "Kafka"
     "sender_threads": 5,
     "msg_count_per_thread": 500000,
@@ -12,6 +12,6 @@
         "acks": 1,
         "zookeeper": "ip-10-83-0-233.eu-west-1.compute.internal:2181",
         "consumerThreads": 5,
-        "commitMs": 1000
+        "commitMs": 10000
     }
 }

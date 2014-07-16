@@ -40,6 +40,7 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable {
       .addItemEntry(typeColumn, new AttributeValue(_type))
     )
 
+    println("Wrote to dynamo")
     println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
   }
 

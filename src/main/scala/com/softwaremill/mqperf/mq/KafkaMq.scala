@@ -5,13 +5,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import com.softwaremill.mqperf.{ReceiverRunnable, ReportResults}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, KafkaStream}
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 
 import scala.util.Random
 
-class KafkaMq(configMap: Map[String, String]) extends Mq {
+class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
   private val GroupId = "mq-group"
   private val Topic = "mq"
 
@@ -61,6 +62,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq {
         while (true) {
           Thread.sleep(commitMs)
           commitLock.writeLock().lockInterruptibly()
+          logger.info("Commiting offsets")
           consumerConnector.commitOffsets
           commitLock.writeLock().unlock()
         }
