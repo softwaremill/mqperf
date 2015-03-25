@@ -3,12 +3,6 @@ mqperf
 
 Client jar deployment
 
-* create a docker-enabled AMI based on Ubuntu 12.04 AMI (ami-ad4f82da,
-http://cloud-images.ubuntu.com/releases/precise/release/)
-
-* follow http://www.shopigniter.com/blog/2014/04/01/deploying-docker-with-opsworks/
-to setup docker+opsworks
-
 * in the sbt build, setup assembly plugin to create app and dep jars
 
 * create a dockerfile which creates an image with the jars, and a script to run it
@@ -18,7 +12,7 @@ using jars only if they have been modified
 
 Remote:
 
-* setup an opsworks stack using the custom AMI. All config should go into the custom JSON
+* setup an opsworks stack using the Ubuntu 14.04 AMI. All config should go into the custom stack JSON
 
 * setup an opsworks layer for the client, using the custom recipes
 
