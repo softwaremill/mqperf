@@ -4,6 +4,7 @@ import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 
 object Receiver extends App {
+  println("Starting receiver...")
   new TestConfigOnS3().whenChanged { testConfig =>
     println(s"Starting test (receiver) with config: $testConfig")
 

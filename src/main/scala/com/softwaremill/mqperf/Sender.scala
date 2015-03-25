@@ -5,6 +5,7 @@ import scala.util.Random
 import com.softwaremill.mqperf.config.TestConfigOnS3
 
 object Sender extends App {
+  println("Starting sender...")
   new TestConfigOnS3().whenChanged { testConfig =>
     println(s"Starting test (sender) with config: $testConfig")
 
