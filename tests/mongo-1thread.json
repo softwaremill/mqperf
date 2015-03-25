@@ -1,6 +1,6 @@
 {
     "name": "mongo-1thread-$runid",
-    "mq_type": "Mongo"
+    "mq_type": "Mongo",
     "sender_threads": 1,
     "msg_count_per_thread": 250000,
     "msg_size": 100,
