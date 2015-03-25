@@ -35,7 +35,7 @@ mkdir -p target
 jars=( mqperf-assembly-1.0-deps.jar mqperf-assembly-1.0.jar )
 for jar in ${jars[@]}
 do
-    copy_if_changed $jar ../target/scala-2.10 target
+    copy_if_changed $jar ../target/scala-2.11 target
 done
 
 #

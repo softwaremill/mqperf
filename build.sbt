@@ -23,7 +23,8 @@ libraryDependencies ++= Seq(
     exclude("javax.jms", "jms")
     exclude("com.sun.jdmk", "jmxtools")
     exclude("com.sun.jmx", "jmxri")
-    exclude("log4j", "log4j"),
+    exclude("log4j", "log4j")
+    exclude("org.slf4j", "slf4j-log4j12"),
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "com.geteventstore" %% "eventstore-client" % "2.0.1"
 )
