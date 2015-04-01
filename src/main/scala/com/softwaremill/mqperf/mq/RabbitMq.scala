@@ -56,7 +56,7 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
       if (count == 0) {
         acc
       } else {
-        val delivery = consumer.nextDelivery(1000L)
+        val delivery = consumer.nextDelivery(waitForMsgs)
         if (delivery == null) {
           acc
         } else {
