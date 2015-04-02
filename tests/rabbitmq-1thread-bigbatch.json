@@ -2,13 +2,13 @@
     "name": "rabbitmq-1thread-bigbatch-$runid",
     "mq_type": "Rabbit",
     "sender_threads": 1,
-    "msg_count_per_thread": 100000,
+    "msg_count_per_thread": 300000,
     "msg_size": 100,
     "max_send_msg_batch_size": 100,
     "receiver_threads": 1,
     "receive_msg_batch_size": 10,
     "mq": {
-        "host": "ip-10-82-145-42.eu-west-1.compute.internal",
-        "qos": 10
+        "host": "ip-10-103-209-202.eu-west-1.compute.internal",
+        "qos": 100
     }
 }

@@ -10,13 +10,27 @@ object ShowStats extends App with DynamoResultsTable {
   }
 
   private def fetchResultsWithPrefix(prefix: String): List[Result] = {
-    val items = dynamoClient
-      .scan(
-        new ScanRequest(tableName).addScanFilterEntry(resultNameColumn,
-          new Condition()
-            .withComparisonOperator(ComparisonOperator.BEGINS_WITH)
-            .withAttributeValueList(new AttributeValue(prefix))))
-      .getItems
+    val condition = new Condition()
+      .withComparisonOperator(ComparisonOperator.BEGINS_WITH)
+      .withAttributeValueList(new AttributeValue(prefix))
+
+    def doFetch(lastEvaluatedKey: Option[java.util.Map[String, AttributeValue]]): java.util.List[java.util.Map[String, AttributeValue]] = {
+      val req1 = new ScanRequest(tableName).addScanFilterEntry(resultNameColumn, condition)
+      val req2 = lastEvaluatedKey.map(req1.withExclusiveStartKey).getOrElse(req1)
+
+      val result = dynamoClient.scan(req2)
+
+      val items = result.getItems
+      val newLastEvaluatedKey = result.getLastEvaluatedKey
+
+      if (newLastEvaluatedKey != null && newLastEvaluatedKey.size() > 0) {
+        items.addAll(doFetch(Some(newLastEvaluatedKey)))
+      }
+
+      items
+    }
+
+    val items = doFetch(None)
 
     items
       .map(i => Result(
