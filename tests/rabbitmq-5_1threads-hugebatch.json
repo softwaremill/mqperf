@@ -1,10 +1,10 @@
 {
-    "name": "rabbitmq-5_1threads-bigbatch-$runid",
+    "name": "rabbitmq-5_1threads-hugebatch-$runid",
     "mq_type": "Rabbit",
     "sender_threads": 5,
     "msg_count_per_thread": 200000,
     "msg_size": 100,
-    "max_send_msg_batch_size": 100,
+    "max_send_msg_batch_size": 1000,
     "receiver_threads": 1,
     "receive_msg_batch_size": 10,
     "mq": {
