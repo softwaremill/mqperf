@@ -26,7 +26,8 @@ libraryDependencies ++= Seq(
     exclude("log4j", "log4j")
     exclude("org.slf4j", "slf4j-log4j12"),
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-  "com.geteventstore" %% "eventstore-client" % "2.0.2"
+  "com.geteventstore" %% "eventstore-client" % "2.0.2",
+  "org.apache.activemq" % "activemq-client" % "5.11.1"
 )
 
 assemblyOption in assembly ~= { _.copy(includeBin = true, includeScala = false, includeDependency = false) }
