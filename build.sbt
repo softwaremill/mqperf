@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.13.0",
   "com.rabbitmq" % "amqp-client" % "3.5.0",
   "org.hornetq" % "hornetq-native" % "2.4.5.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.5.Final/hornetq-native-2.4.5.Final.jar",
-  "org.hornetq" % "hornetq-core-client" % "2.4.5.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-core-client/2.4.5.Final/hornetq-core-client-2.4.5.Final.jar",
+  "org.hornetq" % "hornetq-core-client" % "2.4.5.Final",
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.3",
   "org.slf4j" % "jcl-over-slf4j" % "1.7.10",
