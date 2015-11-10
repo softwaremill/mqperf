@@ -5,7 +5,7 @@ import com.softwaremill.mqperf.mq.Mq
 
 object Receiver extends App {
   println("Starting receiver...")
-  (if (args.length == 0) new TestConfigOnS3() else new TestConfigOnS3(args(0))).whenChanged { testConfig =>
+  TestConfigOnS3.create(args).whenChanged { testConfig =>
     println(s"Starting test (receiver) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)

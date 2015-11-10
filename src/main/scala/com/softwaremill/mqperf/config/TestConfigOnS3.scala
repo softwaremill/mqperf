@@ -63,6 +63,16 @@ class TestConfigOnS3(private val objectName: String) {
   }
 }
 
+object TestConfigOnS3 {
+  def create(args:Array[String]):TestConfigOnS3 = {
+    if(args.length == 0) {
+      new TestConfigOnS3("test_config.json")
+    } else {
+      new TestConfigOnS3(args(0))
+    }
+  }
+}
+
 object WriteTestConfigOnS3 extends App {
   if (args.size == 0) {
     println("Usage:")
