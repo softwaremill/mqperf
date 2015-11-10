@@ -6,11 +6,12 @@ import scala.collection.JavaConversions._
 import java.io.{ByteArrayInputStream, File}
 import com.amazonaws.services.s3.model.{ObjectMetadata, CannedAccessControlList, PutObjectRequest}
 
-class TestConfigOnS3 {
+class TestConfigOnS3(private val objectName: String) {
   private val s3Client = new AmazonS3Client(AWSCredentialsFromEnv())
   private val bucketName = "mqperf"
-  private val objectName = "test_config.json"
   private val whenChangedPollEveryMs = 1000L
+
+  def this() = this("test_config.json")
 
   def read(): String = {
     val exists = s3Client
@@ -58,6 +59,16 @@ class TestConfigOnS3 {
       }
 
       lastMod = newMod
+    }
+  }
+}
+
+object TestConfigOnS3 {
+  def create(args:Array[String]):TestConfigOnS3 = {
+    if(args.length == 0) {
+      new TestConfigOnS3("test_config.json")
+    } else {
+      new TestConfigOnS3(args(0))
     }
   }
 }
