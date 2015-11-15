@@ -2,11 +2,26 @@ import AssemblyKeys._
 
 assemblySettings
 
+lazy val commonSettings = Seq(
+  version := "1.0",
+  scalaVersion := "2.11.6"
+)
+
+lazy val root = (project in file(".")).
+  settings(commonSettings: _*)
+
+lazy val oracleaq = project.in(file("oracleaq")).
+  dependsOn(root).
+  settings(commonSettings: _*).
+  settings(name := "mqperfext").
+  settings(libraryDependencies ++= Seq(
+    "com.oracle" % "aqapi_2.11" % "1.0.0",
+    "com.oracle" % "ojdbc6_2.11" % "1.0.0",
+    "javax.transaction" % "jta" % "1.1"
+  )
+  )
+
 name := "mqperf"
-
-version := "1.0"
-
-scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk" % "1.9.25" exclude("commons-logging", "commons-logging"),
