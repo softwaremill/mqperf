@@ -25,3 +25,22 @@ Local:
 * create a vagrantfile based on http://brunobuccolo.com/vagrant-chef-and-opsworks/
 
 * use the same recipes as in opsworks
+
+Oracle AQ support:
+
+* to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
+    * aqapi.jar (oracle/product/11.2.0/dbhome_1/rdbms/jlib/aqapi.jar)
+    * ojdbc6.jar (oracle/product/11.2.0/dbhome_1/jdbc/lib/ojdbc6.jar)
+
+* to install a dependency in your local repository, create a build.sbt file:
+```
+organization := "com.oracle"
+name := "ojdbc6"
+version := "1.0.0"
+scalaVersion := "2.11.6"
+packageBin in Compile := file(s"${name.value}.jar")
+```
+Now you can publish the file. It should be available in ~/.ivy2/local/com.oracle/
+```sh
+$ sbt publishLocal
+```
