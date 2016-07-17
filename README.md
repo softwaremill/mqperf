@@ -22,7 +22,7 @@ Remote:
 
 Local:
 
-* create a vagrantfile based on http://brunobuccolo.com/vagrant-chef-and-opsworks/
+* create a vagrantfile based on https://github.com/wwestenbrink/vagrant-opsworks
 
 * use the same recipes as in opsworks
 
