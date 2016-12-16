@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import com.softwaremill.mqperf.{ReceiverRunnable, ReportResults}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerTimeoutException, KafkaStream}
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder

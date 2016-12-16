@@ -25,21 +25,21 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.5.0",
   "org.mongodb" % "mongodb-driver" % "3.4.0",
   "com.rabbitmq" % "amqp-client" % "3.5.0",
-  "org.hornetq" % "hornetq-native" % "2.4.5.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.5.Final/hornetq-native-2.4.5.Final.jar",
-  "org.hornetq" % "hornetq-core-client" % "2.4.5.Final" exclude("org.hornetq", "hornetq-native"),
-  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
-  "ch.qos.logback" % "logback-classic" % "1.1.3",
-  "org.slf4j" % "jcl-over-slf4j" % "1.7.10",
-  "org.slf4j" % "log4j-over-slf4j" % "1.7.10",
-  "org.apache.kafka" %% "kafka" % "0.8.2.1"
+  "org.hornetq" % "hornetq-native" % "2.4.7.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.7.Final/hornetq-native-2.4.7.Final.jar",
+  "org.hornetq" % "hornetq-core-client" % "2.4.7.Final" exclude("org.hornetq", "hornetq-native"),
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+  "ch.qos.logback" % "logback-classic" % "1.1.7",
+  "org.slf4j" % "jcl-over-slf4j" % "1.7.22",
+  "org.slf4j" % "log4j-over-slf4j" % "1.7.22",
+  "org.apache.kafka" %% "kafka" % "0.10.1.0"
     exclude("javax.jms", "jms")
     exclude("com.sun.jdmk", "jmxtools")
     exclude("com.sun.jmx", "jmxri")
     exclude("log4j", "log4j")
     exclude("org.slf4j", "slf4j-log4j12"),
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-  "com.geteventstore" %% "eventstore-client" % "2.0.2",
-  "org.apache.activemq" % "activemq-client" % "5.11.1"
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+  "com.geteventstore" %% "eventstore-client" % "3.0.4",
+  "org.apache.activemq" % "activemq-client" % "5.14.2"
 )
 
 assemblyOption in assembly ~= { _.copy(includeBin = true, includeScala = false, includeDependency = false) }
