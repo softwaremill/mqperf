@@ -1,10 +1,7 @@
-import AssemblyKeys._
-
-assemblySettings
 
 lazy val commonSettings = Seq(
-  version := "1.0",
-  scalaVersion := "2.11.6"
+  version := "2.0",
+  scalaVersion := "2.11.8"
 )
 
 lazy val root = (project in file(".")).
@@ -24,9 +21,9 @@ lazy val oracleaq = project.in(file("oracleaq")).
 name := "mqperf"
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-java-sdk" % "1.9.25" exclude("commons-logging", "commons-logging"),
-  "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.mongodb" % "mongo-java-driver" % "2.13.0",
+  "com.amazonaws" % "aws-java-sdk" % "1.11.68" exclude("commons-logging", "commons-logging"),
+  "org.json4s" %% "json4s-native" % "3.5.0",
+  "org.mongodb" % "mongodb-driver" % "3.4.0",
   "com.rabbitmq" % "amqp-client" % "3.5.0",
   "org.hornetq" % "hornetq-native" % "2.4.5.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.5.Final/hornetq-native-2.4.5.Final.jar",
   "org.hornetq" % "hornetq-core-client" % "2.4.5.Final" exclude("org.hornetq", "hornetq-native"),
@@ -47,8 +44,7 @@ libraryDependencies ++= Seq(
 
 assemblyOption in assembly ~= { _.copy(includeBin = true, includeScala = false, includeDependency = false) }
 
-mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
+assemblyMergeStrategy in assembly := {
   case PathList(ps@_*) if ps.last == "HornetQUtilBundle_$bundle.class" => MergeStrategy.first
-  case x => old(x)
-}
+  case x => (assemblyMergeStrategy in assembly).value(x)
 }

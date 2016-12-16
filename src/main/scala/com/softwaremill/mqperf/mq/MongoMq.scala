@@ -1,7 +1,11 @@
 package com.softwaremill.mqperf.mq
 
-import com.mongodb.{DBObject, BasicDBObject, WriteConcern, MongoClient}
+import com.mongodb.client.model.{DeleteOptions, InsertManyOptions}
+import com.mongodb.{BasicDBObject, DBObject, MongoClient, WriteConcern}
+import org.bson.Document
 import org.bson.types.ObjectId
+
+import scala.collection.JavaConversions._
 
 class MongoMq(configMap: Map[String, String]) extends Mq {
 
@@ -13,20 +17,17 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
 
   private val client = new MongoClient(configMap("host"))
 
-  private val db = client.getDB("mq")
-
   private val concern = if (configMap("write_concern") == "replica")
-    WriteConcern.REPLICA_ACKNOWLEDGED else WriteConcern.ACKNOWLEDGED
+    WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
+
+  private val db = client.getDatabase("mq").withWriteConcern(concern)
 
   private val coll = {
     val c = db.getCollection("mq")
 
-    val nextDeliveryIndex = new BasicDBObject()
-    nextDeliveryIndex.put(NextDeliveryField, 1)
+    val nextDeliveryIndex = new Document()
+      .append(NextDeliveryField, 1)
     c.createIndex(nextDeliveryIndex)
-
-    c.setWriteConcern(concern)
-
     c
   }
 
@@ -35,13 +36,12 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
   override def createSender() = new MqSender {
     override def send(msgs: List[String]) = {
       val docs = msgs.map { msg =>
-        val doc = new BasicDBObject()
-        doc.put(MessageField, msg)
-        doc.put(NextDeliveryField, System.currentTimeMillis())
-        doc
+        new Document()
+          .append(MessageField, msg)
+          .append(NextDeliveryField, System.currentTimeMillis())
       }
 
-      coll.insert(docs.toArray[DBObject], concern)
+      coll.insertMany(docs)
     }
   }
 
@@ -60,19 +60,19 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
     private def receiveSingle() = {
       val now = System.currentTimeMillis()
 
-      val lteNow = new BasicDBObject()
-      lteNow.put("$lte", now)
+      val lteNow = new Document()
+        .append("$lte", now)
 
-      val query = new BasicDBObject()
-      query.put(NextDeliveryField, lteNow)
+      val query = new Document()
+        .append(NextDeliveryField, lteNow)
 
-      val newNextDelivery = new BasicDBObject()
-      newNextDelivery.put(NextDeliveryField, now + VisibilityTimeoutMillis)
+      val newNextDelivery = new Document()
+        .append(NextDeliveryField, now + VisibilityTimeoutMillis)
 
-      val mutations = new BasicDBObject()
-      mutations.put("$set", newNextDelivery)
+      val mutations = new Document()
+          .append("$set", newNextDelivery)
 
-      val result = coll.findAndModify(query, mutations)
+      val result = coll.findOneAndUpdate(query, mutations)
 
       if (result == null) {
         None
@@ -85,10 +85,10 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
 
     override def ack(ids: List[MsgId]) = {
       ids.foreach { id =>
-        val doc = new BasicDBObject()
-        doc.put(IdField, id)
+        val doc = new Document()
+          .append(IdField, id)
 
-        coll.remove(doc, WriteConcern.UNACKNOWLEDGED)
+        coll.deleteOne(doc) // TODO how set unacknowledged here?
       }
     }
   }
