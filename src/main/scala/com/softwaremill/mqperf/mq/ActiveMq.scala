@@ -19,7 +19,7 @@ class ActiveMq(configMap: Map[String, String]) extends Mq {
 
   override type MsgId = Message
 
-  override def close() { }
+  override def close() {}
 
   override def createSender() = new MqSender {
     val connection = connectionFactory.createConnection("admin", "admin")
@@ -60,12 +60,14 @@ class ActiveMq(configMap: Map[String, String]) extends Mq {
     private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Long, count: Int): List[(MsgId, String)] = {
       if (count == 0) {
         acc
-      } else {
+      }
+      else {
         val message = consumer.receive(waitForMsgs)
         if (message == null) {
           acc
-        } else {
-          doReceive((message, message.asInstanceOf[TextMessage].getText) :: acc, 100L, count-1)
+        }
+        else {
+          doReceive((message, message.asInstanceOf[TextMessage].getText) :: acc, 100L, count - 1)
         }
       }
     }

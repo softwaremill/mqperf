@@ -55,12 +55,14 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
     private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Long, count: Int): List[(MsgId, String)] = {
       if (count == 0) {
         acc
-      } else {
+      }
+      else {
         val delivery = consumer.nextDelivery(waitForMsgs)
         if (delivery == null) {
           acc
-        } else {
-          doReceive((delivery.getEnvelope.getDeliveryTag, new String(delivery.getBody)) :: acc, 100L, count-1)
+        }
+        else {
+          doReceive((delivery.getEnvelope.getDeliveryTag, new String(delivery.getBody)) :: acc, 100L, count - 1)
         }
       }
     }

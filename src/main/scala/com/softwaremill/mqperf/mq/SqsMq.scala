@@ -22,8 +22,9 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
 
   override def createSender() = new MqSender {
     override def send(msgs: List[String]) = {
-      asyncClient.sendMessageBatch(queueUrl,
-        msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m)}.asJava
+      asyncClient.sendMessageBatch(
+        queueUrl,
+        msgs.zipWithIndex.map { case (m, i) => new SendMessageBatchRequestEntry(i.toString, m) }.asJava
       )
     }
   }
@@ -39,7 +40,7 @@ class SqsMq(configMap: Map[String, String]) extends Mq {
     }
 
     override def ack(ids: List[MsgId]) = {
-      ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id))}
+      ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id)) }
     }
   }
 }

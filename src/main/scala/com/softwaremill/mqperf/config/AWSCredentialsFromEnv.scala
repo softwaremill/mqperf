@@ -7,7 +7,8 @@ object AWSCredentialsFromEnv {
   def apply() = {
     new BasicAWSCredentials(
       sys.env("AWS_ACCESS_KEY_ID"),
-      sys.env("AWS_SECRET_ACCESS_KEY"))
+      sys.env("AWS_SECRET_ACCESS_KEY")
+    )
   }
 
   def apply(config: Config): Option[BasicAWSCredentials] =

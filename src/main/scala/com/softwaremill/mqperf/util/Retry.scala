@@ -7,7 +7,8 @@ trait Retry {
   final def retry[T](attempts: Int, betweenAttempts: () => Unit = () => ())(block: => T): T = {
     try {
       block
-    } catch {
+    }
+    catch {
       case e: Exception => if (attempts == 1) throw e else {
         betweenAttempts()
         retry(attempts - 1)(block)

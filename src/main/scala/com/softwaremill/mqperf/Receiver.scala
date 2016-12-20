@@ -27,9 +27,11 @@ object Receiver extends App {
   }
 }
 
-class ReceiverRunnable(mq: Mq,
-                       reportResults: ReportResults,
-                       receiveMsgBatchSize: Int) extends Runnable {
+class ReceiverRunnable(
+    mq: Mq,
+    reportResults: ReportResults,
+    receiveMsgBatchSize: Int
+) extends Runnable {
 
   override def run(): Unit = {
     val mqReceiver = mq.createReceiver()

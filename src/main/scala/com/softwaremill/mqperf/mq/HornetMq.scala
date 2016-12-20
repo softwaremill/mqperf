@@ -22,7 +22,8 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
     nettyParams.put(TransportConstants.PORT_PROP_NAME, configMap("port"))
 
     val sl = HornetQClient.createServerLocatorWithHA(
-      new TransportConfiguration(classOf[NettyConnectorFactory].getName, nettyParams))
+      new TransportConfiguration(classOf[NettyConnectorFactory].getName, nettyParams)
+    )
 
     sl.setConfirmationWindowSize(1048576)
 
@@ -39,7 +40,8 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
     val session = createSession(sf)
     try {
       session.createQueue(QueueName, QueueName, true)
-    } catch {
+    }
+    catch {
       case e: Exception if e.getMessage.contains("HQ119019") => // queue already exists
     }
 
@@ -81,12 +83,14 @@ class HornetMq(configMap: Map[String, String]) extends Mq {
     private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Boolean, count: Int): List[(MsgId, String)] = {
       if (count == 0) {
         acc
-      } else {
+      }
+      else {
         val msg = if (waitForMsgs) consumer.receive(1000L) else consumer.receive(0L)
         if (msg == null) {
           acc
-        } else {
-          doReceive((msg, msg.getStringProperty(ContentPropertyName)) :: acc, waitForMsgs = false, count-1)
+        }
+        else {
+          doReceive((msg, msg.getStringProperty(ContentPropertyName)) :: acc, waitForMsgs = false, count - 1)
         }
       }
     }

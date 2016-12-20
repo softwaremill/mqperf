@@ -1,8 +1,17 @@
+import sbt._
+import sbt.Keys._
+
+import scalariform.formatter.preferences._
 
 lazy val commonSettings = Seq(
   version := "2.0",
   scalaVersion := "2.11.8"
-)
+) ++ SbtScalariform.scalariformSettings ++ Seq(
+  scalariformPreferences := scalariformPreferences.value
+    .setPreference(DoubleIndentClassDeclaration, true)
+    .setPreference(PreserveSpaceBeforeArguments, true)
+    .setPreference(CompactControlReadability, true)
+    .setPreference(SpacesAroundMultiImports, false))
 
 lazy val root = (project in file(".")).
   settings(commonSettings: _*)
@@ -12,8 +21,8 @@ lazy val oracleaq = project.in(file("oracleaq")).
   settings(commonSettings: _*).
   settings(name := "mqperfext").
   settings(libraryDependencies ++= Seq(
-//    "com.oracle" % "aqapi_2.11" % "1.0.0",
-//    "com.oracle" % "ojdbc6_2.11" % "1.0.0",
+    //    "com.oracle" % "aqapi_2.11" % "1.0.0",
+    //    "com.oracle" % "ojdbc6_2.11" % "1.0.0",
     "javax.transaction" % "jta" % "1.1"
   )
   )
@@ -44,7 +53,9 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.1"
 )
 
-assemblyOption in assembly ~= { _.copy(includeBin = true, includeScala = false, includeDependency = false) }
+assemblyOption in assembly ~= {
+  _.copy(includeBin = true, includeScala = false, includeDependency = false)
+}
 
 assemblyMergeStrategy in assembly := {
   case PathList(ps@_*) if ps.last == "HornetQUtilBundle_$bundle.class" => MergeStrategy.first
