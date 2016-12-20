@@ -28,7 +28,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
   }
 
   override def createSender() = new MqSender {
-    @volatile var sendingMsg = false
+    var sendingMsg = false
     val producersProps = new Properties()
     producersProps.put("bootstrap.servers", configMap("hosts"))
     producersProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
