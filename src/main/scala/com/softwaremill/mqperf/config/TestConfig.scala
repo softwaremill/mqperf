@@ -1,50 +1,43 @@
 package com.softwaremill.mqperf.config
 
-import org.json4s._
-import org.json4s.native._
+import com.typesafe.config.Config
 
-case class TestConfig(
-  name: String,
-  mqType: String,
-  senderThreads: Int,
-  msgCountPerThread: Int,
-  msgSize: Int,
-  maxSendMsgBatchSize: Int,
-  receiverThreads: Int,
-  receiveMsgBatchSize: Int,
-  mqConfigMap: Map[String, String]) {
+case class TestConfig(name: String,
+                      mqType: String,
+                      senderThreads: Int,
+                      msgCountPerThread: Int,
+                      msgSize: Int,
+                      maxSendMsgBatchSize: Int,
+                      receiverThreads: Int,
+                      receiveMsgBatchSize: Int,
+                      mqConfigMap: Map[String, String]) {
 
   def mqClassName = s"com.softwaremill.mqperf.mq.${mqType}Mq"
 }
 
 object TestConfig {
-  def from(json: String): TestConfig = {
-    val parsed = parseJson(json)
 
+  def from(config: Config): TestConfig = TestConfig(
+    name = config.getString("name"),
+    mqType = config.getString("mq_type"),
+    senderThreads = config.getInt("sender_threads"),
+    msgCountPerThread = config.getInt("msg_count_per_thread"),
+    msgSize = config.getInt("msg_size"),
+    maxSendMsgBatchSize = config.getInt("max_send_msg_batch_size"),
+    receiverThreads = config.getInt("receiver_threads"),
+    receiveMsgBatchSize = config.getInt("receive_msg_batch_size"),
+    mqConfigMap = readMqSpecificConfig(config)
+  )
+
+  private def readMqSpecificConfig(config: Config): Map[String, String] = {
+    import scala.collection.JavaConverters._
     val mqConfigPairs = for {
-      JObject(fields) <- parsed
-      JField("mq", JObject(mqFields)) <- fields
-      JField(mqFieldName, mqFieldValue) <- mqFields
-    } yield mqFieldName -> mqFieldValue.values.toString
-
-    val mqConfigMap = Map(mqConfigPairs: _*)
-
-    val tcs = for {
-      JObject(fields) <- parsed
-      JField("name", JString(name)) <- fields
-      JField("mq_type", JString(mqType)) <- fields
-      JField("sender_threads", JInt(senderThreads)) <- fields
-      JField("msg_count_per_thread", JInt(msgCountPerThread)) <- fields
-      JField("msg_size", JInt(msgSize)) <- fields
-      JField("max_send_msg_batch_size", JInt(maxSendMsgBatchSize)) <- fields
-      JField("receiver_threads", JInt(receiverThreads)) <- fields
-      JField("receive_msg_batch_size", JInt(receiveMsgBatchSize)) <- fields
-    } yield TestConfig(
-      name, mqType,
-      senderThreads.intValue(), msgCountPerThread.intValue(), msgSize.intValue(),
-      maxSendMsgBatchSize.intValue(), receiverThreads.intValue(), receiveMsgBatchSize.intValue(),
-      mqConfigMap)
-
-    tcs.headOption.getOrElse(throw new IllegalArgumentException(s"Invalid json: $json"))
+      mqSpecificConf <- config.getConfigOpt("mq").toSeq
+      mqSpecificConfEntry <- mqSpecificConf.entrySet().asScala
+    } yield {
+      mqSpecificConfEntry.getKey -> mqSpecificConf.getString(mqSpecificConfEntry.getKey)
+    }
+    mqConfigPairs.toMap
   }
+
 }
