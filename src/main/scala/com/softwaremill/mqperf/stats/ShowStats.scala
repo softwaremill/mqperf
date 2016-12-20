@@ -2,11 +2,12 @@ package com.softwaremill.mqperf.stats
 
 import com.softwaremill.mqperf.DynamoResultsTable
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, ComparisonOperator, Condition, ScanRequest}
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object ShowStats extends App with DynamoResultsTable {
+
   case class Result(start: String, end: String, took: Long, msgsCount: Int, _type: String) {
-    val msgsPerSecond = msgsCount.toDouble / took * 1000
+    val msgsPerSecond: Double = msgsCount.toDouble / took * 1000
   }
 
   private def fetchResultsWithPrefix(prefix: String): List[Result] = {
@@ -14,23 +15,26 @@ object ShowStats extends App with DynamoResultsTable {
       .withComparisonOperator(ComparisonOperator.BEGINS_WITH)
       .withAttributeValueList(new AttributeValue(prefix))
 
-    def doFetch(lastEvaluatedKey: Option[java.util.Map[String, AttributeValue]]): java.util.List[java.util.Map[String, AttributeValue]] = {
-      val req1 = new ScanRequest(tableName).addScanFilterEntry(resultNameColumn, condition)
-      val req2 = lastEvaluatedKey.map(req1.withExclusiveStartKey).getOrElse(req1)
+    def doFetch(lastEvaluatedKey: Option[java.util.Map[String, AttributeValue]]): java.util.List[java.util.Map[String, AttributeValue]] =
+      (for {
+        dynamoClient <- dynamoClientOpt
+      } yield {
+        val req1 = new ScanRequest(tableName).addScanFilterEntry(resultNameColumn, condition)
+        val req2 = lastEvaluatedKey.map(req1.withExclusiveStartKey).getOrElse(req1)
 
-      val result = dynamoClient.scan(req2)
+        val result = dynamoClient.scan(req2)
 
-      val items = result.getItems
-      val newLastEvaluatedKey = result.getLastEvaluatedKey
+        val fetchedItems: java.util.List[java.util.Map[String, AttributeValue]] = result.getItems
+        val newLastEvaluatedKey = result.getLastEvaluatedKey
 
-      if (newLastEvaluatedKey != null && newLastEvaluatedKey.size() > 0) {
-        items.addAll(doFetch(Some(newLastEvaluatedKey)))
-      }
+        if (newLastEvaluatedKey != null && newLastEvaluatedKey.size() > 0) {
+          fetchedItems.addAll(doFetch(Some(newLastEvaluatedKey)))
+        }
 
-      items
-    }
+        fetchedItems
+      }).getOrElse(Nil.asJava)
 
-    val items = doFetch(None)
+    val items = doFetch(None).asScala
 
     items
       .map(i => Result(
@@ -42,11 +46,11 @@ object ShowStats extends App with DynamoResultsTable {
       .toList
   }
 
-  val prefix = if (args.size > 0) args(0) else "sqs1-1401970126140"
+  val prefix = if (args.nonEmpty) args(0) else "sqs1-1401970126140"
 
-  val allResults = fetchResultsWithPrefix(prefix).sortBy(- _.msgsPerSecond)
+  val allResults = fetchResultsWithPrefix(prefix).sortBy(-_.msgsPerSecond)
   val (sendResults, receiveResults) = allResults.partition(_._type == typeSend)
-  
+
   def printResults(results: List[Result], _type: String) {
     println(s"Results for $prefix, ${_type}")
     results.foreach { r =>

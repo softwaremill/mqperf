@@ -1,11 +1,12 @@
 package com.softwaremill.mqperf.config
 
-import org.scalatest.{Matchers, FlatSpec}
+import com.typesafe.config.ConfigFactory
+import org.scalatest.{FlatSpec, Matchers}
 
 class TestConfigTest extends FlatSpec with Matchers {
   it should "parse an example json" in {
     // given
-    val json =
+    val config = ConfigFactory.parseString {
       """
         |{
         |    "name": "sqs1",
@@ -18,17 +19,18 @@ class TestConfigTest extends FlatSpec with Matchers {
         |    "receive_msg_batch_size": 25
         |}
       """.stripMargin
+    }
 
     // when
-    val tc = TestConfig.from(json)
+    val tc = TestConfig.from(config)
 
     // then
-    tc should be (TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map()))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map()))
   }
 
   it should "parse an example json with mq config map" in {
     // given
-    val json =
+    val config = ConfigFactory.parseString {
       """
         |{
         |    "name": "sqs1",
@@ -45,11 +47,12 @@ class TestConfigTest extends FlatSpec with Matchers {
         |    }
         |}
       """.stripMargin
+    }
 
     // when
-    val tc = TestConfig.from(json)
+    val tc = TestConfig.from(config)
 
     // then
-    tc should be (TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map("f1" -> "v1", "f2" -> "10")))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map("f1" -> "v1", "f2" -> "10")))
   }
 }

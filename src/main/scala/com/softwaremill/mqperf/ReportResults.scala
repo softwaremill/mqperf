@@ -23,25 +23,29 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable {
   }
 
   private def doReport(start: Long, end: Long, msgsCount: Int, _type: String) {
-    val df = newDateFormat
+    for {
+      dynamoClient <- dynamoClientOpt
+    } {
+      val df = newDateFormat
 
-    val testResultName = s"$testConfigName-${_type}-${Random.nextInt(100000)}"
-    val took = (end - start).toString
-    val startStr = new Date(start)
-    val endStr = new Date(end)
+      val testResultName = s"$testConfigName-${_type}-${Random.nextInt(100000)}"
+      val took = (end - start).toString
+      val startStr = new Date(start)
+      val endStr = new Date(end)
 
-    dynamoClient.putItem(new PutItemRequest()
-      .withTableName(tableName)
-      .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
-      .addItemEntry(msgsCountColumn, new AttributeValue().withN(msgsCount.toString))
-      .addItemEntry(tookColumn, new AttributeValue().withN(took))
-      .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
-      .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
-      .addItemEntry(typeColumn, new AttributeValue(_type))
-    )
+      dynamoClient.putItem(new PutItemRequest()
+        .withTableName(tableName)
+        .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
+        .addItemEntry(msgsCountColumn, new AttributeValue().withN(msgsCount.toString))
+        .addItemEntry(tookColumn, new AttributeValue().withN(took))
+        .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
+        .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
+        .addItemEntry(typeColumn, new AttributeValue(_type))
+      )
 
-    println("Wrote to dynamo")
-    println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
+      println("Wrote to dynamo")
+      println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
+    }
   }
 
   private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
