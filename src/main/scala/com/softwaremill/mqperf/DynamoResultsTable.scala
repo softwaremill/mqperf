@@ -12,7 +12,7 @@ trait DynamoResultsTable {
     for {
       awsCredentails <- AWSCredentialsFromEnv(TestConfigOnS3.LocalConfig)
     } yield {
-      val c = new AmazonDynamoDBClient()
+      val c = new AmazonDynamoDBClient(awsCredentails)
       c.setRegion(Region.getRegion(Regions.EU_WEST_1))
       c
     }
