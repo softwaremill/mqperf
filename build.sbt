@@ -12,8 +12,8 @@ lazy val oracleaq = project.in(file("oracleaq")).
   settings(commonSettings: _*).
   settings(name := "mqperfext").
   settings(libraryDependencies ++= Seq(
-    "com.oracle" % "aqapi_2.11" % "1.0.0",
-    "com.oracle" % "ojdbc6_2.11" % "1.0.0",
+//    "com.oracle" % "aqapi_2.11" % "1.0.0",
+//    "com.oracle" % "ojdbc6_2.11" % "1.0.0",
     "javax.transaction" % "jta" % "1.1"
   )
   )
@@ -31,7 +31,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7",
   "org.slf4j" % "jcl-over-slf4j" % "1.7.22",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.22",
-  "org.apache.kafka" %% "kafka" % "0.10.1.0"
+  "com.typesafe.akka" %% "akka-actor" % "2.4.14",
+  "org.apache.kafka" % "kafka-clients" % "0.10.1.0"
     exclude("javax.jms", "jms")
     exclude("com.sun.jdmk", "jmxtools")
     exclude("com.sun.jmx", "jmxri")
