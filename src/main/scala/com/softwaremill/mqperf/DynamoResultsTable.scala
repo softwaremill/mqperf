@@ -37,7 +37,8 @@ object ClearDynamoResultsTable extends App with DynamoResultsTable {
   } {
     dynamoClient.scan(new ScanRequest(tableName)).getItems.foreach { i =>
       dynamoClient.deleteItem(
-        new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn)))
+        new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn))
+      )
     }
   }
 

@@ -40,8 +40,7 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable {
         .addItemEntry(tookColumn, new AttributeValue().withN(took))
         .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
         .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
-        .addItemEntry(typeColumn, new AttributeValue(_type))
-      )
+        .addItemEntry(typeColumn, new AttributeValue(_type)))
 
       println("Wrote to dynamo")
       println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")

@@ -52,7 +52,8 @@ class TestConfigOnS3(private val objectName: String) {
     } {
       s3Client.putObject(
         new PutObjectRequest(bucketName, objectName, is, new ObjectMetadata())
-          .withCannedAcl(CannedAccessControlList.PublicRead))
+          .withCannedAcl(CannedAccessControlList.PublicRead)
+      )
     }
   }
 
@@ -82,7 +83,8 @@ object TestConfigOnS3 {
   def create(args: Array[String]): TestConfigOnS3 = {
     if (args.length == 0) {
       new TestConfigOnS3("test_config.json")
-    } else {
+    }
+    else {
       new TestConfigOnS3(args(0))
     }
   }
@@ -93,11 +95,13 @@ object WriteTestConfigOnS3 extends App {
     println("Usage:")
     println("java ... S3TestConfigWriter [testName] [runid]")
     println("where [testName] is name of a file in the tests directory, without the .json suffix")
-  } else {
+  }
+  else {
     val sourceFile = new File(s"./tests/${args(0)}.json")
     if (!sourceFile.exists()) {
       println(s"File ${sourceFile.getAbsolutePath} does not exist!")
-    } else {
+    }
+    else {
       val runId = if (args.length >= 2) args(1) else System.currentTimeMillis().toString
       new TestConfigOnS3().write(sourceFile, runId)
     }

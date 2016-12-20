@@ -10,10 +10,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
 /**
-  * A simplified committer for the purpose of running benchmarks. No retry logic, no error handling, etc.
-  */
+ * A simplified committer for the purpose of running benchmarks. No retry logic, no error handling, etc.
+ */
 private[kafka] class PeriodicKafkaCommitter(commitInterval: FiniteDuration, consumer: KafkaConsumer[_, _])
-  extends Actor with ActorLogging {
+    extends Actor with ActorLogging {
 
   var offsetsToCommit: CommitOffsets = Map.empty
   var scheduledCommit: Cancellable = _

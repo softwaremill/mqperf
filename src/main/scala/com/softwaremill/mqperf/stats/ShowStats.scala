@@ -42,7 +42,8 @@ object ShowStats extends App with DynamoResultsTable {
         i.get(endColumn).getS,
         i.get(tookColumn).getN.toLong,
         i.get(msgsCountColumn).getN.toInt,
-        i.get(typeColumn).getS))
+        i.get(typeColumn).getS
+      ))
       .toList
   }
 

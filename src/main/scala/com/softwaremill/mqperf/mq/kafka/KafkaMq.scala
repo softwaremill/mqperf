@@ -77,7 +77,6 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
 
     var buffer: java.util.Iterator[ConsumerRecord[String, String]] = new java.util.ArrayList[ConsumerRecord[String, String]]().iterator()
 
-
     override def receive(msgCount: Int): List[(MsgId, String)] = {
       @tailrec
       def nextMsg(): ConsumerRecord[String, String] = {
@@ -90,17 +89,17 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
       }
 
       val result = for (_ <- 0 until msgCount) yield {
-          val msg = nextMsg()
-          val msgId = (new TopicPartition(msg.topic(), msg.partition()), msg.offset())
-          (msgId, msg.value())
-        }
+        val msg = nextMsg()
+        val msgId = (new TopicPartition(msg.topic(), msg.partition()), msg.offset())
+        (msgId, msg.value())
+      }
 
       result.toList
     }
 
     override def ack(ids: List[MsgId]): Unit = {
       logger.info(s"ACKing msgs: $ids")
-      val commitRequest =ids.foldLeft(PeriodicKafkaCommitter.EmptyOffsetMap) {
+      val commitRequest = ids.foldLeft(PeriodicKafkaCommitter.EmptyOffsetMap) {
         case (offsetMap, (topicPartition, offset)) => offsetMap + (topicPartition -> (offset + 1))
       }
       committerActor ! commitRequest
@@ -113,7 +112,6 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
     }
   }
 
-
   override def close(): Unit = {
     onClose()
   }
@@ -125,7 +123,8 @@ object KafkaMqTest {
     "key.serializer" -> "",
     "acks" -> "1",
     "zookeeper" -> "localhost:2181",
-    "commitMs" -> "1000")
+    "commitMs" -> "1000"
+  )
 }
 
 object KafkaMqTestSend extends App {

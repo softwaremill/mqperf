@@ -49,7 +49,8 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
     override def receive(maxMsgCount: Int) = {
       if (maxMsgCount == 0) {
         Nil
-      } else {
+      }
+      else {
         receiveSingle() match {
           case None => Nil
           case Some(idAndMsg) => idAndMsg :: receive(maxMsgCount - 1)
@@ -70,13 +71,14 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
         .append(NextDeliveryField, now + VisibilityTimeoutMillis)
 
       val mutations = new Document()
-          .append("$set", newNextDelivery)
+        .append("$set", newNextDelivery)
 
       val result = coll.findOneAndUpdate(query, mutations)
 
       if (result == null) {
         None
-      } else {
+      }
+      else {
         val id = result.get(IdField).asInstanceOf[ObjectId]
         val messageContent = result.get(MessageField).asInstanceOf[String]
         Some((id, messageContent))

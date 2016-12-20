@@ -30,7 +30,7 @@ object Sender extends App {
 }
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults,
-  msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
+    msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
 
   override def run() = {
     val mqSender = mq.createSender()
