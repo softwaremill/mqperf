@@ -1,31 +1,32 @@
-package com.softwaremill.mqperf.mq.kafka
+package com.softwaremill.mqperf.mq
 
-import java.util
-import java.util.{Properties, UUID}
-import akka.actor.{ActorSystem, Props}
-import com.softwaremill.mqperf.mq.Mq
+import java.util.{Properties, Map => JMap}
+
 import com.softwaremill.mqperf.{ReceiverRunnable, ReportResults}
 import com.typesafe.scalalogging.StrictLogging
-import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.TopicPartition
-import scala.collection.JavaConversions._
+
 import scala.annotation.tailrec
-import scala.concurrent.Await
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Random
 
 class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
-  private val GroupId = "mq-group"
-  private val Topic = "mq"
+  import KafkaMq._
+
+  private val GroupId = "mq-group2"
+  private val Topic = "mq2"
   val pollTimeout = 50 millis
-  lazy val system = ActorSystem(s"KafkaTest-${UUID.randomUUID().toString}")
+  var offsetsToCommit: CommitOffsets = Map.empty
+  var lastCommitTick = System.nanoTime()
+  val commitNs = configMap("commitMs").toLong.millis.toNanos
+
   override type MsgId = (TopicPartition, Long)
 
-  private var onClose = () => {
-    Await.result(system.terminate(), atMost = 30 seconds)
-  }
+  private var onClose = () => {}
 
   override def createSender() = new MqSender {
     var sendingMsg = false
@@ -70,16 +71,35 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
       consumer.subscribe(List(Topic))
       consumer
     }
-    lazy val committerActor = {
-      val commitMs = configMap("commitMs").toLong.millis
-      system.actorOf(Props(new PeriodicKafkaCommitter(commitMs, consumer)))
-    }
 
     var buffer: java.util.Iterator[ConsumerRecord[String, String]] = new java.util.ArrayList[ConsumerRecord[String, String]]().iterator()
+
+    def timeToCommit(): Boolean = System.nanoTime() - lastCommitTick > commitNs
+
+    def commitAsync(): Unit = {
+      logger.debug("Commit tick")
+      lastCommitTick = System.nanoTime()
+      if (offsetsToCommit.nonEmpty) {
+        logger.info(s"Committing offsets: $offsetsToCommit")
+        consumer.commitAsync(offsetsToCommit.mapValues(new OffsetAndMetadata(_)), new OffsetCommitCallback {
+          override def onComplete(offsets: JMap[TopicPartition, OffsetAndMetadata], exception: Exception): Unit = {
+            if (exception != null) {
+              logger.error("Commit failed", exception)
+              throw exception
+            }
+            else
+              logger.debug(s"Commit successful: $offsets")
+          }
+        })
+        offsetsToCommit = Map.empty
+      }
+    }
 
     override def receive(msgCount: Int): List[(MsgId, String)] = {
       @tailrec
       def nextMsg(): ConsumerRecord[String, String] = {
+        if (timeToCommit())
+          commitAsync()
         if (!buffer.hasNext) {
           buffer = consumer.poll(pollTimeout.toMillis).iterator
           nextMsg()
@@ -98,15 +118,13 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
     }
 
     override def ack(ids: List[MsgId]): Unit = {
-      logger.info(s"ACKing msgs: $ids")
-      val commitRequest = ids.foldLeft(PeriodicKafkaCommitter.EmptyOffsetMap) {
+      val commitRequest = ids.foldLeft(KafkaMq.EmptyOffsetMap) {
         case (offsetMap, (topicPartition, offset)) => offsetMap + (topicPartition -> (offset + 1))
       }
-      committerActor ! commitRequest
+      offsetsToCommit = offsetsToCommit ++ commitRequest
     }
 
     override def close(): Unit = {
-      system.stop(committerActor)
       consumer.close()
       super.close()
     }
@@ -115,6 +133,11 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
   override def close(): Unit = {
     onClose()
   }
+}
+
+object KafkaMq {
+  type CommitOffsets = Map[TopicPartition, Long]
+  val EmptyOffsetMap = Map.empty[TopicPartition, Long]
 }
 
 object KafkaMqTest {

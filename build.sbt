@@ -40,7 +40,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.7",
   "org.slf4j" % "jcl-over-slf4j" % "1.7.22",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.22",
-  "com.typesafe.akka" %% "akka-actor" % "2.4.14",
   "org.apache.kafka" % "kafka-clients" % "0.10.1.0"
     exclude("javax.jms", "jms")
     exclude("com.sun.jdmk", "jmxtools")
