@@ -19,7 +19,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
 
   private val GroupId = "mq-group2"
   private val Topic = "mq2"
-  val pollTimeout = 50 millis
+  val pollTimeout = 50.millis.toMillis
   var offsetsToCommit: CommitOffsets = Map.empty
   var lastCommitTick = System.nanoTime()
   val commitNs = configMap("commitMs").toLong.millis.toNanos
@@ -72,8 +72,6 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
       consumer
     }
 
-    var buffer: java.util.Iterator[ConsumerRecord[String, String]] = new java.util.ArrayList[ConsumerRecord[String, String]]().iterator()
-
     def timeToCommit(): Boolean = System.nanoTime() - lastCommitTick > commitNs
 
     def commitAsync(): Unit = {
@@ -95,26 +93,22 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
       }
     }
 
-    override def receive(msgCount: Int): List[(MsgId, String)] = {
-      @tailrec
-      def nextMsg(): ConsumerRecord[String, String] = {
-        if (timeToCommit())
-          commitAsync()
-        if (!buffer.hasNext) {
-          buffer = consumer.poll(pollTimeout.toMillis).iterator
-          nextMsg()
-        }
-        else
-          buffer.next()
-      }
+    var it: java.util.Iterator[ConsumerRecord[String, String]] = consumer.poll(pollTimeout).iterator()
 
-      val result = for (_ <- 0 until msgCount) yield {
-        val msg = nextMsg()
+    override def receive(maxMsgCount: Int): List[(MsgId, String)] = {
+      var msgs: List[(MsgId, String)] = Nil
+      if (timeToCommit())
+        commitAsync()
+      if (!it.hasNext)
+        it = consumer.poll(pollTimeout).iterator()
+
+      while (msgs.size < maxMsgCount && it.hasNext) {
+        val msg = it.next()
         val msgId = (new TopicPartition(msg.topic(), msg.partition()), msg.offset())
-        (msgId, msg.value())
-      }
 
-      result.toList
+        msgs = (msgId, msg.value()) :: msgs
+      }
+      msgs
     }
 
     override def ack(ids: List[MsgId]): Unit = {
