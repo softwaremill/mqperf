@@ -32,7 +32,7 @@ trait Mq {
 }
 
 object Mq {
-  def instantiate(testConfig: TestConfig) = {
+  def instantiate(testConfig: TestConfig): Mq = {
     Class.forName(testConfig.mqClassName).getConstructors()(0).newInstance(testConfig.mqConfigMap).asInstanceOf[Mq]
   }
 }
