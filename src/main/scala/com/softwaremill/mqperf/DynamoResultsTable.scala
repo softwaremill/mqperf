@@ -18,16 +18,27 @@ trait DynamoResultsTable {
     }
 
   protected val tableName = "mqperf-results"
-
   protected val resultNameColumn = "test_result_name"
+  protected val histogramMinColumn = "histogram_min"
+  protected val histogramMaxColumn = "histogram_max"
+  protected val histogramMeanColumn = "histogram_mean"
+  protected val histogramMedianColumn = "histogram_median"
+  protected val histogramStdDevColumn = "histogram_std_dev"
+  protected val histogram75thPercentileColumn = "histogram_75th_perc"
+  protected val histogram95thPercentileColumn = "histogram_95th_perc"
+  protected val histogram98thPercentileColumn = "histogram_98th_perc"
+  protected val histogram99thPercentileColumn = "histogram_99th_perc"
+  protected val timerMinColumn = "timer_min"
+  protected val timerMaxColumn = "timer_max"
+  protected val timerMeanColumn = "timer_mean"
+  protected val timerMedianColumn = "timer_median"
+  protected val timerStdDevColumn = "timer_st_dev"
+  protected val timer75thPercentileColumn = "timer_75th_perc"
+  protected val timer95thPercentileColumn = "timer_95th_perc"
+  protected val timer98thPercentileColumn = "timer_98th_perc"
+  protected val timer99thPercentileColumn = "timer_99th_perc"
   protected val msgsCountColumn = "msgs_count"
-  protected val tookColumn = "took"
-  protected val startColumn = "start"
-  protected val endColumn = "end"
   protected val typeColumn = "type"
-
-  protected val typeSend = "s"
-  protected val typeReceive = "r"
 }
 
 object ClearDynamoResultsTable extends App with DynamoResultsTable {

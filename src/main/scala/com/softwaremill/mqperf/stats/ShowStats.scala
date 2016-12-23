@@ -1,14 +1,34 @@
 package com.softwaremill.mqperf.stats
 
-import com.softwaremill.mqperf.DynamoResultsTable
+import com.softwaremill.mqperf.{DynamoResultsTable, TestMetrics}
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, ComparisonOperator, Condition, ScanRequest}
+
 import scala.collection.JavaConverters._
 
 object ShowStats extends App with DynamoResultsTable {
 
-  case class Result(start: String, end: String, took: Long, msgsCount: Int, _type: String) {
-    val msgsPerSecond: Double = msgsCount.toDouble / took * 1000
-  }
+  case class Result(
+    msgCount: Long,
+    _type: String,
+    histogramMin: Long,
+    histogramMax: Long,
+    histogramMean: Double,
+    histogramMedian: Double,
+    histogramStdDev: Double,
+    histogram75thPercentile: Double,
+    histogram95thPercentile: Double,
+    histogram98thPercentile: Double,
+    histogram99thPercentile: Double,
+    timerMin: Long,
+    timerMax: Long,
+    timerMean: Double,
+    timerMedian: Double,
+    timerStdDev: Double,
+    timer75thPercentile: Double,
+    timer95thPercentile: Double,
+    timer98thPercentile: Double,
+    timer99thPercentile: Double
+  )
 
   private def fetchResultsWithPrefix(prefix: String): List[Result] = {
     val condition = new Condition()
@@ -38,29 +58,41 @@ object ShowStats extends App with DynamoResultsTable {
 
     items
       .map(i => Result(
-        i.get(startColumn).getS,
-        i.get(endColumn).getS,
-        i.get(tookColumn).getN.toLong,
-        i.get(msgsCountColumn).getN.toInt,
-        i.get(typeColumn).getS
+        i.get(msgsCountColumn).getN.toLong,
+        i.get(typeColumn).getS,
+        i.get(histogramMinColumn).getN.toLong,
+        i.get(histogramMaxColumn).getN.toLong,
+        i.get(histogramMeanColumn).getN.toDouble,
+        i.get(histogramMedianColumn).getN.toDouble,
+        i.get(histogramStdDevColumn).getN.toDouble,
+        i.get(histogram75thPercentileColumn).getN.toDouble,
+        i.get(histogram95thPercentileColumn).getN.toDouble,
+        i.get(histogram98thPercentileColumn).getN.toDouble,
+        i.get(histogram99thPercentileColumn).getN.toDouble,
+        i.get(timerMinColumn).getN.toLong,
+        i.get(timerMaxColumn).getN.toLong,
+        i.get(timerMeanColumn).getN.toDouble,
+        i.get(timerMedianColumn).getN.toDouble,
+        i.get(timerStdDevColumn).getN.toDouble,
+        i.get(timer75thPercentileColumn).getN.toDouble,
+        i.get(timer95thPercentileColumn).getN.toDouble,
+        i.get(timer98thPercentileColumn).getN.toDouble,
+        i.get(timer99thPercentileColumn).getN.toDouble
       ))
       .toList
   }
 
   val prefix = if (args.nonEmpty) args(0) else "sqs1-1401970126140"
 
-  val allResults = fetchResultsWithPrefix(prefix).sortBy(-_.msgsPerSecond)
-  val (sendResults, receiveResults) = allResults.partition(_._type == typeSend)
+  val allResults = fetchResultsWithPrefix(prefix) //.sortBy(-_.msgsPerSecond)
+  val (sendResults, receiveResults) = allResults.partition(_._type == TestMetrics.typeSend)
 
   def printResults(results: List[Result], _type: String) {
     println(s"Results for $prefix, ${_type}")
     results.foreach { r =>
-      println("%05.2f m/s: %dms, %d messages (%s -> %s)".format(r.msgsPerSecond, r.took, r.msgsCount, r.start, r.end))
+      println(r) // TODO nice formatting
     }
-    val totalMsgs = results.map(_.msgsCount).sum
-    val avg = totalMsgs.toDouble / results.map(_.took).sum * 1000
-    println("Average: %05.2f msgs/second (%d msgs)".format(avg, totalMsgs))
-
+    val totalMsgs = results.map(_.msgCount).sum
     println("---\n")
   }
 
