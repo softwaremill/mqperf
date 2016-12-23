@@ -1,51 +1,58 @@
 package com.softwaremill.mqperf
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
+import com.codahale.metrics._
+import com.typesafe.scalalogging.StrictLogging
+import scala.collection.JavaConverters._
 import scala.util.Random
-import java.text.SimpleDateFormat
-import java.util.Date
-import com.softwaremill.mqperf.util.Retry._
 
-class ReportResults(testConfigName: String) extends DynamoResultsTable {
+class ReportResults(testConfigName: String) extends DynamoResultsTable with StrictLogging {
 
-  def reportSendingComplete(start: Long, end: Long, msgsSent: Int) {
-    tryDoReport(start, end, msgsSent, typeSend)
-  }
-
-  def reportReceivingComplete(start: Long, end: Long, msgsReceived: Int) {
-    tryDoReport(start, end, msgsReceived, typeReceive)
-  }
-
-  private def tryDoReport(start: Long, end: Long, msgsCount: Int, _type: String) {
-    retry(10, () => Thread.sleep(1000L)) {
-      doReport(start, end, msgsCount, _type)
+  def report(metrics: TestMetrics): Unit = {
+    Slf4jReporter.forRegistry(metrics.raw).build().report()
+    if (dynamoClientOpt.isEmpty) {
+      logger.warn("Report requested but Dynamo client not defined.")
     }
+    else
+      dynamoClientOpt.foreach(exportStats(metrics))
   }
 
-  private def doReport(start: Long, end: Long, msgsCount: Int, _type: String) {
-    for {
-      dynamoClient <- dynamoClientOpt
-    } {
-      val df = newDateFormat
+  private def exportStats(metrics: TestMetrics)(dynamoClient: AmazonDynamoDBClient): Unit = {
 
-      val testResultName = s"$testConfigName-${_type}-${Random.nextInt(100000)}"
-      val took = (end - start).toString
-      val startStr = new Date(start)
-      val endStr = new Date(end)
+    val testResultName = s"$testConfigName-${metrics.name}-${Random.nextInt(100000)}"
+    val hSnapshot = metrics.histogram.getSnapshot
+    logger.info(s"Storing results in DynamoDB: $testResultName")
 
-      dynamoClient.putItem(new PutItemRequest()
-        .withTableName(tableName)
-        .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
-        .addItemEntry(msgsCountColumn, new AttributeValue().withN(msgsCount.toString))
-        .addItemEntry(tookColumn, new AttributeValue().withN(took))
-        .addItemEntry(startColumn, new AttributeValue(df.format(startStr)))
-        .addItemEntry(endColumn, new AttributeValue(df.format(endStr)))
-        .addItemEntry(typeColumn, new AttributeValue(_type)))
+    dynamoClient.putItem(new PutItemRequest()
+      .withTableName(tableName)
+      .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
+      .addItemEntry(msgsCountColumn, new AttributeValue().withN(hSnapshot.size.toString)))
+    // TODO export all stats
+    logger.info(s"Test results stored: $testResultName")
+  }
+}
 
-      println("Wrote to dynamo")
-      println(s"$testResultName (${_type}, ${msgsCount.toString}): $took ($startStr -> $endStr")
+case class TestMetrics(name: String, timer: Timer, histogram: Histogram, raw: MetricRegistry)
+
+object TestMetrics extends StrictLogging {
+
+  val typeSend = "s"
+  val typeReceive = "r"
+
+  def receive(metrics: MetricRegistry): Option[TestMetrics] = apply(typeReceive, metrics)
+
+  def send(metrics: MetricRegistry): Option[TestMetrics] = apply(typeSend, metrics)
+
+  def apply(name: String, metrics: MetricRegistry): Option[TestMetrics] = {
+    val resultOpt = for {
+      (_, timer) <- metrics.getTimers.asScala.headOption
+      (_, histogram) <- metrics.getHistograms.asScala.headOption
+    } yield {
+      new TestMetrics(name, timer, histogram, metrics)
     }
+    if (resultOpt.isEmpty)
+      logger.error("Cannot create result object with metrics.")
+    resultOpt
   }
-
-  private def newDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
 }
