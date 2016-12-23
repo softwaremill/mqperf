@@ -12,7 +12,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 class TestConfigOnS3(private val objectName: String) {
 
   private val s3ClientOpt: Option[AmazonS3Client] = AWSCredentialsFromEnv(TestConfigOnS3.LocalConfig).map(new AmazonS3Client(_))
-  private val bucketName = "mqperf"
+  private val bucketName = "mqperf-2"
   private val whenChangedPollEveryMs = 1000L
 
   def this() = this("test_config.json")

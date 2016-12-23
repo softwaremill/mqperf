@@ -82,9 +82,9 @@ object ShowStats extends App with DynamoResultsTable {
       .toList
   }
 
-  val prefix = if (args.nonEmpty) args(0) else "sqs1-1401970126140"
+  val prefix = if (args.nonEmpty) args(0) else "kafka"
 
-  val allResults = fetchResultsWithPrefix(prefix) //.sortBy(-_.msgsPerSecond)
+  val allResults = fetchResultsWithPrefix(prefix)
   val (sendResults, receiveResults) = allResults.partition(_._type == TestMetrics.typeSend)
 
   def printResults(results: List[Result], _type: String) {

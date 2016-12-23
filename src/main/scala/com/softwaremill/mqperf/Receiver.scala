@@ -39,7 +39,7 @@ class ReceiverRunnable(
     receiveMsgBatchSize: Int
 ) extends Runnable with StrictLogging {
 
-  val timeout = 16.seconds
+  val timeout = 60.seconds
   val timeoutNanos = timeout.toNanos
 
   val metricRegistry = new MetricRegistry()

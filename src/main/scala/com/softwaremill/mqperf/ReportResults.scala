@@ -28,6 +28,7 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable with Stri
     dynamoClient.putItem(new PutItemRequest()
       .withTableName(tableName)
       .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
+      .addItemEntry(typeColumn, new AttributeValue(metrics.name))
       .addItemEntry(histogramMinColumn, histogram.getMin)
       .addItemEntry(histogramMaxColumn, histogram.getMax)
       .addItemEntry(histogramMeanColumn, histogram.getMean)
