@@ -20,13 +20,9 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
   private val GroupId = "mq-group2"
   private val Topic = "mq2"
   val pollTimeout = 50.millis.toMillis
-  var offsetsToCommit: CommitOffsets = Map.empty
-  var lastCommitTick = System.nanoTime()
   val commitNs = configMap("commitMs").toLong.millis.toNanos
 
   override type MsgId = (TopicPartition, Long)
-
-  private var onClose = () => {}
 
   override def createSender() = new MqSender {
     var sendingMsg = false
@@ -57,6 +53,9 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
   }
 
   override def createReceiver() = new MqReceiver {
+
+    var offsetsToCommit: CommitOffsets = KafkaMq.EmptyOffsetMap
+    var lastCommitTick = System.nanoTime()
 
     // will only be run for receivers
     lazy val consumer = {
@@ -89,7 +88,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
               logger.debug(s"Commit successful: $offsets")
           }
         })
-        offsetsToCommit = Map.empty
+        offsetsToCommit = KafkaMq.EmptyOffsetMap
       }
     }
 
@@ -122,10 +121,6 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
       consumer.close()
       super.close()
     }
-  }
-
-  override def close(): Unit = {
-    onClose()
   }
 }
 
