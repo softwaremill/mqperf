@@ -1,10 +1,8 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.mq.Mq
-
 import scala.util.Random
 import com.softwaremill.mqperf.config.TestConfigOnS3
 
@@ -17,7 +15,7 @@ object Sender extends App {
     val report = new ReportResults(testConfig.name)
     val sr = new SenderRunnable(
       mq, report,
-      "0" * testConfig.msgSize,
+      testConfig.mqType, "0" * testConfig.msgSize,
       testConfig.msgCountPerThread, testConfig.maxSendMsgBatchSize
     )
 
@@ -33,12 +31,12 @@ object Sender extends App {
   }
 }
 
-class SenderRunnable(mq: Mq, reportResults: ReportResults,
+class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
 
   val metricRegistry = new MetricRegistry()
-  val msgTimer = metricRegistry.timer("kafka-sender-messages-timer")
-  val histogram = metricRegistry.histogram("kafka-sender-messages-histogram")
+  val msgTimer = metricRegistry.timer(s"$mqType-sender-timer")
+  val histogram = metricRegistry.histogram(s"$mqType-sender-histogram")
 
   override def run() = {
     val mqSender = mq.createSender()

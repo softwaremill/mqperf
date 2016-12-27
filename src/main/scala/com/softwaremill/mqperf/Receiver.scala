@@ -1,12 +1,11 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration._
 import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
-import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import com.typesafe.scalalogging.StrictLogging
 
 object Receiver extends App {
   println("Starting receiver...")
@@ -16,10 +15,7 @@ object Receiver extends App {
     val mq = Mq.instantiate(testConfig)
     val report = new ReportResults(testConfig.name)
 
-    val rr = new ReceiverRunnable(
-      mq, report,
-      testConfig.receiveMsgBatchSize
-    )
+    val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize)
 
     val threads = (1 to testConfig.receiverThreads).map { _ =>
       val t = new Thread(rr)
@@ -36,6 +32,7 @@ object Receiver extends App {
 class ReceiverRunnable(
     mq: Mq,
     reportResults: ReportResults,
+    mqType: String,
     receiveMsgBatchSize: Int
 ) extends Runnable with StrictLogging {
 
@@ -43,11 +40,12 @@ class ReceiverRunnable(
   val timeoutNanos = timeout.toNanos
 
   val metricRegistry = new MetricRegistry()
-  val msgTimer = metricRegistry.timer("kafka-receiver-messages-timer")
-  val histogram = metricRegistry.histogram("kafka-receiver-messages-histogram")
+  val msgTimer = metricRegistry.timer(s"$mqType-receiver-timer")
+  val histogram = metricRegistry.histogram(s"$mqType-receiver-histogram")
 
   override def run(): Unit = {
     val mqReceiver = mq.createReceiver()
+
     try {
       val start = System.nanoTime()
       var lastReceivedNano = start
