@@ -7,29 +7,6 @@ import scala.collection.JavaConverters._
 
 object ShowStats extends App with DynamoResultsTable {
 
-  case class Result(
-    msgCount: Long,
-    _type: String,
-    histogramMin: Long,
-    histogramMax: Long,
-    histogramMean: Double,
-    histogramMedian: Double,
-    histogramStdDev: Double,
-    histogram75thPercentile: Double,
-    histogram95thPercentile: Double,
-    histogram98thPercentile: Double,
-    histogram99thPercentile: Double,
-    timerMin: Long,
-    timerMax: Long,
-    timerMean: Double,
-    timerMedian: Double,
-    timerStdDev: Double,
-    timer75thPercentile: Double,
-    timer95thPercentile: Double,
-    timer98thPercentile: Double,
-    timer99thPercentile: Double
-  )
-
   private def fetchResultsWithPrefix(prefix: String): List[Result] = {
     val condition = new Condition()
       .withComparisonOperator(ComparisonOperator.BEGINS_WITH)
@@ -89,13 +66,9 @@ object ShowStats extends App with DynamoResultsTable {
 
   def printResults(results: List[Result], _type: String) {
     println(s"Results for $prefix, ${_type}")
-    results.foreach { r =>
-      println(r) // TODO nice formatting
-    }
-    val totalMsgs = results.map(_.msgCount).sum
+    results.foreach(println)
     println("---\n")
   }
-
   printResults(sendResults, "send")
   printResults(receiveResults, "receive")
 }
