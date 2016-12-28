@@ -1,10 +1,12 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-import com.codahale.metrics.MetricRegistry
-import com.softwaremill.mqperf.mq.Mq
-import scala.util.Random
+import com.codahale.metrics.{Histogram, MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
+import com.softwaremill.mqperf.mq.Mq
+import com.typesafe.scalalogging.StrictLogging
+
+import scala.util.Random
 
 object Sender extends App {
   println("Starting sender...")
@@ -32,16 +34,19 @@ object Sender extends App {
 }
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
-    msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable {
+    msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
 
   val metricRegistry = new MetricRegistry()
   val msgTimer = metricRegistry.timer(s"$mqType-sender-timer")
-  val histogram = metricRegistry.histogram(s"$mqType-sender-histogram")
 
   override def run() = {
+    val metricRegistry = new MetricRegistry()
+    val threadId = Thread.currentThread().getId
+    val msgTimer = metricRegistry.timer(s"sender-timer-$threadId")
+    val histogram = metricRegistry.histogram(s"sender-histogram-$threadId")
     val mqSender = mq.createSender()
     try {
-      doSend(mqSender)
+      doSend(mqSender, msgTimer, histogram)
       TestMetrics.send(metricRegistry).foreach(reportResults.report)
     }
     finally {
@@ -49,15 +54,17 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     }
   }
 
-  private def doSend(mqSender: mq.MqSender) {
+  private def doSend(mqSender: mq.MqSender, msgTimer: Timer, histogram: Histogram) {
     var leftToSend = msgCount
+    logger.info(s"Sending $leftToSend messages")
+    val start = System.nanoTime()
     while (leftToSend > 0) {
       val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
       val batch = List.fill(batchSize)(msg)
       val before = System.nanoTime()
       mqSender.send(batch)
       val after = System.nanoTime()
-      val nowSeconds = after / 1000000000L
+      val nowSeconds = (after - start) / 1000000000L
       batch.foreach(_ => histogram.update(nowSeconds))
       msgTimer.update(after - before, TimeUnit.NANOSECONDS)
       leftToSend -= batchSize

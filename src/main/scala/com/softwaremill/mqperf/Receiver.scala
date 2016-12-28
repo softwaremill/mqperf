@@ -2,7 +2,7 @@ package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
-import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.{MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
@@ -39,11 +39,12 @@ class ReceiverRunnable(
   val timeout = 60.seconds
   val timeoutNanos = timeout.toNanos
 
-  val metricRegistry = new MetricRegistry()
-  val msgTimer = metricRegistry.timer(s"$mqType-receiver-timer")
-  val histogram = metricRegistry.histogram(s"$mqType-receiver-histogram")
-
   override def run(): Unit = {
+    val metricRegistry = new MetricRegistry()
+    val threadId = Thread.currentThread().getId
+    val msgTimer = metricRegistry.timer(s"receiver-timer-$threadId")
+    val histogram = metricRegistry.histogram(s"receiver-histogram-$threadId")
+
     val mqReceiver = mq.createReceiver()
 
     try {
@@ -51,10 +52,10 @@ class ReceiverRunnable(
       var lastReceivedNano = start
 
       while (System.nanoTime() - lastReceivedNano < timeoutNanos) {
-        val received = doReceive(mqReceiver)
+        val received = doReceive(mqReceiver, msgTimer)
         if (received > 0) {
           val nowNano = System.nanoTime()
-          val nowSeconds = nowNano / 1000000000L
+          val nowSeconds = (nowNano - start) / 1000000000L
           lastReceivedNano = nowNano
           (0 to received).foreach(_ => histogram.update(nowSeconds))
         }
@@ -67,7 +68,7 @@ class ReceiverRunnable(
     }
   }
 
-  private def doReceive(mqReceiver: mq.MqReceiver) = {
+  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer) = {
     val before = System.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
