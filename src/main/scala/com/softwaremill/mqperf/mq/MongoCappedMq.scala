@@ -61,10 +61,15 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
 
   class MongoCappedMqReceiver(queueColl: MongoCollection[Document], cursorStateColl: MongoCollection[Document]) extends MqReceiver {
 
+    private val nodeId: Int = ObjectId.getGeneratedMachineIdentifier
+
     private val cursor: MongoCursor[Document] = {
-      val filter = Option(cursorStateColl.find().first()).map(_.getObjectId(LastDocField)).map { lastDoc =>
-        new BasicDBObject(IdField, new BasicDBObject("$gt", lastDoc))
-      }.getOrElse(new BasicDBObject())
+      val filter = Option(cursorStateColl.find(new BasicDBObject(NodeIdField, nodeId)).first())
+        .map(_.getObjectId(LastDocField))
+        .map(lastDocId => new BasicDBObject(IdField, new BasicDBObject("$gt", lastDocId)))
+        .getOrElse(new BasicDBObject())
+
+      // TODO handle lost capped position
       queueColl
         .find(filter)
         .sort(new BasicDBObject("$natural", 1))
@@ -101,8 +106,7 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
       import scala.concurrent.ExecutionContext.Implicits.global
       Future {
         val lastSeenId = ids.max
-        // TODO introduce some cursor (receiver) id
-        cursorStateColl.updateOne(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject(LastDocField, lastSeenId)), new UpdateOptions().upsert(true))
+        cursorStateColl.updateOne(new BasicDBObject(NodeIdField, nodeId), new BasicDBObject("$set", new BasicDBObject(LastDocField, lastSeenId)), new UpdateOptions().upsert(true))
       }
     }
   }
@@ -115,5 +119,7 @@ object MongoCappedMq {
 
   val IdField = "_id"
   val MessageField = "message"
+
+  val NodeIdField = "nodeId"
   val LastDocField = "lastDoc"
 }
