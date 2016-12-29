@@ -1,11 +1,11 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration._
 import com.codahale.metrics.{MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
+import scala.concurrent.duration._
 
 object Receiver extends App {
   println("Starting receiver...")
@@ -43,7 +43,7 @@ class ReceiverRunnable(
     val metricRegistry = new MetricRegistry()
     val threadId = Thread.currentThread().getId
     val msgTimer = metricRegistry.timer(s"receiver-timer-$threadId")
-    val histogram = metricRegistry.histogram(s"receiver-histogram-$threadId")
+    val meter = metricRegistry.meter(s"receiver-meter-$threadId")
 
     val mqReceiver = mq.createReceiver()
 
@@ -55,9 +55,8 @@ class ReceiverRunnable(
         val received = doReceive(mqReceiver, msgTimer)
         if (received > 0) {
           val nowNano = System.nanoTime()
-          val nowSeconds = (nowNano - start) / 1000000000L
           lastReceivedNano = nowNano
-          (0 to received).foreach(_ => histogram.update(nowSeconds))
+          meter.mark(received)
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")

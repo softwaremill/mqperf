@@ -1,17 +1,16 @@
 package com.softwaremill.mqperf.stats
 
-private[stats] case class Result(
+import java.util.Locale
+
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
+
+case class Result(
+    timestamp: DateTime,
     msgCount: Long,
     _type: String,
-    histogramMin: Long,
-    histogramMax: Long,
-    histogramMean: Double,
-    histogramMedian: Double,
-    histogramStdDev: Double,
-    histogram75thPercentile: Double,
-    histogram95thPercentile: Double,
-    histogram98thPercentile: Double,
-    histogram99thPercentile: Double,
+    meterMean: Double,
+    meter1MinEwma: Double,
     timerMin: Long,
     timerMax: Long,
     timerMean: Double,
@@ -23,16 +22,11 @@ private[stats] case class Result(
     timer99thPercentile: Double
 ) {
   override def toString: String = {
-    f"""$msgCount%12d total messages
-       |$histogramMin%12d min msgs/s
-       |$histogramMax%12d max msgs/s
-       |$histogramMean%12.2f mean msgs/s
-       |$histogramMedian%12.2f median msgs/s
-       |$histogramStdDev%12.2f std dev msgs/s
-       |$histogram75thPercentile%12.2f msgs/s (75th percentile)
-       |$histogram95thPercentile%12.2f msgs/s (95th percentile)
-       |$histogram98thPercentile%12.2f msgs/s (98th percentile)
-       |$histogram99thPercentile%12.2f msgs/s (99th percentile)
+    val dt = Result.dtFormatter.print(timestamp)
+    f"""Test time: $dt UTC
+       |$msgCount%12d total messages
+       |$meterMean%12.0f mean msgs/s
+       |$meter1MinEwma%12.0f 1 min EWMA msgs/s
        |${timerMin / 1000000L}%12d min latency ms
        |${timerMax / 1000000L}%12d max latency ms
        |${timerMean / 1000000L}%12.2f mean latency ms
@@ -43,4 +37,8 @@ private[stats] case class Result(
        |${timer98thPercentile / 1000000L}%12.2f latency ms (98th percentile)
        |${timer99thPercentile / 1000000L}%12.2f latency ms (99th percentile)""".stripMargin
   }
+}
+
+object Result {
+  val dtFormatter = DateTimeFormat.shortDateTime().withLocale(Locale.UK).withZone(DateTimeZone.UTC)
 }

@@ -2,6 +2,7 @@ package com.softwaremill.mqperf.stats
 
 import com.softwaremill.mqperf.{DynamoResultsTable, TestMetrics}
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, ComparisonOperator, Condition, ScanRequest}
+import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.JavaConverters._
 
@@ -34,28 +35,24 @@ object ShowStats extends App with DynamoResultsTable {
     val items = doFetch(None).asScala
 
     items
-      .map(i => Result(
-        i.get(msgsCountColumn).getN.toLong,
-        i.get(typeColumn).getS,
-        i.get(histogramMinColumn).getN.toLong,
-        i.get(histogramMaxColumn).getN.toLong,
-        i.get(histogramMeanColumn).getN.toDouble,
-        i.get(histogramMedianColumn).getN.toDouble,
-        i.get(histogramStdDevColumn).getN.toDouble,
-        i.get(histogram75thPercentileColumn).getN.toDouble,
-        i.get(histogram95thPercentileColumn).getN.toDouble,
-        i.get(histogram98thPercentileColumn).getN.toDouble,
-        i.get(histogram99thPercentileColumn).getN.toDouble,
-        i.get(timerMinColumn).getN.toLong,
-        i.get(timerMaxColumn).getN.toLong,
-        i.get(timerMeanColumn).getN.toDouble,
-        i.get(timerMedianColumn).getN.toDouble,
-        i.get(timerStdDevColumn).getN.toDouble,
-        i.get(timer75thPercentileColumn).getN.toDouble,
-        i.get(timer95thPercentileColumn).getN.toDouble,
-        i.get(timer98thPercentileColumn).getN.toDouble,
-        i.get(timer99thPercentileColumn).getN.toDouble
-      ))
+      .map(i => {
+        Result(
+          new DateTime(i.get(resultTimestampColumn).getN.toLong).withZone(DateTimeZone.UTC),
+          i.get(msgsCountColumn).getN.toLong,
+          i.get(typeColumn).getS,
+          i.get(meterMean).getN.toDouble,
+          i.get(meter1MinuteEwma).getN.toDouble,
+          i.get(timerMinColumn).getN.toLong,
+          i.get(timerMaxColumn).getN.toLong,
+          i.get(timerMeanColumn).getN.toDouble,
+          i.get(timerMedianColumn).getN.toDouble,
+          i.get(timerStdDevColumn).getN.toDouble,
+          i.get(timer75thPercentileColumn).getN.toDouble,
+          i.get(timer95thPercentileColumn).getN.toDouble,
+          i.get(timer98thPercentileColumn).getN.toDouble,
+          i.get(timer99thPercentileColumn).getN.toDouble
+        )
+      })
       .toList
   }
 
