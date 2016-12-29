@@ -1,87 +1,15 @@
 package com.softwaremill.mqperf.mq
 
-import javax.jms.{TextMessage, Message, DeliveryMode, Session}
-
+import javax.jms._
 import org.apache.activemq.ActiveMQConnectionFactory
 
-import scala.annotation.tailrec
+class ActiveMq(val configMap: Map[String, String]) extends JmsMq {
 
-class ActiveMq(configMap: Map[String, String]) extends Mq {
-
-  val QueueName = "mq"
-
-  lazy val connectionFactory = {
+  override lazy val connectionFactory: ConnectionFactory = {
     val cf = new ActiveMQConnectionFactory(configMap("host"))
     cf.setOptimizeAcknowledge(true)
     cf.setSendAcksAsync(true)
     cf
-  }
-
-  override type MsgId = Message
-
-  override def close() {}
-
-  override def createSender() = new MqSender {
-    val connection = connectionFactory.createConnection("admin", "admin")
-    connection.start()
-
-    val session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE)
-
-    val destination = session.createQueue(QueueName)
-
-    val producer = session.createProducer(destination)
-    producer.setDeliveryMode(DeliveryMode.PERSISTENT)
-
-    override def send(msgs: List[String]) {
-      msgs.foreach(msg => producer.send(session.createTextMessage(msg)))
-    }
-
-    override def close(): Unit = {
-      session.close()
-      connection.close()
-    }
-  }
-
-  override def createReceiver() = new MqReceiver {
-    val connection = connectionFactory.createConnection("admin", "admin")
-    connection.start()
-
-    val session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE)
-
-    val destination = session.createQueue(QueueName)
-
-    val consumer = session.createConsumer(destination)
-
-    override def receive(maxMsgCount: Int) = {
-      doReceive(Nil, 1000L, maxMsgCount)
-    }
-
-    @tailrec
-    private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Long, count: Int): List[(MsgId, String)] = {
-      if (count == 0) {
-        acc
-      }
-      else {
-        val message = consumer.receive(waitForMsgs)
-        if (message == null) {
-          acc
-        }
-        else {
-          doReceive((message, message.asInstanceOf[TextMessage].getText) :: acc, 100L, count - 1)
-        }
-      }
-    }
-
-    override def ack(ids: List[MsgId]) = {
-      ids.foreach { id =>
-        id.acknowledge()
-      }
-    }
-
-    override def close(): Unit = {
-      session.close()
-      connection.close()
-    }
   }
 }
 
