@@ -49,7 +49,9 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.0" % "test",
   "com.geteventstore" %% "eventstore-client" % "3.0.4",
   "org.apache.activemq" % "activemq-client" % "5.14.2",
-  "com.typesafe" % "config" % "1.3.1"
+  "com.typesafe" % "config" % "1.3.1",
+  "io.dropwizard.metrics" % "metrics-core" % "3.1.0",
+  "org.apache.activemq" % "artemis-jms-client" % "1.5.1"
 )
 
 assemblyOption in assembly ~= {
