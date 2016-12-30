@@ -79,8 +79,8 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
         None
       }
       else {
-        val id = result.get(IdField).asInstanceOf[ObjectId]
-        val messageContent = result.get(MessageField).asInstanceOf[String]
+        val id = result.getObjectId(IdField)
+        val messageContent = result.getString(MessageField)
         Some((id, messageContent))
       }
     }
