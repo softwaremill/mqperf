@@ -64,10 +64,14 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
     private val nodeId: Int = ObjectId.getGeneratedMachineIdentifier
 
     private val cursor: MongoCursor[Document] = {
-      val filter = Option(cursorStateColl.find(new BasicDBObject(NodeIdField, nodeId)).first())
-        .map(_.getObjectId(LastDocField))
-        .map(lastDocId => new BasicDBObject(IdField, new BasicDBObject("$gt", lastDocId)))
-        .getOrElse(new BasicDBObject())
+      val existingCursorState = cursorStateColl.find(new BasicDBObject(NodeIdField, nodeId)).first()
+      val filter = if (existingCursorState == null) {
+        new BasicDBObject()
+      }
+      else {
+        val lastDocId = existingCursorState.getObjectId(LastDocField)
+        new BasicDBObject(IdField, new BasicDBObject("$gt", lastDocId))
+      }
 
       // TODO handle lost capped position
       queueColl
@@ -86,12 +90,13 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
     @tailrec
     private def doReceive(acc: List[(ObjectId, String)], limit: Int): List[(ObjectId, String)] = {
       if (limit > 0) {
-        Option(cursor.tryNext()) match {
-          case Some(doc) =>
-            val newElement = doc.getObjectId(IdField) -> doc.getString(MessageField)
-            doReceive(newElement :: acc, limit - 1)
-          case None =>
-            acc
+        val msg = cursor.tryNext()
+        if (msg == null) {
+          acc
+        }
+        else {
+          val newElement = msg.getObjectId(IdField) -> msg.getString(MessageField)
+          doReceive(newElement :: acc, limit - 1)
         }
       }
       else {
