@@ -1,7 +1,8 @@
 package com.softwaremill.mqperf.mq
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executors, TimeUnit}
 
+import akka.dispatch.ExecutionContexts
 import com.mongodb._
 import com.mongodb.client.model.{CreateCollectionOptions, UpdateOptions}
 import com.mongodb.client.{MongoCollection, MongoCursor, MongoDatabase}
@@ -41,6 +42,9 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
     }
     db.getCollection(CursorStateCollectionName)
   }
+
+  // This execution context is shared between all MongoCappedMqReceiver instances
+  private val ackExecutionContext = ExecutionContexts.fromExecutor(Executors.newCachedThreadPool())
 
   override def createSender(): MqSender = new MongoCappedMqSender(queueColl)
 
@@ -108,7 +112,7 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
      * Can be asynchronous
      */
     override def ack(ids: List[ObjectId]): Unit = {
-      import scala.concurrent.ExecutionContext.Implicits.global
+      implicit val ec = ackExecutionContext
       Future {
         val lastSeenId = ids.max
         cursorStateColl.updateOne(new BasicDBObject(NodeIdField, nodeId), new BasicDBObject("$set", new BasicDBObject(LastDocField, lastSeenId)), new UpdateOptions().upsert(true))
