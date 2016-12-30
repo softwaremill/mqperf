@@ -1,7 +1,8 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-import com.codahale.metrics.{Histogram, Meter, MetricRegistry, Timer}
+
+import com.codahale.metrics.{Meter, MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
@@ -44,11 +45,10 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     val threadId = Thread.currentThread().getId
     val msgTimer = metricRegistry.timer(s"sender-timer-$threadId")
     val meter = metricRegistry.meter(s"sender-meter-$threadId")
-    val h = metricRegistry.histogram(s"sender-histogram-$threadId")
     val mqSender = mq.createSender()
     val start = System.nanoTime()
     try {
-      doSend(mqSender, msgTimer, meter, h, start)
+      doSend(mqSender, msgTimer, meter, start)
       TestMetrics.send(metricRegistry).foreach(reportResults.report)
     }
     finally {
@@ -56,7 +56,7 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     }
   }
 
-  private def doSend(mqSender: mq.MqSender, msgTimer: Timer, meter: Meter, histogram: Histogram, start: Long) {
+  private def doSend(mqSender: mq.MqSender, msgTimer: Timer, meter: Meter, start: Long) {
     var leftToSend = msgCount
     logger.info(s"Sending $leftToSend messages")
     while (leftToSend > 0) {
@@ -67,8 +67,6 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
       mqSender.send(batch)
       val after = System.nanoTime()
       meter.mark(batch.length)
-      val nowSeconds = after / 1000000000L
-      histogram.update(nowSeconds)
       msgTimer.update(after - before, TimeUnit.NANOSECONDS)
       leftToSend -= batchSize
     }
