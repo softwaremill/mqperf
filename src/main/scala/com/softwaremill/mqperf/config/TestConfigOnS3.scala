@@ -60,6 +60,7 @@ class TestConfigOnS3(private val objectName: String) {
   def whenChanged(block: TestConfig => Unit) {
     lastModified() match {
       case Some(lm) =>
+        block(read())
         var lastMod = lastModified()
         while (true) {
           Thread.sleep(whenChangedPollEveryMs)
