@@ -54,10 +54,6 @@ libraryDependencies ++= Seq(
   "org.apache.activemq" % "artemis-jms-client" % "1.5.1" exclude("commons-logging", "commons-logging")
 )
 
-assemblyOption in assembly ~= {
-  _.copy(includeBin = true, includeScala = false, includeDependency = false)
-}
-
 assemblyMergeStrategy in assembly := {
   case PathList(ps@_*) if ps.last == "HornetQUtilBundle_$bundle.class" => MergeStrategy.first
   case x => (assemblyMergeStrategy in assembly).value(x)
