@@ -1,12 +1,10 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.{Meter, MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
-
 import scala.util.Random
 
 object Sender extends App {
@@ -36,9 +34,6 @@ object Sender extends App {
 
 class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     msg: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
-
-  val metricRegistry = new MetricRegistry()
-  val msgTimer = metricRegistry.timer(s"$mqType-sender-timer")
 
   override def run() = {
     val metricRegistry = new MetricRegistry()
