@@ -40,12 +40,14 @@ class ReceiverRunnable(
   val timeoutNanos = timeout.toNanos
 
   override def run(): Unit = {
+    import ReceiverMetrics._
+
     val metricRegistry = new MetricRegistry()
     val threadId = Thread.currentThread().getId
-    val msgTimer = metricRegistry.timer(s"receiver-timer-$threadId")
+    val msgTimer = metricRegistry.timer(s"$batchLatencyTimerPrefix-$threadId")
     // Calculates latency between sending message by the sender and receiving by the receiver
-    val clusterLatencyTimer = metricRegistry.timer(s"cluster-timer-$threadId")
-    val meter = metricRegistry.meter(s"receiver-meter-$threadId")
+    val clusterLatencyTimer = metricRegistry.timer(s"$clusterLatencyTimerPrefix-$threadId")
+    val meter = metricRegistry.meter(s"$batchThroughputMeter-$threadId")
 
     val mqReceiver = mq.createReceiver()
 
@@ -58,11 +60,11 @@ class ReceiverRunnable(
         if (received > 0) {
           val nowNano = System.nanoTime()
           lastReceivedNano = nowNano
-          meter.mark(received)
+          meter.mark()
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
-      TestMetrics.receive(metricRegistry).foreach(reportResults.report)
+      ReceiverMetrics(metricRegistry).foreach(reportResults.report)
     }
     finally {
       mqReceiver.close()
