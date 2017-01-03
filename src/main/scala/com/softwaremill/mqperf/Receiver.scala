@@ -43,6 +43,8 @@ class ReceiverRunnable(
     val metricRegistry = new MetricRegistry()
     val threadId = Thread.currentThread().getId
     val msgTimer = metricRegistry.timer(s"receiver-timer-$threadId")
+    // Calculates latency between sending message by the sender and receiving by the receiver
+    val clusterLatencyTimer = metricRegistry.timer(s"cluster-timer-$threadId")
     val meter = metricRegistry.meter(s"receiver-meter-$threadId")
 
     val mqReceiver = mq.createReceiver()
@@ -52,7 +54,7 @@ class ReceiverRunnable(
       var lastReceivedNano = start
 
       while (System.nanoTime() - lastReceivedNano < timeoutNanos) {
-        val received = doReceive(mqReceiver, msgTimer)
+        val received = doReceive(mqReceiver, msgTimer, clusterLatencyTimer)
         if (received > 0) {
           val nowNano = System.nanoTime()
           lastReceivedNano = nowNano
@@ -67,11 +69,17 @@ class ReceiverRunnable(
     }
   }
 
-  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer) = {
+  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer) = {
     val before = System.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
       val after = System.nanoTime()
+      val afterMs = after / 1000000L
+      msgs.foreach {
+        case (_, msg) =>
+          val msgTimestamp = msg.substring(msg.indexOf('_') + 1).toLong
+          clusterTimer.update(afterMs - msgTimestamp, TimeUnit.MILLISECONDS)
+      }
       msgTimer.update(after - before, TimeUnit.NANOSECONDS)
     }
     val ids = msgs.map(_._1)

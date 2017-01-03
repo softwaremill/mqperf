@@ -61,9 +61,10 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     logger.info(s"Sending $leftToSend messages")
     while (leftToSend > 0) {
       val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
-      val batch = List.fill(batchSize)(msg)
-      val before = System.nanoTime()
+      val fullMsg = msg + "_" + System.currentTimeMillis().toString
+      val batch = List.fill(batchSize)(fullMsg)
       logger.debug("Sending batch")
+      val before = System.nanoTime()
       mqSender.send(batch)
       val after = System.nanoTime()
       meter.mark(batch.length)
