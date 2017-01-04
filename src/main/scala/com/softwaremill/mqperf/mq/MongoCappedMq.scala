@@ -98,6 +98,7 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
         val msg = cursor.tryNext()
         if (msg == null) {
           if (cursor.getServerCursor == null) {
+            cursor.close()
             cursor = createCursor
           }
           acc
