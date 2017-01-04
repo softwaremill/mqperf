@@ -12,6 +12,10 @@ trait Mq {
     def send(msgs: List[String])
 
     def close() {}
+
+    def withTimestamp(msg: String): String = msg + "_" + System.currentTimeMillis().toString
+
+    def extractTimestamp(msg: String): Long = msg.substring(msg.indexOf('_') + 1).toLong
   }
 
   trait MqReceiver {

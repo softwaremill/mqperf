@@ -40,10 +40,14 @@ class ReceiverRunnable(
   val timeoutNanos = timeout.toNanos
 
   override def run(): Unit = {
+    import ReceiverMetrics._
+
     val metricRegistry = new MetricRegistry()
     val threadId = Thread.currentThread().getId
-    val msgTimer = metricRegistry.timer(s"receiver-timer-$threadId")
-    val meter = metricRegistry.meter(s"receiver-meter-$threadId")
+    val msgTimer = metricRegistry.timer(s"$batchLatencyTimerPrefix-$threadId")
+    // Calculates latency between sending message by the sender and receiving by the receiver
+    val clusterLatencyTimer = metricRegistry.timer(s"$clusterLatencyTimerPrefix-$threadId")
+    val meter = metricRegistry.meter(s"$batchThroughputMeter-$threadId")
 
     val mqReceiver = mq.createReceiver()
 
@@ -52,26 +56,32 @@ class ReceiverRunnable(
       var lastReceivedNano = start
 
       while (System.nanoTime() - lastReceivedNano < timeoutNanos) {
-        val received = doReceive(mqReceiver, msgTimer)
+        val received = doReceive(mqReceiver, msgTimer, clusterLatencyTimer)
         if (received > 0) {
           val nowNano = System.nanoTime()
           lastReceivedNano = nowNano
-          meter.mark(received)
+          meter.mark()
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
-      TestMetrics.receive(metricRegistry).foreach(reportResults.report)
+      ReceiverMetrics(metricRegistry).foreach(reportResults.report)
     }
     finally {
       mqReceiver.close()
     }
   }
 
-  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer) = {
+  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer) = {
     val before = System.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
       val after = System.nanoTime()
+      val afterMs = after / 1000000L
+      msgs.foreach {
+        case (_, msg) =>
+          val msgTimestamp = msg.substring(msg.indexOf('_') + 1).toLong
+          clusterTimer.update(afterMs - msgTimestamp, TimeUnit.MILLISECONDS)
+      }
       msgTimer.update(after - before, TimeUnit.NANOSECONDS)
     }
     val ids = msgs.map(_._1)

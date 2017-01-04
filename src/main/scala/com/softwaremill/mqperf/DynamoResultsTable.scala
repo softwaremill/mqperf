@@ -31,8 +31,16 @@ trait DynamoResultsTable {
   protected val timer95thPercentileColumn = "timer_95th_perc"
   protected val timer98thPercentileColumn = "timer_98th_perc"
   protected val timer99thPercentileColumn = "timer_99th_perc"
+  protected val clusterTimerMinColumn = "clusterTimer_min"
+  protected val clusterTimerMaxColumn = "clusterTimer_max"
+  protected val clusterTimerMeanColumn = "clusterTimer_mean"
+  protected val clusterTimerMedianColumn = "clusterTimer_median"
+  protected val clusterTimerStdDevColumn = "clusterTimer_st_dev"
+  protected val clusterTimer75thPercentileColumn = "clusterTimer_75th_perc"
+  protected val clusterTimer95thPercentileColumn = "clusterTimer_95th_perc"
+  protected val clusterTimer98thPercentileColumn = "clusterTimer_98th_perc"
+  protected val clusterTimer99thPercentileColumn = "clusterTimer_99th_perc"
   protected val msgsCountColumn = "msgs_count"
-  protected val typeColumn = "type"
 }
 
 object ClearDynamoResultsTable extends App with DynamoResultsTable {
