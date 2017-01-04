@@ -11,7 +11,6 @@
         "host": "ip-10-103-214-25.eu-west-1.compute.internal:27017",
         "write_concern": "ack",
         "size_in_bytes": 100000000,
-        "await_ms": 100,
         "batch_size": 1000000
     }
 }

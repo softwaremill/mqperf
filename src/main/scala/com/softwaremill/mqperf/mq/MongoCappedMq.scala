@@ -67,7 +67,9 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
 
     private val nodeId: Int = ObjectId.getGeneratedMachineIdentifier
 
-    private val cursor: MongoCursor[Document] = {
+    private var cursor = createCursor
+
+    private def createCursor: MongoCursor[Document] = {
       val existingCursorState = cursorStateColl.find(new BasicDBObject(NodeIdField, nodeId)).first()
       val filter = if (existingCursorState == null) {
         new BasicDBObject()
@@ -81,8 +83,7 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
       queueColl
         .find(filter)
         .sort(new BasicDBObject("$natural", 1))
-        .cursorType(CursorType.TailableAwait)
-        .maxAwaitTime(configMap("await_ms").toInt, TimeUnit.MILLISECONDS)
+        .cursorType(CursorType.Tailable)
         .batchSize(configMap("batch_size").toInt)
         .iterator()
     }
@@ -96,6 +97,9 @@ class MongoCappedMq(configMap: Map[String, String]) extends Mq {
       if (limit > 0) {
         val msg = cursor.tryNext()
         if (msg == null) {
+          if (cursor.getServerCursor == null) {
+            cursor = createCursor
+          }
           acc
         }
         else {
