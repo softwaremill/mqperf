@@ -5,6 +5,10 @@ import com.softwaremill.mqperf.config.TestConfig
 trait Mq {
   type MsgId
 
+  def msgWithTimestamp(prefix: String): String = prefix + System.currentTimeMillis().toString
+
+  def extractTimestamp(msg: String): Long = msg.toLong
+
   trait MqSender {
     /**
      * Synchronous - must wait for the messages to be sent
@@ -12,10 +16,6 @@ trait Mq {
     def send(msgs: List[String])
 
     def close() {}
-
-    def withTimestamp(msg: String): String = msg + "_" + System.currentTimeMillis().toString
-
-    def extractTimestamp(msg: String): Long = msg.substring(msg.indexOf('_') + 1).toLong
   }
 
   trait MqReceiver {
