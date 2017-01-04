@@ -41,7 +41,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
         send(msgs)
       else if (msgs.nonEmpty) {
         sendingMsg = true
-        producer.send(new ProducerRecord[String, String](Topic, r.nextString(5), withTimestamp(msgs.head)), new Callback {
+        producer.send(new ProducerRecord[String, String](Topic, r.nextString(5), msgs.head), new Callback {
           override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
             // This callback is executed on the same thread, so we can safely access mutable state
             sendingMsg = false

@@ -79,7 +79,7 @@ class ReceiverRunnable(
       val afterMs = after / 1000000L
       msgs.foreach {
         case (_, msg) =>
-          val msgTimestamp = msg.substring(msg.indexOf('_') + 1).toLong
+          val msgTimestamp = mq.extractTimestamp(msg)
           clusterTimer.update(afterMs - msgTimestamp, TimeUnit.MILLISECONDS)
       }
       msgTimer.update(after - before, TimeUnit.NANOSECONDS)
