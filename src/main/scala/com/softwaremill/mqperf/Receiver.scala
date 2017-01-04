@@ -1,10 +1,12 @@
 package com.softwaremill.mqperf
 
 import java.util.concurrent.TimeUnit
+
 import com.codahale.metrics.{MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
+
 import scala.concurrent.duration._
 
 object Receiver extends App {
@@ -54,13 +56,14 @@ class ReceiverRunnable(
     try {
       val start = System.nanoTime()
       var lastReceivedNano = start
+      var waitingForFirstMessage = true
 
-      while (System.nanoTime() - lastReceivedNano < timeoutNanos) {
+      while (waitingForFirstMessage || System.nanoTime() - lastReceivedNano < timeoutNanos) {
         val received = doReceive(mqReceiver, msgTimer, clusterLatencyTimer)
         if (received > 0) {
-          val nowNano = System.nanoTime()
-          lastReceivedNano = nowNano
+          lastReceivedNano = System.nanoTime()
           meter.mark()
+          waitingForFirstMessage = false
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
@@ -71,7 +74,7 @@ class ReceiverRunnable(
     }
   }
 
-  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer) = {
+  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer): Int = {
     val before = System.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
