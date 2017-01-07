@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import com.codahale.metrics.{MetricRegistry, Timer}
 import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
+import com.softwaremill.mqperf.util.{Clock, RealClock}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration._
@@ -17,7 +18,7 @@ object Receiver extends App {
     val mq = Mq.instantiate(testConfig)
     val report = new ReportResults(testConfig.name)
 
-    val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize)
+    val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry)
 
     val threads = (1 to testConfig.receiverThreads).map { _ =>
       val t = new Thread(rr)
@@ -35,16 +36,17 @@ class ReceiverRunnable(
     mq: Mq,
     reportResults: ReportResults,
     mqType: String,
-    receiveMsgBatchSize: Int
+    receiveMsgBatchSize: Int,
+    metricRegistry: MetricRegistry,
+    clock: Clock = RealClock
 ) extends Runnable with StrictLogging {
 
-  val timeout = 60.seconds
-  val timeoutNanos = timeout.toNanos
+  val timeout: FiniteDuration = 60.seconds
+  val timeoutNanos: Long = timeout.toNanos
 
   override def run(): Unit = {
     import ReceiverMetrics._
 
-    val metricRegistry = new MetricRegistry()
     val threadId = Thread.currentThread().getId
     val msgTimer = metricRegistry.timer(s"$batchLatencyTimerPrefix-$threadId")
     // Calculates latency between sending message by the sender and receiving by the receiver
@@ -54,14 +56,13 @@ class ReceiverRunnable(
     val mqReceiver = mq.createReceiver()
 
     try {
-      val start = System.nanoTime()
-      var lastReceivedNano = start
+      var lastReceivedNano = clock.nanoTime()
       var waitingForFirstMessage = true
 
-      while (waitingForFirstMessage || System.nanoTime() - lastReceivedNano < timeoutNanos) {
+      while (waitingForFirstMessage || (clock.nanoTime() - lastReceivedNano) < timeoutNanos) {
         val received = doReceive(mqReceiver, msgTimer, clusterLatencyTimer)
         if (received > 0) {
-          lastReceivedNano = System.nanoTime()
+          lastReceivedNano = clock.nanoTime()
           meter.mark()
           waitingForFirstMessage = false
         }
@@ -75,10 +76,10 @@ class ReceiverRunnable(
   }
 
   private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer): Int = {
-    val before = System.nanoTime()
+    val before = clock.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
-      val after = System.nanoTime()
+      val after = clock.nanoTime()
       val afterMs = after / 1000000L
       msgs.foreach {
         case (_, msg) =>
