@@ -14,7 +14,11 @@ lazy val commonSettings = Seq(
     .setPreference(SpacesAroundMultiImports, false))
 
 lazy val root = (project in file(".")).
-  settings(commonSettings: _*)
+  settings(commonSettings: _*).
+  settings(
+    // This way we kill 'zombie' senders and receivers after unsuccessful test(s)
+    fork in Test := true
+  )
 
 lazy val oracleaq = project.in(file("oracleaq")).
   dependsOn(root).
