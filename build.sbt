@@ -34,6 +34,7 @@ lazy val oracleaq = project.in(file("oracleaq")).
 name := "mqperf"
 
 libraryDependencies ++= Seq(
+  "org.scala-lang.modules"      %%  "scala-java8-compat"    % "0.8.0"     % "test",
   "com.amazonaws"               %   "aws-java-sdk"          % "1.11.68"   exclude("commons-logging", "commons-logging"),
   "org.json4s"                  %%  "json4s-native"         % "3.5.0",
   "org.mongodb"                 %   "mongodb-driver"        % "3.4.0",
