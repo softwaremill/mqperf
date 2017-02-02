@@ -1,0 +1,34 @@
+---
+
+- name: Provision a set of slave instances
+  ec2:
+    key_name: "{{ key_name }}"
+    group: "{{ ec2_groups }}"
+    instance_type: "{{aws_instance_type}}"
+    image: "ami-70edb016"
+    vpc_subnet_id: "{{subnet_external}}"
+    region: "{{ aws_region }}"
+    zone: "{{aws_zone}}"
+    wait: true
+    exact_count: "{{ count }}"
+    assign_public_ip: true
+    count_tag:
+      group: "{{ ec2_tag_group }}"
+    instance_tags:
+      group: "{{ ec2_tag_group }}"
+      kind: "mqperf-instance"
+  register: ec2
+
+- name: Wait for SSH to come up
+  wait_for: 
+    host: "{{ item.public_dns_name }}"
+    port: 22
+    delay: 10
+    timeout: 640
+    state: started
+  with_items: "{{ ec2.instances }}"
+
+- name: Refresh inventory
+  meta: refresh_inventory
+
+- debug: var=groups

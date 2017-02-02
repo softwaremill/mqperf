@@ -1,0 +1,8 @@
+---
+ssh_port: 22
+aws_region: eu-west-1
+aws_zone: "{{aws_region}}a"
+subnet_cidr: "172.22.1.0/24"
+vpc_cidr_block: "172.22.0.0/16"
+all_cidr: "0.0.0.0/0"
+key_name: "mqperf-key"

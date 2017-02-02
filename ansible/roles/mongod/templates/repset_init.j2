@@ -1,0 +1,10 @@
+rs.initiate({ 
+  "_id": "mqperf",
+  "members": [ { "_id": 0, host: "{{ (groups['tag_group_Mongo'] | first) }}" } ]
+})
+sleep(13000)
+{% for host in groups['tag_group_Mongo'][1:] %}
+rs.add("{{ host }}")
+sleep(8000)
+{% endfor %}
+printjson(rs.status())
