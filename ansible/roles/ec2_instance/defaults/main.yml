@@ -1,4 +1,5 @@
 ---
+aws_ami_id: "ami-70edb016"
 aws_instance_type: t2.micro
 ec2_groups: [ 'ssh_access' ]
 count: 1

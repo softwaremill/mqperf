@@ -61,14 +61,17 @@
     state: started
   become: true
 
-- name: Pause for a while
-  pause: 
-    seconds: 20
-
-- set_fact: mongo_primary="{{ groups['tag_group_Mongo'] | first }}"
+- set_fact: mongo_primary="{{ groups['mongo'] | first }}"
 
 - name: debug
   debug: msg="mongo primary = {{ mongo_primary }}"
+
+- name: Ensure mongo instances are visible to each other
+  wait_for:
+    state: drained
+    port: 27017
+    host: "{{ item }}"
+  with_items: "{{ groups['mongo'] }}"
 
 - name: Create the file to initialize the mongod replica set
   template: 

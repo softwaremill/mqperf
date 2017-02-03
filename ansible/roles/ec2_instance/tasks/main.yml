@@ -4,11 +4,11 @@
   ec2:
     key_name: "{{ key_name }}"
     group: "{{ ec2_groups }}"
-    instance_type: "{{aws_instance_type}}"
-    image: "ami-70edb016"
-    vpc_subnet_id: "{{subnet_external}}"
+    instance_type: "{{ aws_instance_type }}"
+    image: "{{ aws_ami_id }}"
+    vpc_subnet_id: "{{ subnet_external }}"
     region: "{{ aws_region }}"
-    zone: "{{aws_zone}}"
+    zone: "{{ aws_zone }}"
     wait: true
     exact_count: "{{ count }}"
     assign_public_ip: true
