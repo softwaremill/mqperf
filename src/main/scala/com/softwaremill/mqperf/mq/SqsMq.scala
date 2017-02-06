@@ -2,12 +2,14 @@ package com.softwaremill.mqperf.mq
 
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
+
 import scala.collection.JavaConverters._
 import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
 import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
 import com.amazonaws.regions.{Region, Regions}
+import com.typesafe.config.Config
 
-class SqsMq(configMap: Map[String, String]) extends Mq {
+class SqsMq(val config: Config) extends Mq {
   private val asyncClient = {
     val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
     c.setRegion(Region.getRegion(Regions.EU_WEST_1))

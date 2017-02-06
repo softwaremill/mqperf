@@ -1,10 +1,10 @@
 package com.softwaremill.mqperf.mq
 
 import javax.jms._
+
 import scala.annotation.tailrec
 
 trait JmsMq extends Mq {
-  def configMap: Map[String, String]
   def connectionFactory: ConnectionFactory
 
   val QueueName = "mq"

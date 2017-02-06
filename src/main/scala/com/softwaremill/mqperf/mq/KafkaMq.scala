@@ -4,6 +4,7 @@ import java.util.{Properties, Map => JMap}
 
 import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.{ReceiverRunnable, ReportResults}
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.clients.producer._
@@ -11,27 +12,29 @@ import org.apache.kafka.common.TopicPartition
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Random
 
-class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
+class KafkaMq(val config: Config) extends Mq with StrictLogging {
+
   import KafkaMq._
 
   private val GroupId = "mq-group2"
   private val Topic = "mq2"
   val pollTimeout = 50.millis.toMillis
-  val commitNs = configMap("commitMs").toLong.millis.toNanos
+  val commitNs = config.getLong("commitMs").millis.toNanos
 
   override type MsgId = (TopicPartition, Long)
 
   override def createSender() = new MqSender {
     var sendingMsg = false
     val producersProps = new Properties()
-    producersProps.put("bootstrap.servers", configMap("hosts"))
+    producersProps.put("bootstrap.servers", config.getString("hosts"))
     producersProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     producersProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    producersProps.put("acks", configMap("acks"))
+    producersProps.put("acks", config.getString("acks"))
     val producer = new KafkaProducer[String, String](producersProps)
 
     val r = new Random()
@@ -61,7 +64,7 @@ class KafkaMq(configMap: Map[String, String]) extends Mq with StrictLogging {
     // will only be run for receivers
     lazy val consumer = {
       val consumerProps = new Properties()
-      consumerProps.put("bootstrap.servers", configMap("hosts"))
+      consumerProps.put("bootstrap.servers", config.getString("hosts"))
       consumerProps.put("group.id", GroupId)
       consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
       consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
@@ -131,13 +134,13 @@ object KafkaMq {
 }
 
 object KafkaMqTest {
-  val config = Map(
+  val config = ConfigFactory.parseMap(Map(
     "hosts" -> "localhost:9092",
     "key.serializer" -> "",
     "acks" -> "1",
     "zookeeper" -> "localhost:2181",
     "commitMs" -> "1000"
-  )
+  ).asJava)
 }
 
 object KafkaMqTestSend extends App {
