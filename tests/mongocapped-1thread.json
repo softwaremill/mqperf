@@ -8,7 +8,9 @@
     "receiver_threads": 1,
     "receive_msg_batch_size": 10,
     "mq": {
-        "host": "ip-10-103-214-25.eu-west-1.compute.internal:27017",
+        "hosts": [
+            "ip-10-103-214-25.eu-west-1.compute.internal:27017"
+        ],
         "write_concern": "replica",
         "size_in_bytes": 100000000,
         "batch_size": 1000000

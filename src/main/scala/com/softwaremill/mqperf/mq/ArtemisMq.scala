@@ -1,14 +1,18 @@
 package com.softwaremill.mqperf.mq
 
 import java.util
+
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.activemq.artemis.api.core.TransportConfiguration
 import org.apache.activemq.artemis.api.jms.{ActiveMQJMSClient, JMSFactoryType}
 import org.apache.activemq.artemis.core.remoting.impl.netty.{NettyConnectorFactory, TransportConstants}
 
-class ArtemisMq(val configMap: Map[String, String]) extends JmsMq {
+import scala.collection.JavaConverters._
+
+class ArtemisMq(val config: Config) extends JmsMq {
 
   override lazy val connectionFactory = {
-    val host = configMap("host")
+    val host = config.getString("host")
     val connectionParams = new util.HashMap[String, Object]()
     connectionParams.put(TransportConstants.HOST_PROP_NAME, host)
     val transportConfiguration = new TransportConfiguration(classOf[NettyConnectorFactory].getName, connectionParams)
@@ -19,7 +23,7 @@ class ArtemisMq(val configMap: Map[String, String]) extends JmsMq {
 }
 
 object ArtemisMqTestSend extends App {
-  val mq = new ArtemisMq(Map("host" -> "localhost"))
+  val mq = new ArtemisMq(ConfigFactory.parseMap(Map("host" -> "localhost").asJava))
 
   val start = System.currentTimeMillis()
 
@@ -35,7 +39,7 @@ object ArtemisMqTestSend extends App {
 }
 
 object ArtemisMqTestReceive extends App {
-  val mq = new ArtemisMq(Map("host" -> "localhost"))
+  val mq = new ArtemisMq(ConfigFactory.parseMap(Map("host" -> "localhost").asJava))
 
   val receiver = mq.createReceiver()
   val msgs = receiver.receive(2000)
