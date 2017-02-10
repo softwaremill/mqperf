@@ -22,4 +22,4 @@ project/plugins/project/
 .vagrant
 
 ansible/*.retry
-*.pem
+*/*.pem
