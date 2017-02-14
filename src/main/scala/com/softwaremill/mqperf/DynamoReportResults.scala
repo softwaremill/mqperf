@@ -13,7 +13,7 @@ trait ReportResults {
   def report(metrics: ReceiverMetrics): Unit
 }
 
-class ReportResultsImpl(testConfigName: String) extends ReportResults with DynamoResultsTable with StrictLogging {
+class DynamoReportResults(testConfigName: String) extends ReportResults with DynamoResultsTable with StrictLogging {
 
   override def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
