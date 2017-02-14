@@ -9,9 +9,13 @@ import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scala.util.Random
 
-class ReportResults(testConfigName: String) extends DynamoResultsTable with StrictLogging {
+trait ReportResults {
+  def report(metrics: ReceiverMetrics): Unit
+}
 
-  def report(metrics: ReceiverMetrics): Unit = {
+class DynamoReportResults(testConfigName: String) extends ReportResults with DynamoResultsTable with StrictLogging {
+
+  override def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
     if (dynamoClientOpt.isEmpty) {
       logger.warn("Report requested but Dynamo client not defined.")
@@ -71,18 +75,18 @@ object ReceiverMetrics extends StrictLogging {
 
   def apply(metrics: MetricRegistry): Option[ReceiverMetrics] = {
     val resultOpt = for {
-      (_, timer) <- metrics.getTimers.asScala.headOption
-      (_, meter) <- metrics.getMeters.asScala.find {
+      (_, meter) <- metrics.getMeters.asScala.headOption
+      (_, batchTimer) <- metrics.getTimers.asScala.find {
         case (name, _) => name.startsWith(batchLatencyTimerPrefix)
       }
       (_, clusterTimer) <- metrics.getTimers.asScala.find {
         case (name, _) => name.startsWith(clusterLatencyTimerPrefix)
       }
     } yield {
-      new ReceiverMetrics(DateTime.now(), timer, meter, clusterTimer, metrics)
+      new ReceiverMetrics(DateTime.now(), batchTimer, meter, clusterTimer, metrics)
     }
     if (resultOpt.isEmpty)
-      logger.error("Cannot create result object with metrics.")
+      logger.error(s"Cannot create result object with metrics.\ntimers: ${metrics.getTimers().asScala}\nmeters: ${metrics.getMeters.asScala}")
     resultOpt
   }
 }

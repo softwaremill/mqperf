@@ -4,11 +4,18 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.typesafe.config.Config
 
 object AWSCredentialsFromEnv {
-  def apply() = {
-    new BasicAWSCredentials(
-      sys.env("AWS_ACCESS_KEY_ID"),
-      sys.env("AWS_SECRET_ACCESS_KEY")
-    )
+
+  def apply(): Option[BasicAWSCredentials] = {
+
+    def getEnv(name: String): Option[String] =
+      sys.env.get(name).filterNot(_.isEmpty)
+
+    for {
+      accessKey <- getEnv("AWS_ACCESS_KEY_ID")
+      secretKey <- getEnv("AWS_SECRET_ACCESS_KEY")
+    } yield {
+      new BasicAWSCredentials(accessKey, secretKey)
+    }
   }
 
   def apply(config: Config): Option[BasicAWSCredentials] =
@@ -18,3 +25,4 @@ object AWSCredentialsFromEnv {
     } yield new BasicAWSCredentials(awsKeyId, awsSecretKey)
 
 }
+

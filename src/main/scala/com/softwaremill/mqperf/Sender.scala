@@ -15,7 +15,7 @@ object Sender extends App {
     println(s"Starting test (sender) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
-    val report = new ReportResults(testConfig.name)
+    val report = new DynamoReportResults(testConfig.name)
     val sr = new SenderRunnable(
       mq, report,
       testConfig.mqType, msgPrefix(testConfig),

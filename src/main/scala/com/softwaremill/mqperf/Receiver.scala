@@ -16,7 +16,7 @@ object Receiver extends App {
     println(s"Starting test (receiver) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
-    val report = new ReportResults(testConfig.name)
+    val report = new DynamoReportResults(testConfig.name)
 
     val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry)
 

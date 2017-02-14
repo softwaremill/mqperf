@@ -91,7 +91,7 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
   trait ReceiverTestCase {
     private val fakeMq = new FakeMq
     private val fakeClock = new FakeClock
-    private val receiverRunnable = new ReceiverRunnable(fakeMq, new ReportResults("fake"), "fakeMq", 1, new MetricRegistry, fakeClock)
+    private val receiverRunnable = new ReceiverRunnable(fakeMq, new FakeReportResults, "fakeMq", 1, new MetricRegistry, fakeClock)
 
     protected lazy val receiverFut: Future[Unit] =
       Future {
