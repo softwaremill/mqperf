@@ -1,0 +1,16 @@
+{
+    "name": "mongocapped-20threads-stress-$runid",
+    "mq_type": "MongoCapped",
+    "sender_threads": 20,
+    "msg_count_per_thread": 300000,
+    "msg_size": 100,
+    "max_send_msg_batch_size": 10,
+    "receiver_threads": 20,
+    "receive_msg_batch_size": 10,
+    "mq": {
+        "hosts": {{ groups['mongo']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
+        "write_concern": "replica",
+        "queue_size_in_bytes": 100000000,
+        "batch_size": 1000000
+    }
+}
