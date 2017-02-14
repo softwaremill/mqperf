@@ -4,12 +4,16 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import com.codahale.metrics._
 import com.typesafe.scalalogging.StrictLogging
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.format.DateTimeFormat
+
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
-import scala.util.Random
+
 
 class ReportResults(testConfigName: String) extends DynamoResultsTable with StrictLogging {
+
+  val TimestampFormat = DateTimeFormat.forPattern("MM-dd'T'HH:mm")
 
   def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
@@ -22,7 +26,8 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable with Stri
 
   private def exportStats(metrics: ReceiverMetrics)(dynamoClient: AmazonDynamoDBClient): Unit = {
 
-    val testResultName = s"$testConfigName-${Random.nextInt(100000)}"
+    val timestampStr = TimestampFormat.print(metrics.timestamp.withZone(DateTimeZone.UTC))
+    val testResultName = testConfigName.replace("$runId", timestampStr)
     val meter = metrics.meter
     val clusterTimer = metrics.clusterTimer.getSnapshot
     val timer = metrics.timer.getSnapshot
@@ -31,7 +36,7 @@ class ReportResults(testConfigName: String) extends DynamoResultsTable with Stri
     dynamoClient.putItem(new PutItemRequest()
       .withTableName(tableName)
       .addItemEntry(resultNameColumn, new AttributeValue(testResultName))
-      .addItemEntry(resultTimestampColumn, metrics.timestamp.getMillis)
+      .addItemEntry(resultTimestampColumn, new AttributeValue(timestampStr))
       .addItemEntry(meterMean, meter.getMeanRate)
       .addItemEntry(meter1MinuteEwma, meter.getOneMinuteRate)
       .addItemEntry(timerMinColumn, timer.getMin)
@@ -69,7 +74,7 @@ object ReceiverMetrics extends StrictLogging {
   val batchLatencyTimerPrefix = "batch-latency-timer"
   val clusterLatencyTimerPrefix = "cluster-latency-timer"
 
-  def apply(metrics: MetricRegistry): Option[ReceiverMetrics] = {
+  def apply(metrics: MetricRegistry, timestamp: DateTime): Option[ReceiverMetrics] = {
     val resultOpt = for {
       (_, timer) <- metrics.getTimers.asScala.headOption
       (_, meter) <- metrics.getMeters.asScala.find {
@@ -79,7 +84,7 @@ object ReceiverMetrics extends StrictLogging {
         case (name, _) => name.startsWith(clusterLatencyTimerPrefix)
       }
     } yield {
-      new ReceiverMetrics(DateTime.now(), timer, meter, clusterTimer, metrics)
+      new ReceiverMetrics(timestamp, timer, meter, clusterTimer, metrics)
     }
     if (resultOpt.isEmpty)
       logger.error("Cannot create result object with metrics.")

@@ -8,6 +8,7 @@ import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.mq.Mq
 import com.softwaremill.mqperf.util.FakeClock
 import com.typesafe.config.ConfigFactory
+import org.joda.time.DateTime
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, Suite}
 
@@ -91,7 +92,15 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
   trait ReceiverTestCase {
     private val fakeMq = new FakeMq
     private val fakeClock = new FakeClock
-    private val receiverRunnable = new ReceiverRunnable(fakeMq, new ReportResults("fake"), "fakeMq", 1, new MetricRegistry, fakeClock)
+    private val receiverRunnable = new ReceiverRunnable(
+      fakeMq,
+      new ReportResults("fake"),
+      "fakeMq",
+      1,
+      new MetricRegistry,
+      new DateTime(),
+      fakeClock
+    )
 
     protected lazy val receiverFut: Future[Unit] =
       Future {
