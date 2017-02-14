@@ -1,13 +1,14 @@
 package com.softwaremill.mqperf.mq
 
-import com.mongodb.client.model.{DeleteOptions, InsertManyOptions}
-import com.mongodb.{BasicDBObject, DBObject, MongoClient, WriteConcern}
+import com.mongodb._
+import com.softwaremill.mqperf.config.TestConfig
+import com.typesafe.config.Config
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
-class MongoMq(configMap: Map[String, String]) extends Mq {
+class MongoMq(val config: Config) extends Mq {
 
   private val IdField = "_id"
   private val NextDeliveryField = "next_delivery"
@@ -15,9 +16,12 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
 
   private val VisibilityTimeoutMillis = 10 * 1000L
 
-  private val client = new MongoClient(configMap("host"))
+  private val client = new MongoClient(config.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
+    case (host, Some(port)) => new ServerAddress(host, port)
+    case (host, None) => new ServerAddress(host)
+  }.asJava)
 
-  private val concern = if (configMap("write_concern") == "replica")
+  private val concern = if (config.getString("write_concern") == "replica")
     WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
 
   private val db = client.getDatabase("mq").withWriteConcern(concern)
@@ -41,7 +45,7 @@ class MongoMq(configMap: Map[String, String]) extends Mq {
           .append(NextDeliveryField, System.currentTimeMillis())
       }
 
-      coll.insertMany(docs)
+      coll.insertMany(docs.asJava)
     }
   }
 

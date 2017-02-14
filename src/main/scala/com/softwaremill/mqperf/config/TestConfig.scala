@@ -1,6 +1,6 @@
 package com.softwaremill.mqperf.config
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 
 case class TestConfig(
     name: String,
@@ -11,7 +11,7 @@ case class TestConfig(
     maxSendMsgBatchSize: Int,
     receiverThreads: Int,
     receiveMsgBatchSize: Int,
-    mqConfigMap: Map[String, String]
+    mqConfig: Config
 ) {
 
   def mqClassName = s"com.softwaremill.mqperf.mq.${mqType}Mq"
@@ -28,18 +28,15 @@ object TestConfig {
     maxSendMsgBatchSize = config.getInt("max_send_msg_batch_size"),
     receiverThreads = config.getInt("receiver_threads"),
     receiveMsgBatchSize = config.getInt("receive_msg_batch_size"),
-    mqConfigMap = readMqSpecificConfig(config)
+    mqConfig = config.getConfigOpt("mq").getOrElse(ConfigFactory.empty())
   )
 
-  private def readMqSpecificConfig(config: Config): Map[String, String] = {
-    import scala.collection.JavaConverters._
-    val mqConfigPairs = for {
-      mqSpecificConf <- config.getConfigOpt("mq").toSeq
-      mqSpecificConfEntry <- mqSpecificConf.entrySet().asScala
-    } yield {
-      mqSpecificConfEntry.getKey -> mqSpecificConf.getString(mqSpecificConfEntry.getKey)
-    }
-    mqConfigPairs.toMap
+  val HostPortPattern = """([^:\s]+):?([0-9]*)""".r
+
+  def parseHostPort(from: String): (String, Option[Int]) = from match {
+    case HostPortPattern(host, "") => (host, None)
+    case HostPortPattern(host, port) => (host, Some(port.toInt))
+    case _ => throw new IllegalArgumentException(s"Invalid host address: $from")
   }
 
 }

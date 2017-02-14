@@ -7,6 +7,7 @@ import akka.dispatch.ExecutionContexts
 import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.mq.Mq
 import com.softwaremill.mqperf.util.FakeClock
+import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, Suite}
 
@@ -129,6 +130,8 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
 class FakeMq extends Mq {
 
   import scala.compat.java8.FunctionConverters._
+
+  override val config = ConfigFactory.empty()
 
   override type MsgId = Long
 

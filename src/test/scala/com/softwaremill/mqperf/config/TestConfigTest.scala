@@ -25,7 +25,7 @@ class TestConfigTest extends FlatSpec with Matchers {
     val tc = TestConfig.from(config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map()))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, ConfigFactory.empty()))
   }
 
   it should "parse an example json with mq config map" in {
@@ -53,6 +53,18 @@ class TestConfigTest extends FlatSpec with Matchers {
     val tc = TestConfig.from(config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Map("f1" -> "v1", "f2" -> "10")))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, config.getConfig("mq")))
   }
+
+  for {
+    (hostPortString, (host, port)) <- List(
+      "localhost" -> ("localhost", None),
+      "127.0.0.1" -> ("127.0.0.1", None),
+      "localhost:12345" -> ("localhost", Some(12345)),
+      "127.0.0.1:12345" -> ("127.0.0.1", Some(12345))
+    )
+  } it should s"parse $host${port.map(':' + _).getOrElse("")} from $hostPortString" in {
+    TestConfig.parseHostPort(hostPortString) should be((host, port))
+  }
+
 }

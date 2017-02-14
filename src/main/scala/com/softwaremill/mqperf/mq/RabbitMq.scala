@@ -1,16 +1,17 @@
 package com.softwaremill.mqperf.mq
 
-import com.rabbitmq.client.{QueueingConsumer, MessageProperties, ConnectionFactory, AMQP}
+import com.rabbitmq.client.{AMQP, ConnectionFactory, MessageProperties, QueueingConsumer}
+import com.typesafe.config.Config
 
 import scala.annotation.tailrec
 
-class RabbitMq(configMap: Map[String, String]) extends Mq {
+class RabbitMq(val config: Config) extends Mq {
 
   val QueueName = "mq"
 
   val props = new AMQP.BasicProperties.Builder().deliveryMode(2).contentType("text/plain").build()
   val cf = new ConnectionFactory()
-  cf.setHost(configMap("host"))
+  cf.setHost(config.getString("host"))
   cf.setUsername("guest")
   cf.setPassword("guest")
   val conn = cf.newConnection()
@@ -42,7 +43,7 @@ class RabbitMq(configMap: Map[String, String]) extends Mq {
 
   override def createReceiver() = new MqReceiver {
     val channel = newChannel()
-    channel.basicQos(configMap("qos").toInt, true) // fair dispatch - up to 10 unack can be received
+    channel.basicQos(config.getInt("qos"), true) // fair dispatch - up to 10 unack can be received
 
     val consumer = new QueueingConsumer(channel)
     channel.basicConsume(QueueName, false, consumer)
