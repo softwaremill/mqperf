@@ -9,6 +9,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.TopicPartition
+import org.joda.time.DateTime
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -179,9 +180,7 @@ object KafkaMqTestReceive2 extends App {
 
   val mq = new KafkaMq(KafkaMqTest.config)
   val report = new ReportResults("x")
-  val rr = new ReceiverRunnable(
-    mq, report, "kafka", 10, new MetricRegistry
-  )
+  val rr = new ReceiverRunnable(mq, report, "kafka", 10, new MetricRegistry, new DateTime())
 
   val threads = (1 to 2).map { _ =>
     val t = new Thread(rr)

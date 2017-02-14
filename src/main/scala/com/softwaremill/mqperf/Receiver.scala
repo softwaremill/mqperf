@@ -7,6 +7,7 @@ import com.softwaremill.mqperf.config.TestConfigOnS3
 import com.softwaremill.mqperf.mq.Mq
 import com.softwaremill.mqperf.util.{Clock, RealClock}
 import com.typesafe.scalalogging.StrictLogging
+import org.joda.time.DateTime
 
 import scala.concurrent.duration._
 
@@ -17,8 +18,8 @@ object Receiver extends App {
 
     val mq = Mq.instantiate(testConfig)
     val report = new ReportResults(testConfig.name)
-
-    val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry)
+    val rootTimestamp = new DateTime()
+    val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry, rootTimestamp)
 
     val threads = (1 to testConfig.receiverThreads).map { _ =>
       val t = new Thread(rr)
@@ -38,6 +39,7 @@ class ReceiverRunnable(
     mqType: String,
     receiveMsgBatchSize: Int,
     metricRegistry: MetricRegistry,
+    rootTimestamp: DateTime,
     clock: Clock = RealClock
 ) extends Runnable with StrictLogging {
 
@@ -68,7 +70,7 @@ class ReceiverRunnable(
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
-      ReceiverMetrics(metricRegistry).foreach(reportResults.report)
+      ReceiverMetrics(metricRegistry, rootTimestamp).foreach(reportResults.report)
     }
     finally {
       mqReceiver.close()
