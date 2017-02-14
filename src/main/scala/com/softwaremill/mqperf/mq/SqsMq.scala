@@ -1,21 +1,18 @@
 package com.softwaremill.mqperf.mq
 
-import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
+import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
+import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, AWSPreferences}
+import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._
-import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
-import com.softwaremill.mqperf.config.AWSCredentialsFromEnv
-import com.amazonaws.regions.{Region, Regions}
-import com.typesafe.config.Config
 
 class SqsMq(val config: Config) extends Mq {
   private val asyncClient =
     AWSCredentialsFromEnv() match {
       case Some(awsCredentials) =>
-        val c = new AmazonSQSAsyncClient(awsCredentials)
-        c.setRegion(Region.getRegion(Regions.EU_WEST_1))
-        c
+        AWSPreferences.configure(new AmazonSQSAsyncClient(awsCredentials))
       case None =>
         throw new IllegalStateException("AWS credentials are missing!")
     }

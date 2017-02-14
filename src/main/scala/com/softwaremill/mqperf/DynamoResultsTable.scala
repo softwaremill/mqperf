@@ -1,9 +1,8 @@
 package com.softwaremill.mqperf
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, TestConfigOnS3}
-import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DeleteItemRequest, ScanRequest}
+import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, AWSPreferences}
 
 import scala.collection.JavaConversions._
 
@@ -12,9 +11,7 @@ trait DynamoResultsTable {
     for {
       awsCredentails <- AWSCredentialsFromEnv()
     } yield {
-      val c = new AmazonDynamoDBClient(awsCredentails)
-      c.setRegion(Region.getRegion(Regions.EU_WEST_1))
-      c
+      AWSPreferences.configure(new AmazonDynamoDBClient(awsCredentails))
     }
 
   protected val tableName = "mqperf-results"

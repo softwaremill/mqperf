@@ -7,14 +7,8 @@ object AWSCredentialsFromEnv {
 
   def apply(): Option[BasicAWSCredentials] = {
 
-    def getEnv(name: String): Option[String] = {
-      if (sys.env.contains(name)) {
-        Option(sys.env(name)).filterNot(_.isEmpty)
-      }
-      else {
-        None
-      }
-    }
+    def getEnv(name: String): Option[String] =
+      sys.env.get(name).filterNot(_.isEmpty)
 
     for {
       accessKey <- getEnv("AWS_ACCESS_KEY_ID")
@@ -31,3 +25,4 @@ object AWSCredentialsFromEnv {
     } yield new BasicAWSCredentials(awsKeyId, awsSecretKey)
 
 }
+
