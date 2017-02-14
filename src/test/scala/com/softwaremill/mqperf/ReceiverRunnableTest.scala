@@ -94,7 +94,7 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
     private val fakeClock = new FakeClock
     private val receiverRunnable = new ReceiverRunnable(
       fakeMq,
-      new ReportResults("fake"),
+      new FakeReportResults,
       "fakeMq",
       1,
       new MetricRegistry,

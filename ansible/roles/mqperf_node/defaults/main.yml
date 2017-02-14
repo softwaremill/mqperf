@@ -1,0 +1,4 @@
+---
+mqperf_version: "2.0"
+mqperf_artifact_path: "{{ mqperf_sources_dir }}/target/scala-2.11/mqperf-assembly-{{ mqperf_version }}.jar"
+mqperf_deps_artifact_path: "{{ mqperf_sources_dir }}/target/scala-2.11/mqperf-assembly-{{ mqperf_version }}-deps.jar"

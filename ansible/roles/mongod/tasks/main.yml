@@ -1,0 +1,91 @@
+---
+# This role deploys the mongod processes and sets up the replication set.
+
+- name: Create the repository for Mongodb
+  copy: 
+    src: mongodb-org-3.4.repo 
+    dest: /etc/yum.repos.d/mongodb-org-3.4.repo
+  become: true
+
+- name: Install mongo packages
+  yum: 
+    name: mongodb-org 
+    state: installed
+  become: true
+
+- name: Create the mongod user
+  user: 
+    name: mongod 
+    comment: "MongoD"
+  become: true
+
+- name: create data directory for mongodb
+  file: 
+    path: /data
+    state: directory 
+    owner: mongod 
+    group: mongod
+  become: true
+
+- name: create log directory for mongodb
+  file: 
+    path: /var/log/mongodb 
+    state: directory 
+    owner: mongod 
+    group: mongod
+  become: true
+
+- name: create run directory for mongodb
+  file: 
+    path: /var/run/mongodb 
+    state: directory 
+    owner: mongod 
+    group: mongod
+  become: true
+
+- name: Create the mongodb configuration file
+  template: 
+    src: mongod.conf.j2 
+    dest: /etc/mongod.conf
+  become: true
+
+- name: Update EC2 ulimit settings
+  copy: 
+    src: limits-mongod.conf 
+    dest: /etc/security/limits.d/90-mongodb.conf
+  become: true
+
+- name: Start the mongodb service
+  service: 
+    name: mongod 
+    state: started
+  become: true
+
+- set_fact: mongo_primary="{{ groups['mongo'] | first }}"
+
+- name: debug
+  debug: msg="mongo primary = {{ mongo_primary }}"
+
+- name: Ensure mongo instances are visible to each other
+  wait_for:
+    state: drained
+    port: 27017
+    host: "{{ item }}"
+  with_items: "{{ groups['mongo'] }}"
+
+- name: Create the file to initialize the mongod replica set
+  template: 
+    src: repset_init.j2 
+    dest: /tmp/repset_init.js
+  become: true
+  run_once: true
+  delegate_to: "{{ item }}"
+  with_items: 
+    - "{{ mongo_primary }}"
+
+- name: Initialize the replication set
+  shell: /usr/bin/mongo /tmp/repset_init.js
+  run_once: true
+  delegate_to: "{{ item }}"
+  with_items: 
+    - "{{ mongo_primary }}"

@@ -17,7 +17,7 @@ object Receiver extends App {
     println(s"Starting test (receiver) with config: $testConfig")
 
     val mq = Mq.instantiate(testConfig)
-    val report = new ReportResults(testConfig.name)
+    val report = new DynamoReportResults(testConfig.name)
     val rootTimestamp = new DateTime()
     val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry, rootTimestamp)
 
@@ -34,14 +34,14 @@ object Receiver extends App {
 }
 
 class ReceiverRunnable(
-    mq: Mq,
-    reportResults: ReportResults,
-    mqType: String,
-    receiveMsgBatchSize: Int,
-    metricRegistry: MetricRegistry,
-    rootTimestamp: DateTime,
-    clock: Clock = RealClock
-) extends Runnable with StrictLogging {
+                        mq: Mq,
+                        reportResults: ReportResults,
+                        mqType: String,
+                        receiveMsgBatchSize: Int,
+                        metricRegistry: MetricRegistry,
+                        rootTimestamp: DateTime,
+                        clock: Clock = RealClock
+                      ) extends Runnable with StrictLogging {
 
   val timeout: FiniteDuration = 60.seconds
   val timeoutNanos: Long = timeout.toNanos

@@ -1,0 +1,69 @@
+---
+
+- name: Create S3 bucket
+  s3:
+    bucket: "{{ s3_bucket }}"
+    mode: create
+    region: "{{ aws_region }}"
+  delegate_to: 127.0.0.1
+
+- name: Build mqperf deps artifact
+  command: sbt assemblyPackageDependency
+  args:
+    chdir: "{{ mqperf_sources_dir }}"
+    creates: "{{ mqperf_deps_artifact_path }}"
+  delegate_to: 127.0.0.1
+  register: deps_assembly
+
+- name: Build mqperf artifact
+  command: sbt assembly
+  args:
+    chdir: "{{ mqperf_sources_dir }}"
+    creates: "{{ mqperf_artifact_path }}"
+  delegate_to: 127.0.0.1
+  register: assembly
+
+- name: Upload deps artifact to S3
+  s3:
+    bucket: "{{ s3_bucket }}"
+    mode: put
+    object: /jars/mqperf-assembly-deps.jar
+    src: "{{ mqperf_deps_artifact_path }}"
+    region: "{{ aws_region }}"
+  delegate_to: 127.0.0.1
+  when: deps_assembly|changed
+
+- name: Upload artifact to S3
+  s3:
+    bucket: "{{ s3_bucket }}"
+    mode: put
+    object: /jars/mqperf-assembly.jar
+    src: "{{ mqperf_artifact_path }}"
+    region: "{{ aws_region }}"
+  delegate_to: 127.0.0.1
+  when: assembly|changed
+
+- name: Copy deps artifact from S3
+  s3:
+    bucket: "{{ s3_bucket }}"
+    mode: get
+    object: "/jars/{{ item }}.jar"
+    dest: "/tmp/{{ item }}.jar"
+    region: "{{ aws_region }}"
+    aws_access_key: "{{ aws_access }}"
+    aws_secret_key: "{{ aws_secret }}"
+  with_items:
+    - "mqperf-assembly-deps"
+    - "mqperf-assembly"
+
+- name: Install Java 8
+  yum:
+    name: java-1.8.0-openjdk
+    state: present
+  become: true
+
+- name: Prepare start/stop/status script
+  template:
+    src: mqperf.sh.j2
+    dest: /tmp/mqperf.sh
+    mode: 0700

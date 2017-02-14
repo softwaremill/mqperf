@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    aws_region: eu-west-1
+    aws_zone: "{{aws_region}}a"
+    vpc_cidr_block: "172.22.0.0/16"
+
+  environment:
+    AWS_REGION: "{{aws_region}}"
+
+  tasks:
+    - name: Gather facts
+      ec2_remote_facts:
+        region: eu-west-1
+        filters:
+          "tag:kind": mqperf-instance
+      register: ec2_facts
+    - name: Terminate mqperf instances
+      ec2:
+        region: eu-west-1
+        instance_ids: "{{ ec2_facts.instances|map(attribute='id')|list }}"
+        state: 'absent'
+        wait: true
+      when: ec2_facts.instances|length > 0      
+    - name: Delete security groups
+      ec2_group: 
+        name: "{{item}}"
+        state: absent
+        description:
+      with_items: 
+        - all_access
+        - ssh_access
+    - name: Drop keys
+      ec2_key:
+        name: "mqperf-key" 
+        state: absent

@@ -5,17 +5,21 @@ import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import com.codahale.metrics._
 import com.typesafe.scalalogging.StrictLogging
 import org.joda.time.{DateTime, DateTimeZone}
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 
-class ReportResults(testConfigName: String) extends DynamoResultsTable with StrictLogging {
+trait ReportResults {
+  def report(metrics: ReceiverMetrics): Unit
+}
 
-  val TimestampFormat = DateTimeFormat.forPattern("MM-dd'T'HH:mm")
+class DynamoReportResults(testConfigName: String) extends ReportResults with DynamoResultsTable with StrictLogging {
 
-  def report(metrics: ReceiverMetrics): Unit = {
+  val TimestampFormat: DateTimeFormatter = DateTimeFormat.forPattern("MM-dd'T'HH:mm")
+
+  override def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
     if (dynamoClientOpt.isEmpty) {
       logger.warn("Report requested but Dynamo client not defined.")
@@ -76,18 +80,18 @@ object ReceiverMetrics extends StrictLogging {
 
   def apply(metrics: MetricRegistry, timestamp: DateTime): Option[ReceiverMetrics] = {
     val resultOpt = for {
-      (_, timer) <- metrics.getTimers.asScala.headOption
-      (_, meter) <- metrics.getMeters.asScala.find {
+      (_, meter) <- metrics.getMeters.asScala.headOption
+      (_, batchTimer) <- metrics.getTimers.asScala.find {
         case (name, _) => name.startsWith(batchLatencyTimerPrefix)
       }
       (_, clusterTimer) <- metrics.getTimers.asScala.find {
         case (name, _) => name.startsWith(clusterLatencyTimerPrefix)
       }
     } yield {
-      new ReceiverMetrics(timestamp, timer, meter, clusterTimer, metrics)
+      new ReceiverMetrics(timestamp, batchTimer, meter, clusterTimer, metrics)
     }
     if (resultOpt.isEmpty)
-      logger.error("Cannot create result object with metrics.")
+      logger.error(s"Cannot create result object with metrics.\ntimers: ${metrics.getTimers().asScala}\nmeters: ${metrics.getMeters.asScala}")
     resultOpt
   }
 }

@@ -1,0 +1,3 @@
+---
+dependencies:
+- { role: mqperf_node, mqperf_type: Receiver }

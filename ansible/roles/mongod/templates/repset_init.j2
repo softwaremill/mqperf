@@ -1,0 +1,10 @@
+rs.initiate({ 
+  "_id": "mqperf",
+  "members": [ { "_id": 0, host: "{{ hostvars[(groups['mongo'] | first)].ec2_private_ip_address }}" } ]
+})
+sleep(13000)
+{% for host in groups['mongo'][1:] %}
+rs.add("{{ hostvars[host].ec2_private_ip_address }}")
+sleep(8000)
+{% endfor %}
+printjson(rs.status())

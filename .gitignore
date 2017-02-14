@@ -20,3 +20,6 @@ project/plugins/project/
 .idea_modules
 
 .vagrant
+
+ansible/*.retry
+*/*.pem

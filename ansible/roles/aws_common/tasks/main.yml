@@ -1,0 +1,80 @@
+---
+
+- name: Network setup - basic config
+  ec2_vpc_net:
+    name: "mqperf-vpc"
+    state: present
+    cidr_block: "{{ vpc_cidr_block }}"
+    region: "{{ aws_region }}"
+  register: vpc_net
+
+- set_fact: vpc_net="{{ vpc_net.vpc.id }}"
+
+- name: Network setup - public subnet
+  ec2_vpc_subnet:
+    state: present
+    az: "{{ aws_zone }}"
+    vpc_id: "{{ vpc_net }}"
+    cidr: "{{ subnet_cidr }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "Net-facing subnet" #we don't need this tag actually, but a bug prevents us from this section being empty
+  register: subnet_external
+
+- set_fact: subnet_external="{{ subnet_external.subnet.id }}"
+  
+- debug: var="subnet_external"
+
+- name: Network setup - Internet Gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_net }}"
+    state: present
+    region: "{{ aws_region }}"
+  register: igw
+  
+- name: Network setup - routing table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "mqperf"
+    subnets:
+      - "{{ subnet_external }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+
+- name: Network setup - SSH Security Group
+  ec2_group:
+    name: "ssh_access"
+    description: "ssh_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ ssh_port }}"
+        to_port: "{{ ssh_port }}"
+        cidr_ip: "{{ all_cidr }}"
+
+- name: Network setup - All ports open Security Group
+  ec2_group:
+    name: "all_access"
+    description: "all_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: all
+        group_name: "all_access"
+
+- name: Create an EC2 key
+  ec2_key:
+    name: "{{ key_name }}"
+    region: "{{ aws_region }}"
+  register: ec2_key
+
+- name: Save private key
+  copy:
+    content: "{{ ec2_key.key.private_key }}" 
+    dest: "./{{ key_name }}.pem" 
+    mode: 0600
+  when: ec2_key.changed
