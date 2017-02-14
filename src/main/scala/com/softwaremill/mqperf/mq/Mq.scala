@@ -1,8 +1,12 @@
 package com.softwaremill.mqperf.mq
 
 import com.softwaremill.mqperf.config.TestConfig
+import com.typesafe.config.Config
 
 trait Mq {
+
+  def config: Config
+
   type MsgId
 
   def msgWithTimestamp(prefix: String): String = prefix + System.currentTimeMillis().toString
@@ -37,6 +41,6 @@ trait Mq {
 
 object Mq {
   def instantiate(testConfig: TestConfig): Mq = {
-    Class.forName(testConfig.mqClassName).getConstructors()(0).newInstance(testConfig.mqConfigMap).asInstanceOf[Mq]
+    Class.forName(testConfig.mqClassName).getConstructors()(0).newInstance(testConfig.mqConfig).asInstanceOf[Mq]
   }
 }

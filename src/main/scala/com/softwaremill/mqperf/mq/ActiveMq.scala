@@ -1,20 +1,28 @@
 package com.softwaremill.mqperf.mq
 
 import javax.jms._
+
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.activemq.ActiveMQConnectionFactory
 
-class ActiveMq(val configMap: Map[String, String]) extends JmsMq {
+import scala.collection.JavaConverters._
+
+class ActiveMq(val config: Config) extends JmsMq {
 
   override lazy val connectionFactory: ConnectionFactory = {
-    val cf = new ActiveMQConnectionFactory(configMap("host"))
+    val cf = new ActiveMQConnectionFactory(config.getString("host"))
     cf.setOptimizeAcknowledge(true)
     cf.setSendAcksAsync(true)
     cf
   }
 }
 
+object ActiveMq {
+  val DefaultConfig = ConfigFactory.parseMap(Map("host" -> ActiveMQConnectionFactory.DEFAULT_BROKER_URL).asJava)
+}
+
 object ActiveMqTestSend extends App {
-  val mq = new ActiveMq(Map())
+  val mq = new ActiveMq(ActiveMq.DefaultConfig)
 
   val start = System.currentTimeMillis()
 
@@ -30,7 +38,7 @@ object ActiveMqTestSend extends App {
 }
 
 object ActiveMqTestReceive extends App {
-  val mq = new ActiveMq(Map())
+  val mq = new ActiveMq(ActiveMq.DefaultConfig)
 
   val receiver = mq.createReceiver()
   val msgs = receiver.receive(2000)

@@ -2,3 +2,10 @@
 aws_region: eu-west-1
 aws_zone: "{{ aws_region }}a"
 vpc_cidr_block: "172.22.0.0/16"
+
+s3_bucket: sml-mqperf
+
+aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+mqperf_sources_dir: "{{ playbook_dir }}/.."

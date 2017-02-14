@@ -1,0 +1,34 @@
+#!/bin/sh
+
+start() {
+	echo "Starting $mqperf_type ..."
+	java8 -cp /tmp/mqperf-assembly-deps.jar:/tmp/mqperf-assembly.jar -Dconfig.file=/tmp/test-config.json com.softwaremill.mqperf.{{ mqperf_type }} > /tmp/mqperf.log 2>&1 &
+}
+
+stop() {
+	echo "Shutting down ..."
+	for pid in `ps aux | grep "com.softwaremill.mqperf.{{ mqperf_type }}" | grep -v grep | cut -d ' ' -f 2`; do
+		echo "killing process $pid ..."
+		kill -9 $pid
+	done
+}
+
+status() {
+	num_of_processes=`ps aux | grep "com.softwaremill.mqperf.{{ mqperf_type }}" | grep -v grep | wc -l`
+	if [ $num_of_processes -eq 0 ]; then
+		echo "Stopped"
+		exit 1
+	else
+		echo "Running"
+		exit 0
+	fi
+}
+
+case "$1" in
+	start) 	start ;;
+	stop) 	stop ;;
+	status)	status ;;
+	*) 		echo "usage: $0 start|stop|status" >&2
+			exit 1
+			;;
+esac

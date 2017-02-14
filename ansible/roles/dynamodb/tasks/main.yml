@@ -1,0 +1,11 @@
+---
+
+- name: Create dynamodb table for benchmark results
+  dynamodb_table: 
+    name: "mqperf-results"
+    region: "{{ aws_region }}"
+    state: present
+    hash_key_name: "some_hash_key"
+    hash_key_type: STRING
+    # TODO schema
+  delegate_to: 127.0.0.1
