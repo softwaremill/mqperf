@@ -10,11 +10,15 @@ import com.amazonaws.regions.{Region, Regions}
 import com.typesafe.config.Config
 
 class SqsMq(val config: Config) extends Mq {
-  private val asyncClient = {
-    val c = new AmazonSQSAsyncClient(AWSCredentialsFromEnv())
-    c.setRegion(Region.getRegion(Regions.EU_WEST_1))
-    c
-  }
+  private val asyncClient =
+    AWSCredentialsFromEnv() match {
+      case Some(awsCredentials) =>
+        val c = new AmazonSQSAsyncClient(awsCredentials)
+        c.setRegion(Region.getRegion(Regions.EU_WEST_1))
+        c
+      case None =>
+        throw new IllegalStateException("AWS credentials are missing!")
+    }
 
   private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient)
 
