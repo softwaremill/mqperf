@@ -70,7 +70,7 @@ class ReceiverRunnable(
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
-      ReceiverMetrics(metricRegistry, rootTimestamp).foreach(reportResults.report)
+      ReceiverMetrics(metricRegistry, rootTimestamp, threadId).foreach(reportResults.report)
     }
     finally {
       mqReceiver.close()
