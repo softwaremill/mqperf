@@ -3,13 +3,13 @@ package com.softwaremill.mqperf
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import com.codahale.metrics._
+import com.softwaremill.mqperf.DynamoReportResults.RunIdPattern
 import com.typesafe.scalalogging.StrictLogging
 import org.joda.time.{DateTime, DateTimeZone}
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
-
 
 trait ReportResults {
   def report(metrics: ReceiverMetrics): Unit
@@ -31,7 +31,7 @@ class DynamoReportResults(testConfigName: String) extends ReportResults with Dyn
   private def exportStats(metrics: ReceiverMetrics)(dynamoClient: AmazonDynamoDBClient): Unit = {
 
     val timestampStr = TimestampFormat.print(metrics.timestamp.withZone(DateTimeZone.UTC))
-    val testResultName = testConfigName.replace("$runId", timestampStr)
+    val testResultName = RunIdPattern.replaceFirstIn(testConfigName, timestampStr)
     val meter = metrics.meter
     val clusterTimer = metrics.clusterTimer.getSnapshot
     val timer = metrics.timer.getSnapshot
@@ -68,6 +68,10 @@ class DynamoReportResults(testConfigName: String) extends ReportResults with Dyn
   implicit def longToDynamoAttr(l: Long): AttributeValue = new AttributeValue().withN(l.toString)
 
   implicit def doubleToDynamoAttr(d: Double): AttributeValue = new AttributeValue().withN(d.toString)
+}
+
+object DynamoReportResults {
+  val RunIdPattern = """(?i)\$runid""".r
 }
 
 case class ReceiverMetrics(timestamp: DateTime, timer: Timer, meter: Meter, clusterTimer: Timer, raw: MetricRegistry)

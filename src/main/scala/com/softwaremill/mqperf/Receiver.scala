@@ -34,14 +34,14 @@ object Receiver extends App {
 }
 
 class ReceiverRunnable(
-                        mq: Mq,
-                        reportResults: ReportResults,
-                        mqType: String,
-                        receiveMsgBatchSize: Int,
-                        metricRegistry: MetricRegistry,
-                        rootTimestamp: DateTime,
-                        clock: Clock = RealClock
-                      ) extends Runnable with StrictLogging {
+    mq: Mq,
+    reportResults: ReportResults,
+    mqType: String,
+    receiveMsgBatchSize: Int,
+    metricRegistry: MetricRegistry,
+    rootTimestamp: DateTime,
+    clock: Clock = RealClock
+) extends Runnable with StrictLogging {
 
   val timeout: FiniteDuration = 60.seconds
   val timeoutNanos: Long = timeout.toNanos
