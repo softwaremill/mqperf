@@ -2,7 +2,7 @@
 
 - name: Network setup - basic config
   ec2_vpc_net:
-    name: "mqperf-vpc"
+    name: "{{ vpc_name }}"
     state: present
     cidr_block: "{{ vpc_cidr_block }}"
     region: "{{ aws_region }}"
