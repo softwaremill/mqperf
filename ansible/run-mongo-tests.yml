@@ -18,9 +18,6 @@
     AWS_ACCESS_KEY_ID: "{{ aws_access }}"
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
   tasks:
-  - name: Debug AWS keys
-    debug:
-      msg: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
   - name: Start receiver
     shell: nohup /tmp/mqperf.sh start
 
