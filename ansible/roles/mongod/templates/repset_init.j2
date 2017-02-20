@@ -3,7 +3,7 @@ rs.initiate({
   "members": [ { "_id": 0, host: "{{ hostvars[mongo_primary].ec2_private_ip_address }}" } ]
 })
 sleep(13000)
-{% for host in groups['mongo'][1:] %}
+{% for host in mongo_secondaries %}
 rs.add("{{ hostvars[host].ec2_private_ip_address }}")
 sleep(8000)
 {% endfor %}

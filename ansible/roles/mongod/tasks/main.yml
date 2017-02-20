@@ -63,6 +63,8 @@
 
 - set_fact: mongo_primary="{{ groups['mongo'] | first }}"
 
+- set_fact: mongo_secondaries="{{ groups['mongo'][1:] }}"
+
 - name: debug
   debug: msg="mongo primary = {{ mongo_primary }}"
 
