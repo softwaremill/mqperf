@@ -31,7 +31,6 @@
     src: "{{ mqperf_deps_artifact_path }}"
     region: "{{ aws_region }}"
   delegate_to: 127.0.0.1
-  when: deps_assembly|changed
 
 - name: Upload artifact to S3
   s3:
@@ -41,7 +40,6 @@
     src: "{{ mqperf_artifact_path }}"
     region: "{{ aws_region }}"
   delegate_to: 127.0.0.1
-  when: assembly|changed
 
 - name: Copy deps artifact from S3
   s3:
