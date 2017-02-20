@@ -5,6 +5,5 @@
   - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'all_access' ], aws_instance_type: t2.micro, ec2_tag_group: Mongo }
 
 - hosts: mongo
-  gather_facts: True
   roles:
   - role: mongod
