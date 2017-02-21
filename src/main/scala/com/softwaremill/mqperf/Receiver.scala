@@ -82,7 +82,7 @@ class ReceiverRunnable(
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
       val after = clock.nanoTime()
-      val afterMs = after / 1000000L
+      val afterMs = clock.currentTimeMillis()
       msgs.foreach {
         case (_, msg) =>
           val msgTimestamp = mq.extractTimestamp(msg)

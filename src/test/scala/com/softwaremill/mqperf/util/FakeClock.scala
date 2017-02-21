@@ -11,6 +11,8 @@ class FakeClock extends Clock {
 
   override def nanoTime(): Long = currentNanoTime.get()
 
+  override def currentTimeMillis(): Long = currentNanoTime.get() / 1000000L
+
   def add(duration: Duration): Unit = currentNanoTime.accumulateAndGet(duration.toNanos, asJavaLongBinaryOperator(_ + _))
 
 }
