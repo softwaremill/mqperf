@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+
+  tasks:
+  - name: Delete S3 bucket
+    s3:
+      bucket: "{{ s3_bucket }}"
+      mode: delete
+      region: "{{ aws_region }}"
