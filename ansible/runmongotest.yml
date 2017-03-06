@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  tasks:
+  - debug: msg="{{ ansible_date_time.iso8601 }} Running mongo test {{ test_file }}"
+
+- hosts: receiver:sender
+  tasks:
+  - name: Copy test template
+    template:
+      src: "{{ playbook_dir }}/tests/mongo/{{ test_file }}"
+      dest: /tmp/test-config.json
+
+- hosts: receiver
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
+  tasks:
+  - name: Start receiver
+    shell: nohup /tmp/mqperf.sh start
+
+- hosts: sender
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
+  tasks:
+  - name: Start sender
+    shell: nohup /tmp/mqperf.sh start
+
+- hosts: receiver:sender
+  tasks:
+  - name: Wait for tests to finish
+    shell: /tmp/mqperf.sh status
+    register: status
+    ignore_errors: yes
+    until: status.stdout == "Stopped"
+    retries: 100
+    delay: 60
+#    We need this, because above one ignores errors, so it stops checking when status is "Stopped", but when it is
+#    still "Running", even after all the checks, it doesn't report error.
+  - name: Check if test is really finished
+    fail:
+      msg: "The test is still running after timeout"
+    when: status.stdout != "Stopped"
