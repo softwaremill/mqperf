@@ -1,0 +1,4 @@
+---
+- include: delete_dynamodb_table.yml
+- include: delete_s3_bucket.yml
+- include: shutdown_ec2_instances.yml
