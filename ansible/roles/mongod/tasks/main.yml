@@ -61,9 +61,9 @@
     state: started
   become: true
 
-- set_fact: mongo_primary="{{ groups['mongo'] | first }}"
+- set_fact: mongo_primary="{{ groups['mongo_primary'] | first }}"
 
-- set_fact: mongo_secondaries="{{ groups['mongo'][1:] }}"
+- set_fact: mongo_secondaries="{{ groups['mongo_secondary'] }}"
 
 - name: debug
   debug: msg="mongo primary = {{ mongo_primary }}"

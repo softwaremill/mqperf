@@ -14,8 +14,10 @@
     assign_public_ip: true
     count_tag:
       group: "{{ ec2_tag_group }}"
+      mongo: "{{ ec2_tag_mongo }}"
     instance_tags:
       group: "{{ ec2_tag_group }}"
+      mongo: "{{ ec2_tag_mongo }}"
       kind: "mqperf-instance"
   register: ec2
 
