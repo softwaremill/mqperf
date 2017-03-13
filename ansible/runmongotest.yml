@@ -3,6 +3,11 @@
   tasks:
   - debug: msg="{{ ansible_date_time.iso8601 }} Running mongo test {{ test_file }}"
 
+- hosts: mongo_primary
+  tasks:
+  - name: Delete mongo database, it might be there after previous tests
+    shell: mongo mq --eval "db.dropDatabase()"
+
 - hosts: receiver:sender
   tasks:
   - name: Copy test template
@@ -41,3 +46,27 @@
     fail:
       msg: "The test is still running after timeout"
     when: status.stdout != "Stopped"
+
+- hosts: receiver
+  tasks:
+  - name: Put receiver log to S3 bucket
+    s3:
+      bucket: "{{ s3_bucket }}"
+      mode: put
+      object: /logs/{{ ansible_date_time.iso8601 }}-{{ test_file }}-receiver.log
+      src: /tmp/mqperf.log
+      region: "{{ aws_region }}"
+      aws_access_key: "{{ aws_access }}"
+      aws_secret_key: "{{ aws_secret }}"
+
+- hosts: sender
+  tasks:
+  - name: Put sender log to S3 bucket
+    s3:
+      bucket: "{{ s3_bucket }}"
+      mode: put
+      object: /logs/{{ ansible_date_time.iso8601 }}-{{ test_file }}-sender.log
+      src: /tmp/mqperf.log
+      region: "{{ aws_region }}"
+      aws_access_key: "{{ aws_access }}"
+      aws_secret_key: "{{ aws_secret }}"
