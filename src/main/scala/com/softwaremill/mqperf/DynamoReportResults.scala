@@ -81,15 +81,15 @@ case class ReceiverMetrics(timestamp: DateTime, threadId: Long, timer: Timer, me
 
 object ReceiverMetrics extends StrictLogging {
 
-  val batchThroughputMeter = "receiver-meter"
-  val batchLatencyTimerPrefix = "batch-latency-timer"
+  val receiveThroughputMeterPrefix = "receiver-throughput-meter"
+  val receiveBatchTimerPrefix = "receive-batch-timer"
   val clusterLatencyTimerPrefix = "cluster-latency-timer"
 
   def apply(metrics: MetricRegistry, timestamp: DateTime, threadId: Long): Option[ReceiverMetrics] = {
     val resultOpt = for {
       (_, meter) <- metrics.getMeters.asScala.headOption
       (_, batchTimer) <- metrics.getTimers.asScala.find {
-        case (name, _) => name.startsWith(batchLatencyTimerPrefix)
+        case (name, _) => name.startsWith(receiveBatchTimerPrefix)
       }
       (_, clusterTimer) <- metrics.getTimers.asScala.find {
         case (name, _) => name.startsWith(clusterLatencyTimerPrefix)

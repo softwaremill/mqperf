@@ -1,49 +1,35 @@
 package com.softwaremill.mqperf
 
-import com.codahale.metrics.{Meter, Timer}
-import com.softwaremill.mqperf.config.{TestConfig, TestConfigOnS3}
+import com.softwaremill.mqperf.config.TestConfig
 import com.softwaremill.mqperf.mq.Mq
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.util.Random
 
 object Sender extends App {
-  val timestampLength = 13
-
   println("Starting sender...")
-  TestConfigOnS3.create(args).whenChanged { testConfig =>
-    println(s"Starting test (sender) with config: $testConfig")
+  val testConfig = TestConfig.load()
 
-    val mq = Mq.instantiate(testConfig)
-    val report = new DynamoReportResults(testConfig.name)
-    val sr = new SenderRunnable(
-      mq, report,
-      testConfig.mqType, msgPrefix(testConfig),
-      testConfig.msgCountPerThread, testConfig.maxSendMsgBatchSize
-    )
+  val mq = Mq.instantiate(testConfig)
+  val sr = new SenderRunnable(
+    mq,
+    testConfig.mqType, Msg.prefix(testConfig),
+    testConfig.msgCountPerThread, testConfig.maxSendMsgBatchSize
+  )
 
-    val threads = (1 to testConfig.senderThreads).map { _ =>
-      val t = new Thread(sr)
-      t.start()
-      t
-    }
-
-    threads.foreach(_.join())
-
-    mq.close()
+  val threads = (1 to testConfig.senderThreads).map { _ =>
+    val t = new Thread(sr)
+    t.start()
+    t
   }
 
-  def msgPrefix(testConfig: TestConfig): String = {
-    val prefixLength = testConfig.msgSize - timestampLength
-    if (prefixLength <= 0)
-      ""
-    else
-      "0" * prefixLength
-  }
+  threads.foreach(_.join())
+
+  mq.close()
 }
 
-class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
-    msgPrefix: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
+class SenderRunnable(mq: Mq, mqType: String,
+  msgPrefix: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
 
   override def run() = {
     val mqSender = mq.createSender()
@@ -52,7 +38,7 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
       logger.info(s"Sending $leftToSend messages")
       while (leftToSend > 0) {
         val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
-        val fullMsg = mq.msgWithTimestamp(msgPrefix)
+        val fullMsg = Msg.addTimestamp(msgPrefix)
         val batch = List.fill(batchSize)(fullMsg)
         logger.debug("Sending batch")
         mqSender.send(batch)
@@ -62,8 +48,5 @@ class SenderRunnable(mq: Mq, reportResults: ReportResults, mqType: String,
     finally {
       mqSender.close()
     }
-  }
-
-  private def doSend(mqSender: mq.MqSender, msgTimer: Timer, meter: Meter, start: Long) {
   }
 }

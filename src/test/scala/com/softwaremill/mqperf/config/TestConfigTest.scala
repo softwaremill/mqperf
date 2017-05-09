@@ -25,7 +25,7 @@ class TestConfigTest extends FlatSpec with Matchers {
     val tc = TestConfig.from(config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, ConfigFactory.empty()))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Nil, ConfigFactory.empty()))
   }
 
   it should "parse an example json with mq config map" in {
@@ -53,7 +53,7 @@ class TestConfigTest extends FlatSpec with Matchers {
     val tc = TestConfig.from(config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, config.getConfig("mq")))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Nil, config.getConfig("mq")))
   }
 
   for {

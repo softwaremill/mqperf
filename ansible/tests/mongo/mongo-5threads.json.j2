@@ -7,8 +7,8 @@
     "max_send_msg_batch_size": 10,
     "receiver_threads": 5,
     "receive_msg_batch_size": 10,
+    "broker_hosts": {{ groups['mongo']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }}
     "mq": {
-        "hosts": {{ groups['mongo']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
         "write_concern": "replica"
     }
 }

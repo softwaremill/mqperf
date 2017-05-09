@@ -1,6 +1,8 @@
 package com.softwaremill.mqperf.config
 
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.scalalogging.StrictLogging
+import scala.collection.JavaConverters._
 
 case class TestConfig(
     name: String,
@@ -11,15 +13,22 @@ case class TestConfig(
     maxSendMsgBatchSize: Int,
     receiverThreads: Int,
     receiveMsgBatchSize: Int,
+    brokerHosts: List[String],
     mqConfig: Config
 ) {
 
   def mqClassName = s"com.softwaremill.mqperf.mq.${mqType}Mq"
 }
 
-object TestConfig {
+object TestConfig extends StrictLogging {
 
-  def from(config: Config): TestConfig = TestConfig(
+  def load(): TestConfig = {
+    val config = from(ConfigFactory.load())
+    logger.info("Using config: " + config)
+    config
+  }
+
+  private[config] def from(config: Config): TestConfig = TestConfig(
     name = config.getString("name"),
     mqType = config.getString("mq_type"),
     senderThreads = config.getInt("sender_threads"),
@@ -28,10 +37,11 @@ object TestConfig {
     maxSendMsgBatchSize = config.getInt("max_send_msg_batch_size"),
     receiverThreads = config.getInt("receiver_threads"),
     receiveMsgBatchSize = config.getInt("receive_msg_batch_size"),
+    brokerHosts = config.getStringList("broker_hosts").asScala.toList,
     mqConfig = config.getConfigOpt("mq").getOrElse(ConfigFactory.empty())
   )
 
-  val HostPortPattern = """([^:\s]+):?([0-9]*)""".r
+  private val HostPortPattern = """([^:\s]+):?([0-9]*)""".r
 
   def parseHostPort(from: String): (String, Option[Int]) = from match {
     case HostPortPattern(host, "") => (host, None)

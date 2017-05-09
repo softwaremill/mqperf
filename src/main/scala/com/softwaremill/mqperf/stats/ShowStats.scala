@@ -41,7 +41,7 @@ object ShowStats extends App with DynamoResultsTable {
           i.get(meterMean).getN.toDouble,
           i.get(meter1MinuteEwma).getN.toDouble,
           TimerResult(
-            ReceiverMetrics.batchLatencyTimerPrefix,
+            ReceiverMetrics.receiveBatchTimerPrefix,
             i.get(timerMinColumn).getN.toLong,
             i.get(timerMaxColumn).getN.toLong,
             i.get(timerMeanColumn).getN.toDouble,

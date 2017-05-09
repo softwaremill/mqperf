@@ -20,6 +20,7 @@ lazy val root = (project in file(".")).
     fork in Test := true
   )
 
+/*
 lazy val oracleaq = project.in(file("oracleaq")).
   dependsOn(root).
   settings(commonSettings: _*).
@@ -30,6 +31,7 @@ lazy val oracleaq = project.in(file("oracleaq")).
     "javax.transaction" % "jta" % "1.1"
   )
   )
+*/
 
 name := "mqperf"
 
@@ -57,7 +59,8 @@ libraryDependencies ++= Seq(
   "org.apache.activemq"         %   "activemq-client"       % "5.14.5"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe"                %   "config"                % "1.3.1",
   "io.dropwizard.metrics"       %   "metrics-core"          % "3.2.1",
-  "org.apache.activemq"         %   "artemis-jms-client"    % "2.0.0"     exclude("commons-logging", "commons-logging")
+  "org.apache.activemq"         %   "artemis-jms-client"    % "2.0.0"     exclude("commons-logging", "commons-logging"),
+  "com.softwaremill.kmq"        %%  "core"                  % "0.1"
 )
 
 assemblyOption in assembly ~= {
