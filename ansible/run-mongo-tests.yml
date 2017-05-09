@@ -6,26 +6,12 @@
       aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
-- hosts: receiver:sender
-  tasks:
-  - name: Copy test template
-    template:
-      src: "{{ playbook_dir }}/tests/mongo/mongocapped-1thread.json.j2"
-      dest: /tmp/test-config.json
-
-- hosts: receiver
-  environment:
-    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
-  tasks:
-  - name: Start receiver
-    shell: nohup /tmp/mqperf.sh start
-
-- hosts: sender
-  environment:
-    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
-  tasks:
-  - name: Start sender
-    shell: nohup /tmp/mqperf.sh start
-
+- include: runmongotest.yml test_file=mongocapped-1thread.json.j2
+- include: runmongotest.yml test_file=mongocapped-5threads.json.j2
+- include: runmongotest.yml test_file=mongocapped-20threads-stress.json.j2
+- include: runmongotest.yml test_file=mongocapped-25threads.json.j2
+           
+- include: runmongotest.yml test_file=mongo-1thread.json.j2
+- include: runmongotest.yml test_file=mongo-5threads.json.j2
+- include: runmongotest.yml test_file=mongo-20threads-stress.json.j2
+- include: runmongotest.yml test_file=mongo-25threads.json.j2

@@ -1,0 +1,4 @@
+---
+- include: create_dynamodb_table.yml
+- include: install_and_setup_mongo.yml
+- include: provision_mqperf_nodes.yml

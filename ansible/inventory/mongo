@@ -2,3 +2,13 @@
 
 [mongo:children]
 tag_group_Mongo
+
+[mongo_primary]
+
+[mongo_primary:children]
+tag_mongo_Primary
+
+[mongo_secondary]
+
+[mongo_secondary:children]
+tag_mongo_Secondary
