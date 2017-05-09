@@ -29,7 +29,7 @@ object Sender extends App {
 }
 
 class SenderRunnable(mq: Mq, mqType: String,
-  msgPrefix: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
+    msgPrefix: String, msgCount: Int, maxSendMsgBatchSize: Int) extends Runnable with StrictLogging {
 
   override def run() = {
     val mqSender = mq.createSender()
