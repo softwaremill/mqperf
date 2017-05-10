@@ -2,7 +2,7 @@ package com.softwaremill.mqperf.stats
 
 import java.util.Locale
 
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.joda.time.{DateTime, DateTimeZone}
 
 case class TimerResult(
@@ -35,20 +35,24 @@ case class Result(
     msgCount: Long,
     meterMean: Double,
     meter1MinEwma: Double,
+    meter5MinEwma: Double,
+    meter15MinEwma: Double,
     timer: TimerResult,
     clusterTimer: TimerResult
 ) {
   override def toString: String = {
-    val dt = Result.dtFormatter.print(timestamp)
+    val dt = Result.DtFormatter.print(timestamp)
     f"""Test time: $dt UTC
        |$msgCount%12d total messages
        |$meterMean%12.0f mean msgs/s
        |$meter1MinEwma%12.0f 1 min EWMA msgs/s
+       |$meter5MinEwma%12.0f 5 min EWMA msgs/s
+       |$meter15MinEwma%12.0f 15 min EWMA msgs/s
        |$timer
        |$clusterTimer""".stripMargin
   }
 }
 
 object Result {
-  val dtFormatter = DateTimeFormat.shortDateTime().withLocale(Locale.UK).withZone(DateTimeZone.UTC)
+  val DtFormatter: DateTimeFormatter = DateTimeFormat.shortDateTime().withLocale(Locale.UK).withZone(DateTimeZone.UTC)
 }

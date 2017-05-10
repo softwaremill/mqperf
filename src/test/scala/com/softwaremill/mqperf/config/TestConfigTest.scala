@@ -9,23 +9,24 @@ class TestConfigTest extends FlatSpec with Matchers {
     val config = ConfigFactory.parseString {
       """
         |{
-        |    "name": "sqs1",
+        |    "name": "sqs1-$runid",
         |    "mq_type": "Sqs",
         |    "sender_threads": 10,
         |    "msg_count_per_thread": 100000,
         |    "msg_size": 100,
         |    "max_send_msg_batch_size": 20,
         |    "receiver_threads": 11,
-        |    "receive_msg_batch_size": 25
+        |    "receive_msg_batch_size": 25,
+        |    "broker_hosts": [ "localhost1", "localhost2" ]
         |}
       """.stripMargin
     }
 
     // when
-    val tc = TestConfig.from(config)
+    val tc = TestConfig.from("x", "y", config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, ConfigFactory.empty()))
+    tc should be(TestConfig("sqs1-y", "Sqs", 10, 100000, 100, 20, 11, 25, List("localhost1", "localhost2"), "x", ConfigFactory.empty()))
   }
 
   it should "parse an example json with mq config map" in {
@@ -41,6 +42,7 @@ class TestConfigTest extends FlatSpec with Matchers {
         |    "max_send_msg_batch_size": 20,
         |    "receiver_threads": 11,
         |    "receive_msg_batch_size": 25,
+        |    "broker_hosts": [],
         |    "mq": {
         |       "f1": "v1",
         |       "f2": 10
@@ -50,10 +52,10 @@ class TestConfigTest extends FlatSpec with Matchers {
     }
 
     // when
-    val tc = TestConfig.from(config)
+    val tc = TestConfig.from("x", "y", config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, config.getConfig("mq")))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Nil, "x", config.getConfig("mq")))
   }
 
   for {

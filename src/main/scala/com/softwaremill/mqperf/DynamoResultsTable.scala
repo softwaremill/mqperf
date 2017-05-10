@@ -1,33 +1,35 @@
 package com.softwaremill.mqperf
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{DeleteItemRequest, ScanRequest}
-import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, AWSPreferences}
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
+import com.softwaremill.mqperf.config.AWS
 
 import scala.collection.JavaConversions._
 
 trait DynamoResultsTable {
-  protected val dynamoClientOpt: Option[AmazonDynamoDBClient] =
-    for {
-      awsCredentails <- AWSCredentialsFromEnv()
-    } yield {
-      AWSPreferences.configure(new AmazonDynamoDBClient(awsCredentails))
-    }
+  protected val dynamoClient: AmazonDynamoDB =
+    AmazonDynamoDBClientBuilder
+      .standard()
+      .withCredentials(AWS.CredentialProvider)
+      .withRegion(AWS.DefaultRegion)
+      .build()
 
   protected val tableName = "mqperf-results"
   protected val resultNameColumn = "test_result_name"
   protected val resultTimestampColumn = "test_result_timestamp"
   protected val meterMean = "meter_mean"
   protected val meter1MinuteEwma = "meter_1min_ewma"
-  protected val timerMinColumn = "timer_min"
-  protected val timerMaxColumn = "timer_max"
-  protected val timerMeanColumn = "timer_mean"
-  protected val timerMedianColumn = "timer_median"
-  protected val timerStdDevColumn = "timer_st_dev"
-  protected val timer75thPercentileColumn = "timer_75th_perc"
-  protected val timer95thPercentileColumn = "timer_95th_perc"
-  protected val timer98thPercentileColumn = "timer_98th_perc"
-  protected val timer99thPercentileColumn = "timer_99th_perc"
+  protected val meter5MinuteEwma = "meter_5min_ewma"
+  protected val meter15MinuteEwma = "meter_15min_ewma"
+  protected val receiveBatchTimerMinColumn = "receiveBatchTimer_min"
+  protected val receiveBatchTimerMaxColumn = "receiveBatchTimer_max"
+  protected val receiveBatchTimerMeanColumn = "receiveBatchTimer_mean"
+  protected val receiveBatchTimerMedianColumn = "receiveBatchTimer_median"
+  protected val receiveBatchTimerStdDevColumn = "receiveBatchTimer_st_dev"
+  protected val receiveBatchTimer75thPercentileColumn = "receiveBatchTimer_75th_perc"
+  protected val receiveBatchTimer95thPercentileColumn = "receiveBatchTimer_95th_perc"
+  protected val receiveBatchTimer98thPercentileColumn = "receiveBatchTimer_98th_perc"
+  protected val receiveBatchTimer99thPercentileColumn = "receiveBatchTimer_99th_perc"
   protected val clusterTimerMinColumn = "clusterTimer_min"
   protected val clusterTimerMaxColumn = "clusterTimer_max"
   protected val clusterTimerMeanColumn = "clusterTimer_mean"
@@ -41,15 +43,9 @@ trait DynamoResultsTable {
 }
 
 object ClearDynamoResultsTable extends App with DynamoResultsTable {
-
-  for {
-    dynamoClient <- dynamoClientOpt
-  } {
-    dynamoClient.scan(new ScanRequest(tableName)).getItems.foreach { i =>
-      dynamoClient.deleteItem(
-        new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn))
-      )
-    }
+  dynamoClient.scan(new ScanRequest(tableName)).getItems.foreach { i =>
+    dynamoClient.deleteItem(
+      new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn))
+    )
   }
-
 }

@@ -179,8 +179,8 @@ object KafkaMqTestReceive2 extends App {
   println(s"Starting test (receiver)")
 
   val mq = new KafkaMq(KafkaMqTest.config)
-  val report = new DynamoReportResults("x")
-  val rr = new ReceiverRunnable(mq, report, "kafka", 10, new MetricRegistry, new DateTime())
+  val report = new DynamoReportResults("x", "x")
+  val rr = new ReceiverRunnable(mq, report, "kafka", 10, new MetricRegistry, new DateTime(), 1)
 
   val threads = (1 to 2).map { _ =>
     val t = new Thread(rr)

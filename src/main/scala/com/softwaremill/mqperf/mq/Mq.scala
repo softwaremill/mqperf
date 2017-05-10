@@ -9,10 +9,6 @@ trait Mq {
 
   type MsgId
 
-  def msgWithTimestamp(prefix: String): String = prefix + System.currentTimeMillis().toString
-
-  def extractTimestamp(msg: String): Long = msg.toLong
-
   trait MqSender {
     /**
      * Synchronous - must wait for the messages to be sent

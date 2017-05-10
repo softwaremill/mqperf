@@ -1,0 +1,21 @@
+---
+
+- hosts: receiver:sender
+  tasks:
+  - name: Copy test template
+    template:
+      src: "{{ playbook_dir }}/tests/mongo/mongocapped-1thread.json.j2"
+      dest: /tmp/test-config.json
+
+- hosts: receiver
+  environment:
+    RUN_ID: "run1"
+  tasks:
+  - name: Start receiver
+    shell: nohup /tmp/mqperf.sh start
+
+- hosts: sender
+  tasks:
+  - name: Start sender
+    shell: nohup /tmp/mqperf.sh start
+
