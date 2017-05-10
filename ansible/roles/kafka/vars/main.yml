@@ -1,0 +1,9 @@
+---
+kafka_conf_dir: /etc/kafka
+kafka_data_dir: /var/kafka
+kafka_group: kafka
+kafka_user: kafka
+kafka_log_dir: /var/log/kafka
+kafka_upstart_conf: /etc/init/kafka.conf
+kafka_systemd_service: /etc/systemd/system/kafka.service
+kafka_auto_create_topics: "false"

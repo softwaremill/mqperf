@@ -54,15 +54,6 @@
         to_port: "{{ ssh_port }}"
         cidr_ip: "{{ all_cidr }}"
 
-- name: Network setup - All ports open Security Group
-  ec2_group:
-    name: "all_access"
-    description: "all_access"
-    vpc_id: "{{ vpc_net }}"
-    region: "{{ aws_region }}"
-    rules:
-      - proto: all
-        group_name: "all_access"
 
 - name: Create an EC2 key
   ec2_key:
