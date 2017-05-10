@@ -1,0 +1,4 @@
+---
+- name: restart kafka
+  service: name=kafka state=restarted enabled=yes
+  when: run_mode == 'Deploy'

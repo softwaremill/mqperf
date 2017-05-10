@@ -1,0 +1,5 @@
+{%- for host in zookeeper_hosts -%}
+    {%- if host == ansible_ssh_host -%}
+{{loop.index}}
+    {%- endif -%}
+{%- endfor -%}

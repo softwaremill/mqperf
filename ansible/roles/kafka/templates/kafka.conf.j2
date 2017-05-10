@@ -1,0 +1,18 @@
+description "Kafka"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+
+limit nofile 32768 32768
+
+# If zookeeper is running on this box also give it time to start up properly
+pre-start script
+    if [ -e /etc/init.d/zookeeper ]; then
+        /etc/init.d/zookeeper start
+    fi
+end script
+
+# Rather than using setuid/setgid sudo is used because the pre-start task must run as root
+exec sudo -Hu kafka -g kafka KAFKA_HEAP_OPTS="{{ kafka_heap_opts }}" /opt/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
