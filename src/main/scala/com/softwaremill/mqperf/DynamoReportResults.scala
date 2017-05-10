@@ -1,6 +1,5 @@
 package com.softwaremill.mqperf
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import com.codahale.metrics._
 import com.fasterxml.uuid.{EthernetAddress, Generators}
@@ -22,14 +21,10 @@ class DynamoReportResults(testConfigName: String) extends ReportResults with Dyn
 
   override def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
-    if (dynamoClientOpt.isEmpty) {
-      logger.warn("Report requested but Dynamo client not defined.")
-    }
-    else
-      dynamoClientOpt.foreach(exportStats(metrics))
+    exportStats(metrics)
   }
 
-  private def exportStats(metrics: ReceiverMetrics)(dynamoClient: AmazonDynamoDBClient): Unit = {
+  private def exportStats(metrics: ReceiverMetrics): Unit = {
 
     val timestampStr = TimestampFormat.print(metrics.timestamp.withZone(DateTimeZone.UTC))
     val testResultName = RunIdPattern.replaceFirstIn(testConfigName, timestampStr) + s"-$NodeId-${metrics.threadId}"

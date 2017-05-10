@@ -1,21 +1,20 @@
 package com.softwaremill.mqperf.mq
 
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
-import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, AWSPreferences}
+import com.softwaremill.mqperf.config.AWS
 import com.typesafe.config.Config
 
 import scala.collection.JavaConverters._
 
 class SqsMq(val config: Config) extends Mq {
   private val asyncClient =
-    AWSCredentialsFromEnv() match {
-      case Some(awsCredentials) =>
-        AWSPreferences.configure(new AmazonSQSAsyncClient(awsCredentials))
-      case None =>
-        throw new IllegalStateException("AWS credentials are missing!")
-    }
+    AmazonSQSAsyncClientBuilder
+      .standard()
+      .withCredentials(AWS.CredentialProvider)
+      .withRegion(AWS.DefaultRegion)
+      .build()
 
   private val asyncBufferedClient = new AmazonSQSBufferedAsyncClient(asyncClient)
 

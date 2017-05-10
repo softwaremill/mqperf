@@ -12,24 +12,21 @@ object ShowStats extends App with DynamoResultsTable {
       .withComparisonOperator(ComparisonOperator.BEGINS_WITH)
       .withAttributeValueList(new AttributeValue(prefix))
 
-    def doFetch(lastEvaluatedKey: Option[java.util.Map[String, AttributeValue]]): java.util.List[java.util.Map[String, AttributeValue]] =
-      (for {
-        dynamoClient <- dynamoClientOpt
-      } yield {
-        val req1 = new ScanRequest(tableName).addScanFilterEntry(resultNameColumn, condition)
-        val req2 = lastEvaluatedKey.map(req1.withExclusiveStartKey).getOrElse(req1)
+    def doFetch(lastEvaluatedKey: Option[java.util.Map[String, AttributeValue]]): java.util.List[java.util.Map[String, AttributeValue]] = {
+      val req1 = new ScanRequest(tableName).addScanFilterEntry(resultNameColumn, condition)
+      val req2 = lastEvaluatedKey.map(req1.withExclusiveStartKey).getOrElse(req1)
 
-        val result = dynamoClient.scan(req2)
+      val result = dynamoClient.scan(req2)
 
-        val fetchedItems: java.util.List[java.util.Map[String, AttributeValue]] = result.getItems
-        val newLastEvaluatedKey = result.getLastEvaluatedKey
+      val fetchedItems: java.util.List[java.util.Map[String, AttributeValue]] = result.getItems
+      val newLastEvaluatedKey = result.getLastEvaluatedKey
 
-        if (newLastEvaluatedKey != null && newLastEvaluatedKey.size() > 0) {
-          fetchedItems.addAll(doFetch(Some(newLastEvaluatedKey)))
-        }
+      if (newLastEvaluatedKey != null && newLastEvaluatedKey.size() > 0) {
+        fetchedItems.addAll(doFetch(Some(newLastEvaluatedKey)))
+      }
 
-        fetchedItems
-      }).getOrElse(Nil.asJava)
+      fetchedItems
+    }
 
     val items = doFetch(None).asScala
 

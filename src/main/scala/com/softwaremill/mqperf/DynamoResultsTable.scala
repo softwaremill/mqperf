@@ -1,18 +1,18 @@
 package com.softwaremill.mqperf
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model.{DeleteItemRequest, ScanRequest}
-import com.softwaremill.mqperf.config.{AWSCredentialsFromEnv, AWSPreferences}
+import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
+import com.softwaremill.mqperf.config.AWS
 
 import scala.collection.JavaConversions._
 
 trait DynamoResultsTable {
-  protected val dynamoClientOpt: Option[AmazonDynamoDBClient] =
-    for {
-      awsCredentails <- AWSCredentialsFromEnv()
-    } yield {
-      AWSPreferences.configure(new AmazonDynamoDBClient(awsCredentails))
-    }
+  protected val dynamoClient: AmazonDynamoDB =
+    AmazonDynamoDBClientBuilder
+      .standard()
+      .withCredentials(AWS.CredentialProvider)
+      .withRegion(AWS.DefaultRegion)
+      .build()
 
   protected val tableName = "mqperf-results"
   protected val resultNameColumn = "test_result_name"
@@ -41,15 +41,9 @@ trait DynamoResultsTable {
 }
 
 object ClearDynamoResultsTable extends App with DynamoResultsTable {
-
-  for {
-    dynamoClient <- dynamoClientOpt
-  } {
-    dynamoClient.scan(new ScanRequest(tableName)).getItems.foreach { i =>
-      dynamoClient.deleteItem(
-        new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn))
-      )
-    }
+  dynamoClient.scan(new ScanRequest(tableName)).getItems.foreach { i =>
+    dynamoClient.deleteItem(
+      new DeleteItemRequest().withTableName(tableName).addKeyEntry(resultNameColumn, i.get(resultNameColumn))
+    )
   }
-
 }
