@@ -1,10 +1,4 @@
 ---
-- hosts: 127.0.0.1
-  tasks:
-  - name: Set AWS key variables
-    set_fact:
-      aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-      aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
 - hosts: receiver:sender
   tasks:
@@ -15,16 +9,12 @@
 
 - hosts: receiver
   environment:
-    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
+    RUN_ID: "run1"
   tasks:
   - name: Start receiver
     shell: nohup /tmp/mqperf.sh start
 
 - hosts: sender
-  environment:
-    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
   tasks:
   - name: Start sender
     shell: nohup /tmp/mqperf.sh start

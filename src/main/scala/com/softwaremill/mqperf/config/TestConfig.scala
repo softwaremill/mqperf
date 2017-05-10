@@ -1,7 +1,9 @@
 package com.softwaremill.mqperf.config
 
+import com.fasterxml.uuid.{EthernetAddress, Generators}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
+
 import scala.collection.JavaConverters._
 
 case class TestConfig(
@@ -14,6 +16,7 @@ case class TestConfig(
     receiverThreads: Int,
     receiveMsgBatchSize: Int,
     brokerHosts: List[String],
+    nodeId: String,
     mqConfig: Config
 ) {
 
@@ -23,13 +26,15 @@ case class TestConfig(
 object TestConfig extends StrictLogging {
 
   def load(): TestConfig = {
-    val config = from(ConfigFactory.load())
+    val nodeId = Generators.timeBasedGenerator(EthernetAddress.fromInterface()).generate().node().toString
+    val runId = sys.env.getOrElse("RUN_ID", throw new IllegalStateException("No RUN_ID defined in the environment!"))
+    val config = from(nodeId, runId, ConfigFactory.load())
     logger.info("Using config: " + config)
     config
   }
 
-  private[config] def from(config: Config): TestConfig = TestConfig(
-    name = config.getString("name"),
+  private[config] def from(nodeId: String, runId: String, config: Config): TestConfig = TestConfig(
+    name = config.getString("name").replaceAll("\\$runid", runId),
     mqType = config.getString("mq_type"),
     senderThreads = config.getInt("sender_threads"),
     msgCountPerThread = config.getInt("msg_count_per_thread"),
@@ -38,6 +43,7 @@ object TestConfig extends StrictLogging {
     receiverThreads = config.getInt("receiver_threads"),
     receiveMsgBatchSize = config.getInt("receive_msg_batch_size"),
     brokerHosts = config.getStringList("broker_hosts").asScala.toList,
+    nodeId = nodeId,
     mqConfig = config.getConfigOpt("mq").getOrElse(ConfigFactory.empty())
   )
 

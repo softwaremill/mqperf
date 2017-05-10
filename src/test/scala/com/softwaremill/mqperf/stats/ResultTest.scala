@@ -14,7 +14,7 @@ class ResultTest extends FlatSpec with Matchers {
     Locale.setDefault(Locale.US)
     val resultAsPrettyString = Result(
       new DateTime(1483019133000L),
-      3250346112L, 21217.55, 20217.55, TimerResult(
+      3250346112L, 21217.55, 20217.55, 20219.56, 20211.57, TimerResult(
         "latency", 7211L, 23301401L, 10627650.458852611, 9463284, 8410536.830270134, 23301401,
         23301301, 23201401, 23101401
       ),
@@ -31,6 +31,8 @@ class ResultTest extends FlatSpec with Matchers {
         |  3250346112 total messages
         |       21218 mean msgs/s
         |       20218 1 min EWMA msgs/s
+        |       20220 5 min EWMA msgs/s
+        |       20212 15 min EWMA msgs/s
         |Timer (latency)
         |           0 min ms
         |          23 max ms

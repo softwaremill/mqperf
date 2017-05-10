@@ -99,6 +99,7 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
       1,
       new MetricRegistry,
       new DateTime(),
+      1,
       fakeClock
     )
 

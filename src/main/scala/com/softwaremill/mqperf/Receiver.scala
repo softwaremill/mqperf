@@ -16,12 +16,13 @@ object Receiver extends App {
   val testConfig = TestConfig.load()
 
   val mq = Mq.instantiate(testConfig)
-  val report = new DynamoReportResults(testConfig.name)
+  val report = new DynamoReportResults(testConfig.nodeId, testConfig.name)
   val rootTimestamp = new DateTime()
-  val rr = new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize, new MetricRegistry, rootTimestamp)
+  val metricRegistry = new MetricRegistry
 
-  val threads = (1 to testConfig.receiverThreads).map { _ =>
-    val t = new Thread(rr)
+  val threads = (1 to testConfig.receiverThreads).map { threadId =>
+    val t = new Thread(new ReceiverRunnable(mq, report, testConfig.mqType, testConfig.receiveMsgBatchSize,
+      metricRegistry, rootTimestamp, threadId))
     t.start()
     t
   }
@@ -38,6 +39,7 @@ class ReceiverRunnable(
     receiveMsgBatchSize: Int,
     metricRegistry: MetricRegistry,
     rootTimestamp: DateTime,
+    threadId: Int,
     clock: Clock = RealClock
 ) extends Runnable with StrictLogging {
 
@@ -45,13 +47,10 @@ class ReceiverRunnable(
   val timeoutNanos: Long = timeout.toNanos
 
   override def run(): Unit = {
-    import ReceiverMetrics._
-
-    val threadId = Thread.currentThread().getId
-    val msgTimer = metricRegistry.timer(s"$receiveBatchTimerPrefix-$threadId")
+    val receiveBatchTimer = metricRegistry.timer(s"receive-batch-timer-$threadId")
     // Calculates latency between sending message by the sender and receiving by the receiver
-    val clusterLatencyTimer = metricRegistry.timer(s"$clusterLatencyTimerPrefix-$threadId")
-    val meter = metricRegistry.meter(s"$receiveThroughputMeterPrefix-$threadId")
+    val clusterLatencyTimer = metricRegistry.timer(s"cluster-latency-timer-$threadId")
+    val receiveThroughputMeter = metricRegistry.meter(s"receiver-throughput-meter-$threadId")
 
     val mqReceiver = mq.createReceiver()
 
@@ -60,22 +59,23 @@ class ReceiverRunnable(
       var waitingForFirstMessage = true
 
       while (waitingForFirstMessage || (clock.nanoTime() - lastReceivedNano) < timeoutNanos) {
-        val received = doReceive(mqReceiver, msgTimer, clusterLatencyTimer)
+        val received = doReceive(mqReceiver, receiveBatchTimer, clusterLatencyTimer)
         if (received > 0) {
           lastReceivedNano = clock.nanoTime()
-          meter.mark(received)
+          receiveThroughputMeter.mark(received)
           waitingForFirstMessage = false
         }
       }
       logger.info(s"Test finished, last message read $timeout ago")
-      ReceiverMetrics(metricRegistry, rootTimestamp, threadId).foreach(reportResults.report)
+      reportResults.report(ReceiverMetrics(rootTimestamp, threadId, receiveThroughputMeter, receiveBatchTimer,
+        clusterLatencyTimer, metricRegistry))
     }
     finally {
       mqReceiver.close()
     }
   }
 
-  private def doReceive(mqReceiver: mq.MqReceiver, msgTimer: Timer, clusterTimer: Timer): Int = {
+  private def doReceive(mqReceiver: mq.MqReceiver, receiveBatchTimer: Timer, clusterLatencyTimer: Timer): Int = {
     val before = clock.nanoTime()
     val msgs = mqReceiver.receive(receiveMsgBatchSize)
     if (msgs.nonEmpty) {
@@ -84,9 +84,9 @@ class ReceiverRunnable(
       msgs.foreach {
         case (_, msg) =>
           val msgTimestamp = Msg.extractTimestamp(msg)
-          clusterTimer.update(afterMs - msgTimestamp, TimeUnit.MILLISECONDS)
+          clusterLatencyTimer.update(afterMs - msgTimestamp, TimeUnit.MILLISECONDS)
       }
-      msgTimer.update(after - before, TimeUnit.NANOSECONDS)
+      receiveBatchTimer.update(after - before, TimeUnit.NANOSECONDS)
     }
     val ids = msgs.map(_._1)
     if (ids.nonEmpty) {
