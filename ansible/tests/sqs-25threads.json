@@ -1,10 +1,11 @@
 {
-    "name": "sqs-25threads-stress-$runid",
+    "name": "sqs-25threads-$runid",
     "mq_type": "Sqs",
     "sender_threads": 25,
-    "msg_count_per_thread": 200000,
+    "msg_count_per_thread": 20000,
     "msg_size": 100,
     "max_send_msg_batch_size": 10,
     "receiver_threads": 25,
-    "receive_msg_batch_size": 10
+    "receive_msg_batch_size": 10,
+    "broker_hosts": []
 }

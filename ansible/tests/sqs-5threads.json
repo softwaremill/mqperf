@@ -6,5 +6,6 @@
     "msg_size": 100,
     "max_send_msg_batch_size": 10,
     "receiver_threads": 5,
-    "receive_msg_batch_size": 10
+    "receive_msg_batch_size": 10,
+    "broker_hosts": []
 }

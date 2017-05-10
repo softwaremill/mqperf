@@ -1,0 +1,34 @@
+---
+
+- hosts: receiver:sender
+  vars:
+    test_name: "sqs-1thread.json"
+  tasks:
+  - name: Set AWS key variables
+    set_fact:
+      aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+      aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+      run_id: "run1"
+  - name: Copy test template
+    template:
+      src: "{{ playbook_dir }}/tests/{{ test_name }}"
+      dest: /tmp/test-config.json
+
+- hosts: receiver
+  environment:
+    RUN_ID: "{{ run_id }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
+  tasks:
+  - name: Start receiver
+    shell: nohup /tmp/mqperf.sh start
+
+- hosts: sender
+  environment:
+    RUN_ID: "{{ run_id }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
+  tasks:
+  - name: Start sender
+    shell: nohup /tmp/mqperf.sh start
+

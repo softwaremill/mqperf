@@ -3,7 +3,6 @@ package com.softwaremill.mqperf
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest}
 import com.codahale.metrics._
 import com.typesafe.scalalogging.StrictLogging
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.language.implicitConversions
@@ -14,8 +13,6 @@ trait ReportResults {
 
 class DynamoReportResults(nodeId: String, testConfigName: String) extends ReportResults with DynamoResultsTable with StrictLogging {
 
-  val TimestampFormat: DateTimeFormatter = DateTimeFormat.forPattern("MM-dd'T'HH:mm")
-
   override def report(metrics: ReceiverMetrics): Unit = {
     Slf4jReporter.forRegistry(metrics.raw).build().report()
     exportStats(metrics)
@@ -23,7 +20,7 @@ class DynamoReportResults(nodeId: String, testConfigName: String) extends Report
 
   private def exportStats(metrics: ReceiverMetrics): Unit = {
 
-    val timestampStr = TimestampFormat.print(metrics.timestamp.withZone(DateTimeZone.UTC))
+    val timestampStr = timestampFormat.print(metrics.timestamp.withZone(DateTimeZone.UTC))
     val testResultName = s"$testConfigName-$nodeId-${metrics.threadId}"
     val receiveThroughputMeter = metrics.receiveThroughputMeter
     val clusterLatencyTimer = metrics.clusterLatencyTimer.getSnapshot

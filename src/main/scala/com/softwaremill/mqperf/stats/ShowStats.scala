@@ -33,7 +33,7 @@ object ShowStats extends App with DynamoResultsTable {
     items
       .map(i => {
         Result(
-          new DateTime(i.get(resultTimestampColumn).getN.toLong).withZone(DateTimeZone.UTC),
+          timestampFormat.parseDateTime(i.get(resultTimestampColumn).getS).withZone(DateTimeZone.UTC),
           i.get(msgsCountColumn).getN.toLong,
           i.get(meterMean).getN.toDouble,
           i.get(meter1MinuteEwma).getN.toDouble,
