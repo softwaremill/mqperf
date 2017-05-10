@@ -56,12 +56,6 @@
     - "mqperf-assembly-deps"
     - "mqperf-assembly"
 
-- name: Install Java 8
-  yum:
-    name: java-1.8.0-openjdk
-    state: present
-  become: true
-
 - name: Prepare start/stop/status script
   template:
     src: mqperf.sh.j2
