@@ -80,9 +80,9 @@ class ReceiverRunnable(
       msgs.foreach {
         case (_, msg) =>
           val msgTimestamp = Msg.extractTimestamp(msg)
-          statsd.histogram("mqperf_cluster_latency", afterMs - msgTimestamp)
+          statsd.recordExecutionTime("mqperf_cluster_latency", afterMs - msgTimestamp)
       }
-      statsd.histogram("mqperf_receive_batch", after - before)
+      statsd.recordExecutionTime("mqperf_receive_batch", after - before)
     }
     val ids = msgs.map(_._1)
     if (ids.nonEmpty) {
