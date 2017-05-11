@@ -2,8 +2,7 @@ package com.softwaremill.mqperf.mq
 
 import java.util.{Properties, Map => JMap}
 
-import com.codahale.metrics.MetricRegistry
-import com.softwaremill.mqperf.{ReceiverRunnable, DynamoReportResults}
+import com.softwaremill.mqperf.ReceiverRunnable
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
@@ -179,8 +178,7 @@ object KafkaMqTestReceive2 extends App {
   println(s"Starting test (receiver)")
 
   val mq = new KafkaMq(KafkaMqTest.config)
-  val report = new DynamoReportResults("x", "x")
-  val rr = new ReceiverRunnable(mq, report, "kafka", 10, new MetricRegistry, new DateTime(), 1)
+  val rr = new ReceiverRunnable(mq, "kafka", 10, new DateTime(), 1, null)
 
   val threads = (1 to 2).map { _ =>
     val t = new Thread(rr)

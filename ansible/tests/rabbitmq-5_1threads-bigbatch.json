@@ -1,5 +1,5 @@
 {
-    "name": "rabbitmq-5_1threads-bigbatch-$runid",
+    "name": "rabbitmq-5_1threads-bigbatch",
     "mq_type": "Rabbit",
     "sender_threads": 5,
     "msg_count_per_thread": 200000,

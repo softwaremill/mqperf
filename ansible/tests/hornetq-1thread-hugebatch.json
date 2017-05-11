@@ -1,5 +1,5 @@
 {
-    "name": "hornetq-1thread-hugebatch-$runid",
+    "name": "hornetq-1thread-hugebatch",
     "mq_type": "Hornet",
     "sender_threads": 1,
     "msg_count_per_thread": 500000,

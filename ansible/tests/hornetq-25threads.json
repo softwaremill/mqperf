@@ -1,5 +1,5 @@
 {
-    "name": "hornetq-25threads-$runid",
+    "name": "hornetq-25threads",
     "mq_type": "Hornet",
     "sender_threads": 25,
     "msg_count_per_thread": 50000,

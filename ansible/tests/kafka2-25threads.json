@@ -1,5 +1,5 @@
 {
-    "name": "kafka2-25threads-$runid",
+    "name": "kafka2-25threads",
     "mq_type": "Kafka",
     "sender_threads": 25,
     "msg_count_per_thread": 100000,

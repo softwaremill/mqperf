@@ -1,5 +1,5 @@
 {
-    "name": "sqs-25threads-$runid",
+    "name": "sqs-25threads",
     "mq_type": "Sqs",
     "sender_threads": 25,
     "msg_count_per_thread": 20000,

@@ -1,5 +1,5 @@
 {
-    "name": "activemq-25threads-$runid",
+    "name": "activemq-25threads",
     "mq_type": "Active",
     "sender_threads": 25,
     "msg_count_per_thread": 50000,

@@ -9,7 +9,7 @@ class TestConfigTest extends FlatSpec with Matchers {
     val config = ConfigFactory.parseString {
       """
         |{
-        |    "name": "sqs1-$runid",
+        |    "name": "sqs1",
         |    "mq_type": "Sqs",
         |    "sender_threads": 10,
         |    "msg_count_per_thread": 100000,
@@ -23,10 +23,10 @@ class TestConfigTest extends FlatSpec with Matchers {
     }
 
     // when
-    val tc = TestConfig.from("x", "y", config)
+    val tc = TestConfig.from("y", config)
 
     // then
-    tc should be(TestConfig("sqs1-y", "Sqs", 10, 100000, 100, 20, 11, 25, List("localhost1", "localhost2"), "x", ConfigFactory.empty()))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, List("localhost1", "localhost2"), "y", ConfigFactory.empty()))
   }
 
   it should "parse an example json with mq config map" in {
@@ -52,10 +52,10 @@ class TestConfigTest extends FlatSpec with Matchers {
     }
 
     // when
-    val tc = TestConfig.from("x", "y", config)
+    val tc = TestConfig.from("y", config)
 
     // then
-    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Nil, "x", config.getConfig("mq")))
+    tc should be(TestConfig("sqs1", "Sqs", 10, 100000, 100, 20, 11, 25, Nil, "y", config.getConfig("mq")))
   }
 
   for {

@@ -4,11 +4,11 @@
   vars:
     test_name: "sqs-1thread.json"
   tasks:
-  - name: Set AWS key variables
+  - name: Set facts for env variables
     set_fact:
       aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-      run_id: "run1"
+      run_id: "run2"
   - name: Copy test template
     template:
       src: "{{ playbook_dir }}/tests/{{ test_name }}"

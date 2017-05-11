@@ -4,9 +4,9 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 import java.util.concurrent.{ExecutorService, Executors}
 
 import akka.dispatch.ExecutionContexts
-import com.codahale.metrics.MetricRegistry
 import com.softwaremill.mqperf.mq.Mq
 import com.softwaremill.mqperf.util.FakeClock
+import com.timgroup.statsd.NoOpStatsDClient
 import com.typesafe.config.ConfigFactory
 import org.joda.time.DateTime
 import org.scalatest.concurrent.Eventually
@@ -94,12 +94,11 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
     private val fakeClock = new FakeClock
     private val receiverRunnable = new ReceiverRunnable(
       fakeMq,
-      new FakeReportResults,
       "fakeMq",
       1,
-      new MetricRegistry,
       new DateTime(),
       1,
+      new NoOpStatsDClient(),
       fakeClock
     )
 

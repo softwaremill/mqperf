@@ -36,7 +36,6 @@ lazy val oracleaq = project.in(file("oracleaq")).
 name := "mqperf"
 
 libraryDependencies ++= Seq(
-  "com.fasterxml.uuid"          %   "java-uuid-generator"   % "3.1.4",
   "org.scala-lang.modules"      %%  "scala-java8-compat"    % "0.8.0"     % "test",
   "com.amazonaws"               %   "aws-java-sdk"          % "1.11.126"   exclude("commons-logging", "commons-logging"),
   "org.json4s"                  %%  "json4s-native"         % "3.5.2",
@@ -58,9 +57,9 @@ libraryDependencies ++= Seq(
   "com.geteventstore"           %%  "eventstore-client"     % "4.1.0",
   "org.apache.activemq"         %   "activemq-client"       % "5.14.5"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe"                %   "config"                % "1.3.1",
-  "io.dropwizard.metrics"       %   "metrics-core"          % "3.2.1",
   "org.apache.activemq"         %   "artemis-jms-client"    % "2.0.0"     exclude("commons-logging", "commons-logging"),
-  "com.softwaremill.kmq"        %%  "core"                  % "0.1"
+  "com.softwaremill.kmq"        %%  "core"                  % "0.1",
+  "com.datadoghq"               %   "java-dogstatsd-client" % "2.3"
 )
 
 assemblyOption in assembly ~= {
