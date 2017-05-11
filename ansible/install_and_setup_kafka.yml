@@ -7,6 +7,7 @@
 - hosts: kafka
   become: true
   roles:
+  - role: java
   - role: zookeeper
     tags: ['zookeeper']
   - role: kafka

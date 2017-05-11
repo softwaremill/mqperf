@@ -66,7 +66,9 @@ class ReceiverRunnable(
         }
       }
       val tookMs = lastReceivedMs - rootTimestamp.getMillis
-      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is ${totalReceived / (tookMs / 1000)} msgs/s")
+      val msgss = totalReceived / (tookMs / 1000)
+      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is $msgss msgs/s")
+      statsd.gauge("mqperf_receive_total", msgss)
     }
     finally {
       mqReceiver.close()
@@ -84,7 +86,7 @@ class ReceiverRunnable(
           val msgTimestamp = Msg.extractTimestamp(msg)
           statsd.recordExecutionTime("mqperf_cluster_latency", afterMs - msgTimestamp)
       }
-      statsd.recordExecutionTime("mqperf_receive_batch", after - before)
+      statsd.recordExecutionTime("mqperf_receive_batch_latency", after - before)
     }
     val ids = msgs.map(_._1)
     if (ids.nonEmpty) {

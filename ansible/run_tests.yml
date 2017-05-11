@@ -2,7 +2,7 @@
 
 - hosts: receiver:sender
   vars:
-    test_name: "sqs-1thread.json"
+    test_name: "kafka-1thread.json.j2"
   tasks:
   - name: Set facts for env variables
     set_fact:

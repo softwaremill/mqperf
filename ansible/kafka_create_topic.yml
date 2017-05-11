@@ -1,0 +1,6 @@
+---
+- hosts: kafka
+  run_once: true
+  tasks:
+  - name: Create topic
+    shell: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --replication-factor 3 --partitions 32 --create --topic mqperf

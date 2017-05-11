@@ -2,6 +2,12 @@
 
 - name: Install Java 8
   yum:
-    name: java-1.8.0-openjdk
+    name: java-1.8.0
     state: present
+  become: true
+
+- name: Remove Java 7
+  yum:
+    name: java-1.7.0-openjdk
+    state: absent
   become: true

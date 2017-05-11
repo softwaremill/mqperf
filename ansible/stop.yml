@@ -1,0 +1,9 @@
+---
+- hosts: receiver:sender
+  tasks:
+  - name: Stop mqperf
+    shell: /tmp/mqperf.sh stop
+    ignore_errors: yes
+    register: mqStatus
+
+  - debug: msg="{{mqStatus.stdout}}"

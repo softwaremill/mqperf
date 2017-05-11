@@ -1,0 +1,6 @@
+---
+- hosts: kafka
+  run_once: true
+  tasks:
+  - name: Create topic
+    shell: /opt/kafka/bin/kafka-topics.sh --delete --topic mqperf --zookeeper localhost:2181

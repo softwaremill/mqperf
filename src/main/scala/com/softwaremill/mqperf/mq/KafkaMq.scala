@@ -14,6 +14,8 @@ import scala.language.postfixOps
 
 class KafkaMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
+  // assuming the topic already exists, with replication factor 3 and at least as many partitions as receiver threads
+
   import KafkaMq._
 
   private val GroupId = "mqperf-group"
@@ -22,7 +24,7 @@ class KafkaMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
   private val commitNs = testConfig.mqConfig.getLong("commitMs").millis.toNanos
 
-  private def kafkaHosts = testConfig.brokerHosts.map(_ + ":9092")
+  private def kafkaHosts = testConfig.brokerHosts.map(_ + ":9092").mkString(",")
 
   override type MsgId = (TopicPartition, Long)
 
