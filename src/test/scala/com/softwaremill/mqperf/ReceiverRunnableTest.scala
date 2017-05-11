@@ -97,7 +97,6 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
       "fakeMq",
       1,
       new DateTime(),
-      1,
       new NoOpStatsDClient(),
       fakeClock
     )

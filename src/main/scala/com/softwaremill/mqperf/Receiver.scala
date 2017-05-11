@@ -65,8 +65,8 @@ class ReceiverRunnable(
           waitingForFirstMessage = false
         }
       }
-      val tookMs = lastReceivedNano/1000000-rootTimestamp.getMillis
-      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is ${totalReceived/(tookMs/1000)} msgs/s")
+      val tookMs = lastReceivedNano / 1000000 - rootTimestamp.getMillis
+      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is ${totalReceived / (tookMs / 1000)} msgs/s")
     }
     finally {
       mqReceiver.close()

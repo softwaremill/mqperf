@@ -178,7 +178,7 @@ object KafkaMqTestReceive2 extends App {
   println(s"Starting test (receiver)")
 
   val mq = new KafkaMq(KafkaMqTest.config)
-  val rr = new ReceiverRunnable(mq, "kafka", 10, new DateTime(), 1, null)
+  val rr = new ReceiverRunnable(mq, "kafka", 10, new DateTime(), null)
 
   val threads = (1 to 2).map { _ =>
     val t = new Thread(rr)
