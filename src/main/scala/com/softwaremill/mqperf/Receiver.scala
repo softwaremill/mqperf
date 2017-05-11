@@ -24,9 +24,9 @@ object Receiver extends App {
     s"run:${testConfig.runId}"
   )
 
-  val threads = (1 to testConfig.receiverThreads).map { threadId =>
+  val threads = (1 to testConfig.receiverThreads).map { _ =>
     val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize,
-      rootTimestamp, threadId, statsd))
+      rootTimestamp, statsd))
     t.start()
     t
   }
@@ -41,7 +41,6 @@ class ReceiverRunnable(
     mqType: String,
     receiveMsgBatchSize: Int,
     rootTimestamp: DateTime,
-    threadId: Int,
     statsd: StatsDClient,
     clock: Clock = RealClock
 ) extends Runnable with StrictLogging {
@@ -55,16 +54,19 @@ class ReceiverRunnable(
     try {
       var lastReceivedNano = clock.nanoTime()
       var waitingForFirstMessage = true
+      var totalReceived = 0
 
       while (waitingForFirstMessage || (clock.nanoTime() - lastReceivedNano) < timeoutNanos) {
         val received = doReceive(mqReceiver)
         if (received > 0) {
+          totalReceived += received
           lastReceivedNano = clock.nanoTime()
           statsd.count("mqperf_receive", received)
           waitingForFirstMessage = false
         }
       }
-      logger.info(s"Test finished, last message read $timeout ago")
+      val tookMs = lastReceivedNano/1000000-rootTimestamp.getMillis
+      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is ${totalReceived/(tookMs/1000)} msgs/s")
     }
     finally {
       mqReceiver.close()
