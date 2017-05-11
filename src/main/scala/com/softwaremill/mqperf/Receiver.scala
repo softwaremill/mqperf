@@ -46,26 +46,26 @@ class ReceiverRunnable(
 ) extends Runnable with StrictLogging {
 
   val timeout: FiniteDuration = 60.seconds
-  val timeoutNanos: Long = timeout.toNanos
+  val timeoutMs: Long = timeout.toMillis
 
   override def run(): Unit = {
     val mqReceiver = mq.createReceiver()
 
     try {
-      var lastReceivedNano = clock.nanoTime()
+      var lastReceivedMs = clock.currentTimeMillis()
       var waitingForFirstMessage = true
       var totalReceived = 0
 
-      while (waitingForFirstMessage || (clock.nanoTime() - lastReceivedNano) < timeoutNanos) {
+      while (waitingForFirstMessage || (clock.currentTimeMillis() - lastReceivedMs) < timeoutMs) {
         val received = doReceive(mqReceiver)
         if (received > 0) {
           totalReceived += received
-          lastReceivedNano = clock.nanoTime()
+          lastReceivedMs = clock.currentTimeMillis()
           statsd.count("mqperf_receive", received)
           waitingForFirstMessage = false
         }
       }
-      val tookMs = lastReceivedNano / 1000000 - rootTimestamp.getMillis
+      val tookMs = lastReceivedMs - rootTimestamp.getMillis
       logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is ${totalReceived / (tookMs / 1000)} msgs/s")
     }
     finally {
