@@ -3,12 +3,11 @@ package com.softwaremill.mqperf.mq
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
 import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
-import com.softwaremill.mqperf.config.AWS
-import com.typesafe.config.Config
+import com.softwaremill.mqperf.config.{AWS, TestConfig}
 
 import scala.collection.JavaConverters._
 
-class SqsMq(val config: Config) extends Mq {
+class SqsMq(testConfig: TestConfig) extends Mq {
   private val asyncClient =
     AmazonSQSAsyncClientBuilder
       .standard()

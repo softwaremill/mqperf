@@ -7,7 +7,6 @@ import com.mongodb._
 import com.mongodb.client.model.{CreateCollectionOptions, UpdateOptions}
 import com.mongodb.client.{MongoCollection, MongoCursor, MongoDatabase}
 import com.softwaremill.mqperf.config.TestConfig
-import com.typesafe.config.Config
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -15,18 +14,18 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-class MongoCappedMq(val config: Config) extends Mq {
+class MongoCappedMq(testConfig: TestConfig) extends Mq {
 
   import MongoCappedMq._
 
   override type MsgId = ObjectId
 
-  private val client = new MongoClient(config.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
+  private val client = new MongoClient(testConfig.mqConfig.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
     case (host, Some(port)) => new ServerAddress(host, port)
     case (host, None) => new ServerAddress(host)
   }.asJava)
 
-  private val concern = if (config.getString("write_concern") == "replica")
+  private val concern = if (testConfig.mqConfig.getString("write_concern") == "replica")
     WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
 
   private val db: MongoDatabase = client.getDatabase("mq").withWriteConcern(concern)
@@ -35,7 +34,7 @@ class MongoCappedMq(val config: Config) extends Mq {
     if (!db.listCollectionNames().iterator().asScala.contains(QueueCollectionName)) {
       val options = new CreateCollectionOptions()
         .capped(true)
-        .sizeInBytes(config.getLong("queue_size_in_bytes"))
+        .sizeInBytes(testConfig.mqConfig.getLong("queue_size_in_bytes"))
       db.createCollection(QueueCollectionName, options)
     }
     db.getCollection(QueueCollectionName)
@@ -89,7 +88,7 @@ class MongoCappedMq(val config: Config) extends Mq {
         .find(filter)
         .sort(new BasicDBObject("$natural", 1))
         .cursorType(CursorType.Tailable)
-        .batchSize(config.getInt("batch_size"))
+        .batchSize(testConfig.mqConfig.getInt("batch_size"))
         .iterator()
     }
 

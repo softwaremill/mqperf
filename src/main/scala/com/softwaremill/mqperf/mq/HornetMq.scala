@@ -1,6 +1,6 @@
 package com.softwaremill.mqperf.mq
 
-import com.typesafe.config.Config
+import com.softwaremill.mqperf.config.TestConfig
 import org.hornetq.api.core.TransportConfiguration
 import org.hornetq.api.core.client._
 import org.hornetq.core.remoting.impl.netty.{NettyConnectorFactory, TransportConstants}
@@ -12,15 +12,15 @@ import scala.annotation.tailrec
  * hornetq-configuration.xml:
  * - <security-enabled>false</security-enabled>
  */
-class HornetMq(val config: Config) extends Mq {
+class HornetMq(testConfig: TestConfig) extends Mq {
 
   private val QueueName = "mq"
   private val ContentPropertyName = "v"
 
   val serverLocator = {
     val nettyParams = new java.util.HashMap[String, Object]()
-    nettyParams.put(TransportConstants.HOST_PROP_NAME, config.getString("host"))
-    nettyParams.put(TransportConstants.PORT_PROP_NAME, config.getString("port"))
+    nettyParams.put(TransportConstants.HOST_PROP_NAME, testConfig.mqConfig.getString("host"))
+    nettyParams.put(TransportConstants.PORT_PROP_NAME, testConfig.mqConfig.getString("port"))
 
     val sl = HornetQClient.createServerLocatorWithHA(
       new TransportConfiguration(classOf[NettyConnectorFactory].getName, nettyParams)

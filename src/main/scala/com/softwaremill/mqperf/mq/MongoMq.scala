@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class MongoMq(val config: Config) extends Mq {
+class MongoMq(testConfig: TestConfig) extends Mq {
 
   private val IdField = "_id"
   private val NextDeliveryField = "next_delivery"
@@ -16,12 +16,12 @@ class MongoMq(val config: Config) extends Mq {
 
   private val VisibilityTimeoutMillis = 10 * 1000L
 
-  private val client = new MongoClient(config.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
+  private val client = new MongoClient(testConfig.mqConfig.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
     case (host, Some(port)) => new ServerAddress(host, port)
     case (host, None) => new ServerAddress(host)
   }.asJava)
 
-  private val concern = if (config.getString("write_concern") == "replica")
+  private val concern = if (testConfig.mqConfig.getString("write_concern") == "replica")
     WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
 
   private val db = client.getDatabase("mq").withWriteConcern(concern)

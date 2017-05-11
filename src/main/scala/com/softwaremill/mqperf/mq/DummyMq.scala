@@ -1,8 +1,8 @@
 package com.softwaremill.mqperf.mq
 
-import com.typesafe.config.Config
+import com.softwaremill.mqperf.config.TestConfig
 
-class DummyMq(val config: Config) extends Mq {
+class DummyMq(testConfig: TestConfig) extends Mq {
   override type MsgId = String
 
   override def createSender() = new MqSender {
