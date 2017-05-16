@@ -6,7 +6,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 import akka.dispatch.ExecutionContexts
 import com.softwaremill.mqperf.mq.Mq
 import com.softwaremill.mqperf.util.FakeClock
-import com.timgroup.statsd.NoOpStatsDClient
+import io.prometheus.client.{Counter, Gauge, Histogram}
 import org.joda.time.DateTime
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers, Suite}
@@ -96,7 +96,9 @@ trait ReceiverTestKit extends Matchers with Eventually with BeforeAndAfterAll {
       "fakeMq",
       1,
       new DateTime(),
-      new NoOpStatsDClient(),
+      Counter.build("x", "x").create().labels(),
+      Histogram.build("x", "x").create().labels(),
+      Gauge.build("x", "x").create().labels(),
       fakeClock
     )
 

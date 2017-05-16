@@ -2,7 +2,7 @@
 
 start() {
 	echo "Starting $mqperf_type ..."
-	java8 -cp /tmp/mqperf-assembly-deps.jar:/tmp/mqperf-assembly.jar -Dconfig.file=/tmp/test-config.json com.softwaremill.mqperf.{{ mqperf_type }} > /tmp/mqperf.log 2>&1 &
+	HOST_ID={{ play_hosts.index(inventory_hostname) }} java8 -cp /tmp/mqperf-assembly-deps.jar:/tmp/mqperf-assembly.jar -Dconfig.file=/tmp/test-config.json com.softwaremill.mqperf.{{ mqperf_type }} > /tmp/mqperf.log 2>&1 &
 }
 
 stop() {

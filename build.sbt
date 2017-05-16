@@ -35,6 +35,8 @@ lazy val oracleaq = project.in(file("oracleaq")).
 
 name := "mqperf"
 
+val prometheusVersion = "0.0.21"
+
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"      %%  "scala-java8-compat"    % "0.8.0"     % "test",
   "com.amazonaws"               %   "aws-java-sdk"          % "1.11.126"   exclude("commons-logging", "commons-logging"),
@@ -59,7 +61,8 @@ libraryDependencies ++= Seq(
   "com.typesafe"                %   "config"                % "1.3.1",
   "org.apache.activemq"         %   "artemis-jms-client"    % "2.0.0"     exclude("commons-logging", "commons-logging"),
   "com.softwaremill.kmq"        %%  "core"                  % "0.1",
-  "com.datadoghq"               %   "java-dogstatsd-client" % "2.3"
+  "io.prometheus"               %   "simpleclient"          % prometheusVersion,
+  "io.prometheus"               %   "simpleclient_pushgateway" % prometheusVersion
 )
 
 assemblyOption in assembly ~= {

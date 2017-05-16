@@ -9,6 +9,7 @@
       aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
       aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
       run_id: "run2"
+      pushgateway: "todo"
   - name: Copy test template
     template:
       src: "{{ playbook_dir }}/tests/{{ test_name }}"
@@ -17,6 +18,7 @@
 - hosts: receiver
   environment:
     RUN_ID: "{{ run_id }}"
+    PUSHGATEWAY: "{{ pushgateway }}"
     AWS_ACCESS_KEY_ID: "{{ aws_access }}"
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
   tasks:
@@ -26,6 +28,7 @@
 - hosts: sender
   environment:
     RUN_ID: "{{ run_id }}"
+    PUSHGATEWAY: "{{ pushgateway }}"
     AWS_ACCESS_KEY_ID: "{{ aws_access }}"
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
   tasks:
