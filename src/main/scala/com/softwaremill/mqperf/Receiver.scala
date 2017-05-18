@@ -2,19 +2,21 @@ package com.softwaremill.mqperf
 
 import com.softwaremill.mqperf.config.TestConfig
 import com.softwaremill.mqperf.mq.Mq
-import com.softwaremill.mqperf.util.{Clock, RealClock}
+import com.softwaremill.mqperf.util.{Clock, PrometheusMetricServer, RealClock}
 import com.typesafe.scalalogging.StrictLogging
-import io.prometheus.client.exporter.PushGateway
 import io.prometheus.client.{CollectorRegistry, Counter, Gauge, Histogram}
 import org.joda.time.DateTime
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Receiver extends App {
+  val metricsExporter = PrometheusMetricServer.start(CollectorRegistry.defaultRegistry, "0.0.0.0", 9092)
+  metricsExporter.onFailure { case _ => System.exit(-1) }
+
   println("Starting receiver...")
   val testConfig = TestConfig.load()
   val hostId = sys.env.getOrElse("HOST_ID", throw new IllegalStateException("No HOST_ID defined in the environment!"))
-  val pushgateway = sys.env.getOrElse("PUSHGATEWAY", throw new IllegalStateException("No PUSHGATEWAY defined in the environment!"))
 
   val mq = Mq.instantiate(testConfig)
   val rootTimestamp = new DateTime()
@@ -22,20 +24,15 @@ object Receiver extends App {
   val labelNames = List("test", "run", "host")
   val labelValues = List(testConfig.name, testConfig.runId, hostId)
 
-  val registry = new CollectorRegistry()
-  val c = Counter.build("mqperf_received_total", "number of received messages").labelNames(labelNames: _*).register(registry)
+  val c = Counter.build("mqperf_received_total", "number of received messages").labelNames(labelNames: _*).register()
   val h = Histogram.build("mqperf_latency_ms", "latency of received messages")
     .buckets(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
       1000, 1250, 1500, 1750,
       2000, 2500, 3000, 3500, 4000, 4500,
       5000, 6000, 7000, 8000, 9000, 10000)
-    .labelNames(labelNames: _*).register(registry)
-  val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(labelNames: _*).register(registry)
+    .labelNames(labelNames: _*).register()
+  val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(labelNames: _*).register()
   g.set(0)
-
-  val pushThread = new Thread(new PushRunnable(pushgateway, registry))
-  pushThread.setDaemon(true)
-  pushThread.start()
 
   val threads = (1 to testConfig.receiverThreads).map { _ =>
     val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize, rootTimestamp,
@@ -49,6 +46,8 @@ object Receiver extends App {
   threads.foreach(_.join())
 
   mq.close()
+
+  metricsExporter.foreach(_())
 }
 
 class ReceiverRunnable(
@@ -107,19 +106,5 @@ class ReceiverRunnable(
       mqReceiver.ack(ids)
     }
     ids.size
-  }
-}
-
-class PushRunnable(pushgateway: String, registry: CollectorRegistry) extends Runnable with StrictLogging {
-  override def run(): Unit = {
-    val pg = new PushGateway(pushgateway)
-    while (true) {
-      try pg.pushAdd(registry, "mqperf")
-      catch {
-        case e: Exception => logger.error("Exception when trying to push metrics", e)
-      }
-
-      Thread.sleep(1000)
-    }
   }
 }

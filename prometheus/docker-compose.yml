@@ -10,10 +10,6 @@ services:
       - '9090:9090'
     depends_on:
       - pushgateway
-  pushgateway:
-    image: prom/pushgateway:latest
-    ports:
-      - '9091:9091'
   grafana:
     image: grafana/grafana:latest
     environment:
