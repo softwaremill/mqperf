@@ -66,11 +66,11 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
       override def receive(maxMsgCount: Int): List[(ConsumerRecord[String, String], String)] = {
         val msgs = kmqClient.nextBatch().toList
-        msgs.map(msg => (msg, msg.value())).filter(_ => dropRandom.nextDouble() >= dropMsgPercentage)
+        msgs.map(msg => (msg, msg.value()))
       }
 
       override def ack(msgs: List[ConsumerRecord[String, String]]): Unit = {
-        msgs.foreach(kmqClient.processed)
+        msgs.filter(_ => dropRandom.nextDouble() >= dropMsgPercentage).foreach(kmqClient.processed)
       }
     }
   }
