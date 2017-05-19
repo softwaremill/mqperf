@@ -2,6 +2,11 @@ global:
   scrape_interval: 5s
   external_labels:
     monitor: 'my-monitor'
+  evaluation_interval: 5s
+
+rule_files:
+  - 'prometheus.rules'
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:

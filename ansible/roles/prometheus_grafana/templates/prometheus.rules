@@ -1,0 +1,1 @@
+mqperf_received_1m_rate = rate(mqperf_received_total[1m])

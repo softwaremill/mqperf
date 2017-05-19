@@ -7,6 +7,12 @@
     dest: /etc/prometheus.yml
   notify: Restart prometheus container
 
+- name: Upload prometheus rules file
+  template:
+    src: prometheus.rules
+    dest: /etc/prometheus.rules
+  notify: Restart prometheus container
+
 - name: Ensure docker python lib is installed
   pip:
     name: docker-py
@@ -19,6 +25,7 @@
       - '-storage.local.path=/prometheus'
     volumes:
       - /etc/prometheus.yml:/etc/prometheus.yml
+      - /etc/prometheus.rules:/etc/prometheus.rules
       - "{{ storage_path}}:/prometheus"
     image: prom/prometheus:{{ prometheus_image_tag }}
     published_ports:
