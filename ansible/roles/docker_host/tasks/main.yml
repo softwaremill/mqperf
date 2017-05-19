@@ -1,0 +1,10 @@
+- name: Ensure docker is installed
+  yum:
+    name: docker
+    state: present
+
+- name: Ensure docker daemon is running
+  service:
+    name: docker
+    state: started
+

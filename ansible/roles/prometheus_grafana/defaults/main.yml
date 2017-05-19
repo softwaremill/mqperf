@@ -1,0 +1,7 @@
+storage_fs_type: ext4
+storage_path: /opt/prometheus
+receivers: "{{ groups['receiver'] }}"
+prometheus_image_tag: latest
+grafana_image_tag: latest
+grafana_admin_password: pass
+receiver_scrape_port: 9092

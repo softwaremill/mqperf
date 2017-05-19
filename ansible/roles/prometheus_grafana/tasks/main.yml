@@ -1,0 +1,37 @@
+- include: prepare_storage.yml
+  when: storage_device is defined
+
+- name: Upload prometheus configuraion file
+  template:
+    src: prometheus.yml
+    dest: /etc/prometheus.yml
+  notify: Restart prometheus container
+
+- name: Ensure docker python lib is installed
+  pip:
+    name: docker-py
+    state: present
+
+- name: Ensure prometheus in docker container is running
+  docker_container:
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+    volumes:
+      - /etc/prometheus.yml:/etc/prometheus.yml
+      - "{{ storage_path}}:/prometheus"
+    image: prom/prometheus:{{ prometheus_image_tag }}
+    published_ports:
+      - "{{ prometheus_port }}:9090"
+    name: prometheus
+
+- name: Ensure grafana in docker container is running
+  docker_container:
+      image: grafana/grafana:{{ grafana_image_tag }}
+      env:
+        GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password}}"
+      published_ports:
+        - "{{ grafana_port }}:3000"
+      name: grafana
+      links:
+        - "prometheus"
