@@ -4,4 +4,4 @@ receivers: "{{ groups['receiver'] }}"
 prometheus_image_tag: latest
 grafana_image_tag: latest
 grafana_admin_password: pass
-receiver_scrape_port: 9092
+receiver_scrape_port: 9193
