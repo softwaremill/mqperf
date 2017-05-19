@@ -53,4 +53,5 @@ object TestConfig extends StrictLogging {
     case _ => throw new IllegalArgumentException(s"Invalid host address: $from")
   }
 
+  def hostId = sys.env.getOrElse("HOST_ID", throw new IllegalStateException("No HOST_ID defined in the environment!"))
 }

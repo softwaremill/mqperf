@@ -15,5 +15,8 @@ scrape_configs:
     static_configs:
       - targets:
 {% for receiver in receivers %}
-        - "{{hostvars[receiver]['ec2_private_ip_address']}}:{{ receiver_scrape_port}}"
+        - "{{hostvars[receiver]['ec2_private_ip_address']}}:{{ mqperf_scrape_port}}"
+{% endfor %}
+{% for sender in senders %}
+        - "{{hostvars[sender]['ec2_private_ip_address']}}:{{ mqperf_scrape_port}}"
 {% endfor %}

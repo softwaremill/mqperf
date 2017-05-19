@@ -8,47 +8,43 @@ import io.prometheus.client.{CollectorRegistry, Counter, Gauge, Histogram}
 import org.joda.time.DateTime
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object Receiver extends App {
-  val metricsExporter = PrometheusMetricServer.start(CollectorRegistry.defaultRegistry, "0.0.0.0", 9193)
-  metricsExporter.onFailure { case _ => System.exit(-1) }
+object Receiver {
+  def main(args: Array[String]): Unit = {
+    import PrometheusMetricServer._
+    withMetricsServerSync(CollectorRegistry.defaultRegistry) {
+      println("Starting receiver...")
+      val testConfig = TestConfig.load()
 
-  println("Starting receiver...")
-  val testConfig = TestConfig.load()
-  val hostId = sys.env.getOrElse("HOST_ID", throw new IllegalStateException("No HOST_ID defined in the environment!"))
+      val mq = Mq.instantiate(testConfig)
+      val rootTimestamp = new DateTime()
 
-  val mq = Mq.instantiate(testConfig)
-  val rootTimestamp = new DateTime()
+      val labelValues = defaultLabelValues(testConfig, TestConfig.hostId)
 
-  val labelNames = List("test", "run", "host")
-  val labelValues = List(testConfig.name, testConfig.runId, hostId)
+      val c = Counter.build("mqperf_received_total", "number of received messages").labelNames(DefaultLabelNames: _*).register()
+      val h = Histogram.build("mqperf_latency_ms", "latency of received messages")
+        .buckets(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
+          1000, 1250, 1500, 1750,
+          2000, 2500, 3000, 3500, 4000, 4500,
+          5000, 6000, 7000, 8000, 9000, 10000)
+        .labelNames(DefaultLabelNames: _*).register()
+      val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(DefaultLabelNames: _*).register()
+      g.labels(labelValues: _*).set(0)
 
-  val c = Counter.build("mqperf_received_total", "number of received messages").labelNames(labelNames: _*).register()
-  val h = Histogram.build("mqperf_latency_ms", "latency of received messages")
-    .buckets(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
-      1000, 1250, 1500, 1750,
-      2000, 2500, 3000, 3500, 4000, 4500,
-      5000, 6000, 7000, 8000, 9000, 10000)
-    .labelNames(labelNames: _*).register()
-  val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(labelNames: _*).register()
-  g.labels(labelValues: _*).set(0)
+      val threads = (1 to testConfig.receiverThreads).map { _ =>
+        val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize, rootTimestamp,
+          c.labels(labelValues: _*),
+          h.labels(labelValues: _*),
+          g.labels(labelValues: _*)))
+        t.start()
+        t
+      }
 
-  val threads = (1 to testConfig.receiverThreads).map { _ =>
-    val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize, rootTimestamp,
-      c.labels(labelValues: _*),
-      h.labels(labelValues: _*),
-      g.labels(labelValues: _*)))
-    t.start()
-    t
+      threads.foreach(_.join())
+
+      mq.close()
+    }
   }
-
-  threads.foreach(_.join())
-
-  mq.close()
-
-  Thread.sleep(10000) // wait for the last metrics export
-  metricsExporter.foreach(_())
 }
 
 class ReceiverRunnable(
