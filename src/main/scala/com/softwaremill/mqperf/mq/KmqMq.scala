@@ -83,4 +83,3 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
   }
 }
 
-

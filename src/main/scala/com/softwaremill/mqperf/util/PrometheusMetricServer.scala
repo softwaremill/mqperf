@@ -31,11 +31,10 @@ object PrometheusMetricServer extends StrictLogging {
         }))
       }
     }
-    
-    Http().bindAndHandle(routes, interface, port).map { sb =>
-      () => sb.unbind().flatMap(_ => system.terminate()).andThen {
-        case Failure(e) => logger.error("Cannot stop metrics export", e)
-      }
+
+    Http().bindAndHandle(routes, interface, port).map { sb => () => sb.unbind().flatMap(_ => system.terminate()).andThen {
+      case Failure(e) => logger.error("Cannot stop metrics export", e)
+    }
     }.andThen {
       case Failure(e) => logger.error("Cannot start metrics export", e)
     }
