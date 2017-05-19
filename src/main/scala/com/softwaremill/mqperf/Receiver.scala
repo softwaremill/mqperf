@@ -47,6 +47,7 @@ object Receiver extends App {
 
   mq.close()
 
+  Thread.sleep(10000) // wait for the last metrics export
   metricsExporter.foreach(_())
 }
 
