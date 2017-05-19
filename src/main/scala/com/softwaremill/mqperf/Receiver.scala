@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Receiver extends App {
-  val metricsExporter = PrometheusMetricServer.start(CollectorRegistry.defaultRegistry, "0.0.0.0", 9092)
+  val metricsExporter = PrometheusMetricServer.start(CollectorRegistry.defaultRegistry, "0.0.0.0", 9193)
   metricsExporter.onFailure { case _ => System.exit(-1) }
 
   println("Starting receiver...")
