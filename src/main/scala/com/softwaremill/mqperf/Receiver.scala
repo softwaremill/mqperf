@@ -32,7 +32,7 @@ object Receiver extends App {
       5000, 6000, 7000, 8000, 9000, 10000)
     .labelNames(labelNames: _*).register()
   val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(labelNames: _*).register()
-  g.set(0)
+  g.labels(labelValues: _*).set(0)
 
   val threads = (1 to testConfig.receiverThreads).map { _ =>
     val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize, rootTimestamp,
