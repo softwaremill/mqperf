@@ -12,3 +12,5 @@ aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 
 mqperf_sources_dir: "{{ playbook_dir }}/.."
+
+grafana_port: 3000
