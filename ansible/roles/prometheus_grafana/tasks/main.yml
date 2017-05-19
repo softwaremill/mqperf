@@ -22,7 +22,7 @@
       - "{{ storage_path}}:/prometheus"
     image: prom/prometheus:{{ prometheus_image_tag }}
     published_ports:
-      - '9090:9090'
+      - "{{ prometheus_port }}:9090"
     name: prometheus
 
 - name: Ensure grafana in docker container is running
@@ -31,7 +31,7 @@
       env:
         GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password}}"
       published_ports:
-        - "{{grafana_port}}:3000"
+        - "{{ grafana_port }}:3000"
       name: grafana
       links:
         - "prometheus"

@@ -14,3 +14,4 @@ aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 mqperf_sources_dir: "{{ playbook_dir }}/.."
 
 grafana_port: 3000
+prometheus_port: 9090
