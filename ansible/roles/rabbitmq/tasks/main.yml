@@ -1,0 +1,60 @@
+- name: Check if erlang_cookie is set
+  fail:
+    msg: "erlang_cookie var is not defined - set it using '-e' option"
+  when: erlang_cookie is not defined
+
+- name: Create list of rabbitmq server names
+  set_fact:
+    rabbitmq_hosts: "{{ groups['rabbitmq']|map('extract', hostvars, ['ansible_hostname'])|list }}"
+
+- name: Get hostname of first host in group
+  set_fact:
+    rabbitmq_first_host: "{{ hostvars[groups['rabbitmq'][0]]['ansible_hostname'] }}"
+
+- name: Ensure erlang is installed
+  yum:
+    name: erlang
+    state: present
+
+- name: Install rabbitmq-server
+  yum:
+    name: "{{ rabbitmq_server_rpm_url }}"
+    state: present
+
+- name: Ensure rabbitmq service is enabled
+  service:
+    name: rabbitmq-server
+    enabled: yes
+
+- name: Configure rabbitmq server
+  template:
+    src: rabbitmq.config.j2
+    dest: /etc/rabbitmq/rabbitmq.config
+  notify: Restart rabbitmq-server
+
+- name: Copy erlang cookie to servers
+  template:
+    src: erlang.cookie.j2
+    dest: /var/lib/rabbitmq/.erlang.cookie
+    owner: rabbitmq
+    group: rabbitmq
+    mode: 0400
+  notify: Restart rabbitmq-server
+
+- name: Start first host
+  service:
+    name: rabbitmq-server
+    state: started
+  when: ansible_hostname == rabbitmq_first_host
+
+
+- name: Wait for first host
+  wait_for:
+    port: 5672
+    host: "{{ rabbitmq_first_host }}"
+  when: ansible_hostname != rabbitmq_first_host
+
+- name: Start all servers
+  service:
+    name: rabbitmq-server
+    state: started

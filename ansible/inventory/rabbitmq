@@ -1,0 +1,2 @@
+[rabbitmq:children]
+tag_group_Rabbitmq

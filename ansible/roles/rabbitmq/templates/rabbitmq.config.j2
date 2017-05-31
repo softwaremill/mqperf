@@ -1,0 +1,5 @@
+[
+  {rabbit, [
+  {cluster_nodes, { ['rabbit@{{ rabbitmq_hosts | join('\', \'rabbit@') }}'], disc}}
+   ]}
+].
