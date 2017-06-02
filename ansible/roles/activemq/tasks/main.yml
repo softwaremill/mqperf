@@ -1,0 +1,47 @@
+---
+- name: Get activemq
+  get_url:
+    dest: "{{ activemq_download_dest }}"
+    url: "{{ activemq_download_url }}"
+
+- name: Create activemq user
+  user:
+    name: "{{ activemq_username }}"
+    shell: /bin/bash
+
+- name: Unpack archive
+  unarchive:
+    copy: no
+    dest: /opt
+    src: "{{ activemq_download_dest }}"
+    creates: /opt/{{ activemq_name }}
+    owner: "{{ activemq_username }}"
+
+- name: Create user friendly link
+  file:
+    state: link
+    src: /opt/{{ activemq_name }}
+    dest: /opt/activemq
+
+- name: Create config file
+  template:
+    src: activemq.xml.j2
+    dest: /opt/activemq/conf/activemq.xml
+
+- name: Configure activemq user
+  lineinfile:
+    regexp: "ACTIVEMQ_USER"
+    line: "ACTIVEMQ_USER=\"{{ activemq_username }}\""
+    path: /opt/activemq/bin/env
+
+- name: Link init script to /etc/init.d
+  file:
+    state: link
+    src: /opt/activemq/bin/activemq
+    dest: /etc/init.d/activemq
+
+- name: Start activemq
+  service:
+    name: activemq
+    state: started
+

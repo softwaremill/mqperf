@@ -1,0 +1,6 @@
+activemq_name: apache-activemq-5.14.3
+activemq_archive_name: "{{ activemq_name }}-bin.tar.gz"
+activemq_download_dest: /tmp/{{ activemq_archive_name }}
+activemq_download_url: https://archive.apache.org/dist/activemq/5.14.3/{{ activemq_archive_name }}
+
+activemq_username: activemq

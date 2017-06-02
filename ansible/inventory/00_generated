@@ -9,3 +9,5 @@
 [tag_group_Prometheus]
 
 [tag_group_Rabbitmq]
+
+[tag_group_Activemq]
