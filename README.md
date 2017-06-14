@@ -44,3 +44,8 @@ Now you can publish the file. It should be available in ~/.ivy2/local/com.oracle
 ```sh
 $ sbt publishLocal
 ```
+
+# Notes
+
+Zookeeper installation contains an ugly workaround for a bug in Cloudera's RPM repositories (http://community.cloudera.com/t5/Cloudera-Manager-Installation/cloudera-manager-installer-fails-on-centos-7-3-vanilla/td-p/55086/highlight/true).
+See `ansible/roles/zookeeper/tasks/main.yml`. This should be removed in the future when the bug is fixed by Cloudera.

@@ -7,6 +7,15 @@
     name: https://archive.cloudera.com/cdh5/one-click-install/redhat/7/x86_64/cloudera-cdh-5-0.x86_64.rpm
     state: installed
 
+# Remove when the bug is fixed
+- name: Upload Cloudera "Package does not match intended download" bug fix
+  template:
+    src: cloudera-cdh5.repo
+    dest: /etc/yum.repos.d/cloudera-cdh5.repo
+
+- name: After changing Cloudera repo settings, clean yum's cache
+  command: yum clean all
+
 - name: Install zookeeper package
   package:
     name: zookeeper-server

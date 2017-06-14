@@ -1,0 +1,6 @@
+[cloudera-cdh5]
+name = Cloudera's Distribution for Hadoop, Version 5
+baseurl = https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/5.10.1/
+gpgkey = https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-KEY-cloudera
+gpgcheck = 1
+sslverify = 1
