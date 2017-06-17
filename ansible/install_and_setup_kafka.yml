@@ -2,7 +2,7 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t2.small, ec2_tag_group: Kafka }
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t2.small, ec2_tag_group: Kafka, volume_size: 100 }
 
 - hosts: kafka
   become: true

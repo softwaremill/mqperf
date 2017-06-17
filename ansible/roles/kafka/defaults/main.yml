@@ -1,4 +1,7 @@
 ---
+storage_fs_type: ext4
+storage_path: "{{ kafka_data_dir }}"
+
 apache_mirror: http://apache.mirrors.tds.net
 kafka_hosts: "{{ansible_fqdn}}:9092"
 kafka_version: 0.10.2.1
