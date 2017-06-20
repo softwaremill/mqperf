@@ -49,7 +49,7 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
   override def createReceiver() = {
     val kafkaClients = new KafkaClients(kafkaHosts)
-    val kmqConfig = new KmqConfig(Topic, MarkerTopic, GroupId, RedeliveryGroupId, 30.seconds.toMillis, 10000)
+    val kmqConfig = new KmqConfig(Topic, MarkerTopic, GroupId, RedeliveryGroupId, 15.seconds.toMillis, 10000)
 
     if (!receiverCreated.getAndSet(true)) {
       // this is the first receiver that is created
