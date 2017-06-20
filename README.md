@@ -1,32 +1,30 @@
-mqperf
-======
+# MqPerf
 
-Client jar deployment
+A benchmark of message queues with data replication and at-least-once delivery guarantees.
 
-* in the sbt build, setup assembly plugin to create app and dep jars
+# Setting up the environment
 
-* create a dockerfile which creates an image with the jars, and a script to run it
-using jars only if they have been modified
+Message queues and test servers are automatically provisioned using Ansible on AWS. You will need to have the
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` present in the environment for things to work properly.
 
-* push the image to docker's registry (docker push adamw/mqperf)
+Metrics are gathered using Prometheus and visualized using Grafana.
 
-Remote:
+Here are the steps needed to test Kafka (other queues are similar). Open the `ansible` directory in the console and:
 
-* setup an opsworks stack using the Ubuntu 14.04 AMI. All config should go into the custom stack JSON
+* provision a kafka cluster by running `ansible-playbook install_and_setup_kafka.yml`. Note to change the size of the
+instance to the desired one.
+* provision a number of sender and receiver nodes using `ansible-playbook provision_mqperf_nodes.yml`. Adjust the
+number and size of nodes depending on the test you want to run. Keep in mind that after each code change, you'll need
+to remove the fat-jars from the `target/scala-2.11` directory and re-run `provision_mqperf_nodes.yml`.
+* provision the prometheus/grafana server by running `ansible-playbook install_and_setup_prometheus.yml`. This must be
+done each time after provisioning new sender/receiver nodes (previous step) so that prometheus is properly configured
+to scrape the new servers for metrics
+* create the kafka topics (this step is mq-specific) by running `ansible-playbook kafka_create_topic.yml`
+* setup grafana: open the grafana panel on the `:3000` port, create a new prometheus data source 
+(`local-instance-ip:3000`), and import the dashboard from json (`prometheus/dashboard.json`)
+* modify `run-tests.yml` with the correct test name, run the test, observe results!
 
-* setup an opsworks layer for the client, using the custom recipes
-
-* create a dummy app to be able to trigger deployment
-
-* after each change, run the "update custom cookbooks" and deploy the app
-
-Local:
-
-* create a vagrantfile based on https://github.com/wwestenbrink/vagrant-opsworks
-
-* use the same recipes as in opsworks
-
-Oracle AQ support:
+# Oracle AQ support
 
 * to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
     * aqapi.jar (oracle/product/11.2.0/dbhome_1/rdbms/jlib/aqapi.jar)
