@@ -2,5 +2,11 @@
 - hosts: kafka
   run_once: true
   tasks:
-  - name: Create topic
+  - name: Delete topic
     shell: /opt/kafka/bin/kafka-topics.sh --delete --topic mqperf --zookeeper localhost:2181
+
+- hosts: kafka
+  run_once: true
+  tasks:
+  - name: Delete topic
+    shell: /opt/kafka/bin/kafka-topics.sh --delete --topic mqperf-markers --zookeeper localhost:2181

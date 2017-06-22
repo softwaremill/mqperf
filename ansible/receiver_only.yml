@@ -1,6 +1,6 @@
 ---
 
-- hosts: receiver:sender
+- hosts: receiver
   vars:
     test_name: "kmq-25threads.json.j2"
   tasks:
@@ -21,14 +21,5 @@
     AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
   tasks:
   - name: Start receiver
-    shell: nohup /tmp/mqperf.sh start
-
-- hosts: sender
-  environment:
-    RUN_ID: "{{ run_id }}"
-    AWS_ACCESS_KEY_ID: "{{ aws_access }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_secret }}"
-  tasks:
-  - name: Start sender
     shell: nohup /tmp/mqperf.sh start
 
