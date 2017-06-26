@@ -78,6 +78,18 @@
         to_port: "{{ prometheus_port }}"
         cidr_ip: "{{ all_cidr }}"
 
+- name: Network setup - RabbitMQ Security Group
+  ec2_group:
+    name: "rabbitmq_access"
+    description: "rabbitmq_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ rabbitmq_port }}"
+        to_port: "{{ rabbitmq_port }}"
+        cidr_ip: "{{ all_cidr }}"
+
 - name: Create an EC2 key
   ec2_key:
     name: "{{ key_name }}"

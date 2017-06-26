@@ -19,10 +19,22 @@ to remove the fat-jars from the `target/scala-2.11` directory and re-run `provis
 * provision the prometheus/grafana server by running `ansible-playbook install_and_setup_prometheus.yml`. This must be
 done each time after provisioning new sender/receiver nodes (previous step) so that prometheus is properly configured
 to scrape the new servers for metrics
-* create the kafka topics (this step is mq-specific) by running `ansible-playbook kafka_create_topic.yml`
 * setup grafana: open the grafana panel on the `:3000` port, create a new prometheus data source 
 (`local-instance-ip:3000`), and import the dashboard from json (`prometheus/dashboard.json`)
 * modify `run-tests.yml` with the correct test name, run the test, observe results!
+
+# Implementation-specific notes
+
+## Kafka
+
+Before running the tests, create the kafka topics by running `ansible-playbook kafka_create_topic.yml`
+
+## RabbitMQ
+
+When installing rabbit mq, you need to specify the erlang cookie, e.g.: 
+`ansible-playbook install_and_setup_rabbitmq.yml -e erlang_cookie=1234`
+
+The management console is available on port 15672.
 
 # Oracle AQ support
 

@@ -15,3 +15,4 @@ mqperf_sources_dir: "{{ playbook_dir }}/.."
 
 grafana_port: 3000
 prometheus_port: 9090
+rabbitmq_port: 15672
