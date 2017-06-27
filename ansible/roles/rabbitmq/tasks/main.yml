@@ -32,6 +32,12 @@
     dest: /etc/rabbitmq/rabbitmq.config
   notify: Restart rabbitmq-server
 
+- name: Configure rabbitmq plugins
+  template:
+    src: enabled_plugins
+    dest: /etc/rabbitmq/enabled_plugins
+  notify: Restart rabbitmq-server
+
 - name: Copy erlang cookie to servers
   template:
     src: erlang.cookie.j2
@@ -47,7 +53,6 @@
     state: started
   when: ansible_hostname == rabbitmq_first_host
 
-
 - name: Wait for first host
   wait_for:
     port: 5672
@@ -58,3 +63,6 @@
   service:
     name: rabbitmq-server
     state: started
+
+- name: Create ha policy
+  command: rabbitmqctl set_policy ha-all "^ha\." '{"ha-mode":"all"}'

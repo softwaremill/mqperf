@@ -35,14 +35,14 @@ lazy val oracleaq = project.in(file("oracleaq")).
 
 name := "mqperf"
 
-val prometheusVersion = "0.0.22"
+val prometheusVersion = "0.0.23"
 
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"      %%  "scala-java8-compat"    % "0.8.0"     % "test",
-  "com.amazonaws"               %   "aws-java-sdk"          % "1.11.126"   exclude("commons-logging", "commons-logging"),
+  "com.amazonaws"               %   "aws-java-sdk"          % "1.11.155"   exclude("commons-logging", "commons-logging"),
   "org.json4s"                  %%  "json4s-native"         % "3.5.2",
   "org.mongodb"                 %   "mongodb-driver"        % "3.4.2",
-  "com.rabbitmq"                %   "amqp-client"           % "4.1.0",
+  "com.rabbitmq"                %   "amqp-client"           % "4.1.1",
   "org.hornetq"                 %   "hornetq-native"        % "2.4.7.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.7.Final/hornetq-native-2.4.7.Final.jar",
   "org.hornetq"                 %   "hornetq-core-client"   % "2.4.7.Final" exclude("org.hornetq", "hornetq-native")
                                                                             exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
@@ -56,10 +56,10 @@ libraryDependencies ++= Seq(
                                                                           exclude("log4j", "log4j")
                                                                           exclude("org.slf4j", "slf4j-log4j12"),
   "org.scalatest"               %%  "scalatest"             % "3.0.3"     % "test",
-  "com.geteventstore"           %%  "eventstore-client"     % "4.1.0",
+  "com.geteventstore"           %%  "eventstore-client"     % "4.1.1",
   "org.apache.activemq"         %   "activemq-client"       % "5.14.5"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe"                %   "config"                % "1.3.1",
-  "org.apache.activemq"         %   "artemis-jms-client"    % "2.0.0"     exclude("commons-logging", "commons-logging"),
+  "org.apache.activemq"         %   "artemis-jms-client"    % "2.1.0"     exclude("commons-logging", "commons-logging"),
   "com.softwaremill.kmq"        %%  "core"                  % "0.2",
   "io.prometheus"               %   "simpleclient"          % prometheusVersion,
   "io.prometheus"               %   "simpleclient_common"   % prometheusVersion
