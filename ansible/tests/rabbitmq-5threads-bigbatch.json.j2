@@ -1,15 +1,15 @@
 {
-    "name": "rabbitmq-5_1threads",
+    "name": "rabbitmq-5threads-bigbatch",
     "mq_type": "Rabbit",
     "sender_threads": 5,
-    "msg_count_per_thread": 50000,
+    "msg_count_per_thread": 150000,
     "msg_size": 100,
-    "max_send_msg_batch_size": 10,
-    "receiver_threads": 1,
+    "max_send_msg_batch_size": 100,
+    "receiver_threads": 5,
     "receive_msg_batch_size": 10,
     "broker_hosts": {{ groups['rabbitmq']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
     "mq": {
-        "qos": 100,
+        "qos": 1000,
         "multiple_ack": false
     }
 }
