@@ -7,7 +7,8 @@
     "max_send_msg_batch_size": 10,
     "receiver_threads": 25,
     "receive_msg_batch_size": 10,
+    "broker_hosts": {{ groups['activemq']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
     "mq": {
-        "host": "failover:(tcp://ip-10-103-208-208.eu-west-1.compute.internal:61616,tcp://ip-10-103-214-207.eu-west-1.compute.internal:61616,tcp://ip-10-36-53-21.eu-west-1.compute.internal:61616)"
+        "transacted": false
     }
 }

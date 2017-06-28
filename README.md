@@ -5,7 +5,8 @@ A benchmark of message queues with data replication and at-least-once delivery g
 # Setting up the environment
 
 Message queues and test servers are automatically provisioned using Ansible on AWS. You will need to have the
-`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` present in the environment for things to work properly.
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` present in the environment for things to work properly, as well
+as Ansible and Boto installed.
 
 Metrics are gathered using Prometheus and visualized using Grafana.
 
@@ -37,7 +38,11 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
 * if you'd like to ssh to the broker servers the user is `centos`
 * queues starting with `ha.` will be mirrored
 
-# Oracle AQ support
+## ActiveMQ
+
+* the management console is available on port 8161 (`admin`/`admin`)
+
+## Oracle AQ support
 
 * to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
     * aqapi.jar (oracle/product/11.2.0/dbhome_1/rdbms/jlib/aqapi.jar)
@@ -56,7 +61,7 @@ Now you can publish the file. It should be available in ~/.ivy2/local/com.oracle
 $ sbt publishLocal
 ```
 
-# Notes
+# Ansible notes
 
 Zookeeper installation contains an ugly workaround for a bug in Cloudera's RPM repositories (http://community.cloudera.com/t5/Cloudera-Manager-Installation/cloudera-manager-installer-fails-on-centos-7-3-vanilla/td-p/55086/highlight/true).
 See `ansible/roles/zookeeper/tasks/main.yml`. This should be removed in the future when the bug is fixed by Cloudera.
