@@ -7,7 +7,7 @@ import org.apache.activemq.artemis.api.core.TransportConfiguration
 import org.apache.activemq.artemis.api.jms.{ActiveMQJMSClient, JMSFactoryType}
 import org.apache.activemq.artemis.core.remoting.impl.netty.{NettyConnectorFactory, TransportConstants}
 
-class ArtemisMq(testConfig: TestConfig) extends JmsMq {
+class ArtemisMq(val testConfig: TestConfig) extends JmsMq {
 
   override lazy val connectionFactory = {
     val host = testConfig.mqConfig.getString("host")

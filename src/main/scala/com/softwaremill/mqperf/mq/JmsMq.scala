@@ -2,6 +2,8 @@ package com.softwaremill.mqperf.mq
 
 import javax.jms._
 
+import com.softwaremill.mqperf.config.TestConfig
+
 import scala.annotation.tailrec
 
 trait JmsMq extends Mq {
@@ -13,19 +15,24 @@ trait JmsMq extends Mq {
 
   override def close() {}
 
+  protected def testConfig: TestConfig
+
   override def createSender() = new MqSender {
-    val connection = connectionFactory.createConnection("admin", "admin")
+    private val isTransacted = testConfig.mqConfig.getBoolean("transacted")
+
+    private val connection = connectionFactory.createConnection("admin", "admin")
     connection.start()
 
-    val session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE)
+    private val session = connection.createSession(isTransacted, Session.CLIENT_ACKNOWLEDGE)
 
-    val destination = session.createQueue(QueueName)
+    private val destination = session.createQueue(QueueName)
 
-    val producer = session.createProducer(destination)
+    private val producer = session.createProducer(destination)
     producer.setDeliveryMode(DeliveryMode.PERSISTENT)
 
     override def send(msgs: List[String]) {
       msgs.foreach(msg => producer.send(session.createTextMessage(msg)))
+      if (isTransacted) session.commit()
     }
 
     override def close(): Unit = {
@@ -35,36 +42,36 @@ trait JmsMq extends Mq {
   }
 
   override def createReceiver() = new MqReceiver {
-    val connection = connectionFactory.createConnection("admin", "admin")
+    private val connection = connectionFactory.createConnection("admin", "admin")
     connection.start()
 
-    val session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE)
+    private val session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE)
 
-    val destination = session.createQueue(QueueName)
+    private val destination = session.createQueue(QueueName)
 
-    val consumer = session.createConsumer(destination)
+    private val consumer = session.createConsumer(destination)
 
-    override def receive(maxMsgCount: Int) = {
-      doReceive(Nil, 1000L, maxMsgCount)
+    override def receive(maxMsgCount: Int): List[(Message, String)] = {
+      doReceive(Nil, waitForMsgs = true, maxMsgCount)
     }
 
     @tailrec
-    private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Long, count: Int): List[(MsgId, String)] = {
+    private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Boolean, count: Int): List[(MsgId, String)] = {
       if (count == 0) {
         acc
       }
       else {
-        val message = consumer.receive(waitForMsgs)
+        val message = if (waitForMsgs) consumer.receive(1000L) else consumer.receiveNoWait()
         if (message == null) {
           acc
         }
         else {
-          doReceive((message, message.asInstanceOf[TextMessage].getText) :: acc, 100L, count - 1)
+          doReceive((message, message.asInstanceOf[TextMessage].getText) :: acc, waitForMsgs = false, count - 1)
         }
       }
     }
 
-    override def ack(ids: List[MsgId]) = {
+    override def ack(ids: List[MsgId]): Unit = {
       ids.foreach { id =>
         id.acknowledge()
       }
