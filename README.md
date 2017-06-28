@@ -34,7 +34,7 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
 
 * when installing rabbit mq, you need to specify the erlang cookie, e.g.: 
 `ansible-playbook install_and_setup_rabbitmq.yml -e erlang_cookie=1234`
-* the management console is available on port 15672
+* the management console is available on port 15672 (`guest`/`guest`)     
 * if you'd like to ssh to the broker servers the user is `centos`
 * queues starting with `ha.` will be mirrored
 
