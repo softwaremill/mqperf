@@ -20,13 +20,12 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
 
   override type MsgId = ObjectId
 
-  private val client = new MongoClient(testConfig.mqConfig.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
+  private val client = new MongoClient(testConfig.brokerHosts.map(TestConfig.parseHostPort).map {
     case (host, Some(port)) => new ServerAddress(host, port)
     case (host, None) => new ServerAddress(host)
   }.asJava)
 
-  private val concern = if (testConfig.mqConfig.getString("write_concern") == "replica")
-    WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
+  private val concern = new WriteConcern(testConfig.mqConfig.getInt("write_concern"))
 
   private val db: MongoDatabase = client.getDatabase("mq").withWriteConcern(concern)
 

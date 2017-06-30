@@ -2,7 +2,6 @@ package com.softwaremill.mqperf.mq
 
 import com.mongodb._
 import com.softwaremill.mqperf.config.TestConfig
-import com.typesafe.config.Config
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -16,41 +15,41 @@ class MongoMq(testConfig: TestConfig) extends Mq {
 
   private val VisibilityTimeoutMillis = 10 * 1000L
 
-  private val client = new MongoClient(testConfig.mqConfig.getStringList("hosts").asScala.map(TestConfig.parseHostPort).map {
+  private val client = new MongoClient(testConfig.brokerHosts.map(TestConfig.parseHostPort).map {
     case (host, Some(port)) => new ServerAddress(host, port)
     case (host, None) => new ServerAddress(host)
   }.asJava)
 
-  private val concern = if (testConfig.mqConfig.getString("write_concern") == "replica")
-    WriteConcern.W2 else WriteConcern.ACKNOWLEDGED
+  private val concern = new WriteConcern(testConfig.mqConfig.getInt("write_concern"))
 
-  private val db = client.getDatabase("mq").withWriteConcern(concern)
+  private val db = client.getDatabase("mq")
 
-  private val coll = {
+  private val (ackColl, unackColl) = {
     val c = db.getCollection("mq")
 
     val nextDeliveryIndex = new Document()
       .append(NextDeliveryField, 1)
     c.createIndex(nextDeliveryIndex)
-    c
+
+    (c.withWriteConcern(concern), c.withWriteConcern(WriteConcern.UNACKNOWLEDGED))
   }
 
   override type MsgId = ObjectId
 
   override def createSender() = new MqSender {
-    override def send(msgs: List[String]) = {
+    override def send(msgs: List[String]): Unit = {
       val docs = msgs.map { msg =>
         new Document()
           .append(MessageField, msg)
           .append(NextDeliveryField, System.currentTimeMillis())
       }
 
-      coll.insertMany(docs.asJava)
+      ackColl.insertMany(docs.asJava)
     }
   }
 
   override def createReceiver() = new MqReceiver {
-    override def receive(maxMsgCount: Int) = {
+    override def receive(maxMsgCount: Int): List[(ObjectId, String)] = {
       if (maxMsgCount == 0) {
         Nil
       }
@@ -77,7 +76,7 @@ class MongoMq(testConfig: TestConfig) extends Mq {
       val mutations = new Document()
         .append("$set", newNextDelivery)
 
-      val result = coll.findOneAndUpdate(query, mutations)
+      val result = unackColl.findOneAndUpdate(query, mutations)
 
       if (result == null) {
         None
@@ -89,12 +88,12 @@ class MongoMq(testConfig: TestConfig) extends Mq {
       }
     }
 
-    override def ack(ids: List[MsgId]) = {
+    override def ack(ids: List[MsgId]): Unit = {
       ids.foreach { id =>
         val doc = new Document()
           .append(IdField, id)
 
-        coll.deleteOne(doc) // TODO how set unacknowledged here?
+        unackColl.deleteOne(doc)
       }
     }
   }
