@@ -4,10 +4,10 @@
     name:   libaio
     state:  installed
     
-#- name: Create artemis user
-#  user:
-#    name: "{{ artemis_username }}"
-#    shell: /bin/bash    
+- name: Create artemis user
+  user:
+    name: "{{ artemis_username }}"
+    shell: /bin/bash    
 
 - name: Download artemis
   get_url:
@@ -27,4 +27,32 @@
     state: link
     src: /opt/{{ artemis_name }}
     dest: /opt/artemis
+
+- set_fact: artemis_broker_master="{{ groups['artemis'][0] }}"
+- set_fact: artemis_broker_slave_1="{{ groups['artemis'][1] }}"
+- set_fact: artemis_broker_slave_2="{{ groups['artemis'][2] }}"
+
+- name: Set hostname master
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_master"
+  with_items:
+    - "{{ artemis_broker_master }}"
+
+- name: Set hostname slave 1
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_slave_1"
+  with_items:
+    - "{{ artemis_broker_slave_1 }}"
+
+- name: Set hostname slave 2
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_slave_2"
+  with_items:
+    - "{{ artemis_broker_slave_2 }}"
 
