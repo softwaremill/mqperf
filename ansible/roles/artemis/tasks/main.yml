@@ -56,3 +56,56 @@
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
+- name: Create master broker
+  run_once: true
+  delegate_to: "{{ item }}"
+  command: |
+    /opt/{{ artemis_name }}/bin/artemis 
+    create 
+    /opt/{{ artemis_name }}-broker/ 
+    --force 
+    --user artemis 
+    --password artemis 
+    --allow-anonymous 
+    --clustered 
+    --host "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
+    --cluster-user artemis 
+    --cluster-password artemis
+  with_items:
+    - "{{ artemis_broker_master }}"
+    
+- name: Create slave 1 broker
+  run_once: true
+  delegate_to: "{{ item }}"
+  command: |
+    /opt/{{ artemis_name }}/bin/artemis 
+    create 
+    /opt/{{ artemis_name }}-broker/ 
+    --force 
+    --user artemis 
+    --password artemis 
+    --allow-anonymous 
+    --clustered 
+    --host "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
+    --cluster-user artemis 
+    --cluster-password artemis
+  with_items:
+    - "{{ artemis_broker_slave_1 }}"
+
+- name: Create slave 2 broker
+  run_once: true
+  delegate_to: "{{ item }}"
+  command: |
+    /opt/{{ artemis_name }}/bin/artemis 
+    create 
+    /opt/{{ artemis_name }}-broker/ 
+    --force 
+    --user artemis 
+    --password artemis 
+    --allow-anonymous 
+    --clustered 
+    --host "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
+    --cluster-user artemis 
+    --cluster-password artemis
+  with_items:
+    - "{{ artemis_broker_slave_2 }}"
