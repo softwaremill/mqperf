@@ -1,0 +1,30 @@
+---
+- name: Install libaio module (used for persistence)
+  package:
+    name:   libaio
+    state:  installed
+    
+#- name: Create artemis user
+#  user:
+#    name: "{{ artemis_username }}"
+#    shell: /bin/bash    
+
+- name: Download artemis
+  get_url:
+    dest: "{{ artemis_download_dest }}"
+    url:  "{{ artemis_download_url }}"
+    
+- name: Unpack archive
+  unarchive:
+    copy:    no
+    dest:    /opt
+    src:     "{{ artemis_download_dest }}"
+    creates: /opt/{{ artemis_name }}
+    owner:   "{{ artemis_username }}"
+
+- name: Create user-friendly link
+  file:
+    state: link
+    src: /opt/{{ artemis_name }}
+    dest: /opt/artemis
+

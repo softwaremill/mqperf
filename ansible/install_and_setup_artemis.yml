@@ -7,4 +7,5 @@
 - hosts: artemis
   become: true
   roles:
-    - role: artemis
+  - role: java
+  - role: artemis
