@@ -109,3 +109,23 @@
     --cluster-password artemis
   with_items:
     - "{{ artemis_broker_slave_2 }}"
+
+- name: Change broker's owner
+  file:
+    path: /opt/{{ artemis_name }}-broker/
+    owner: "{{artemis_username}}"
+    group: "{{artemis_username}}"
+
+- name: Link init script to /etc/init.d
+  file:
+    state: link
+    src: /opt/{{ artemis_name }}-broker/bin/artemis-service
+    dest: /etc/init.d/artemis
+
+- name: Start artemis
+  environment:
+    ARTEMIS_USER: "{{artemis_username}}"
+  service:
+    name: artemis
+    state: started
+    
