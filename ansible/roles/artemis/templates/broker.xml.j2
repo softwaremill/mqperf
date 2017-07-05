@@ -142,6 +142,8 @@ under the License.
 
         <broadcast-groups>
             <broadcast-group name="bg-group1">
+                <local-bind-address>{{ tmpl_var_private_ip }}</local-bind-address>
+                <local-bind-port>5432</local-bind-port>
                 <group-address>231.7.7.7</group-address>
                 <group-port>9876</group-port>
                 <broadcast-period>5000</broadcast-period>
@@ -151,6 +153,7 @@ under the License.
 
         <discovery-groups>
             <discovery-group name="dg-group1">
+                <local-bind-address>{{ tmpl_var_private_ip }}</local-bind-address>
                 <group-address>231.7.7.7</group-address>
                 <group-port>9876</group-port>
                 <refresh-timeout>10000</refresh-timeout>
@@ -165,7 +168,6 @@ under the License.
                 <discovery-group-ref discovery-group-name="dg-group1"/>
             </cluster-connection>
         </cluster-connections>
-
 
         <security-settings>
             <security-setting match="#">

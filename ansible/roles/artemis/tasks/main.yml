@@ -156,6 +156,11 @@
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
+- name: Copy logging.properties
+  template:
+    src:  logging.properties
+    dest: /opt/{{ artemis_name }}-broker/etc/logging.properties
+
 - name: Change broker's owner
   file:
     path: /opt/{{ artemis_name }}-broker/
