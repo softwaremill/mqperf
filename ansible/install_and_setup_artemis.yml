@@ -1,0 +1,11 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+  - { role: ec2_instance, count: 3, ec2_groups: ['ssh_access', 'default'], aws_instance_type: t2.small, ec2_tag_group: Artemis}
+  
+- hosts: artemis
+  become: true
+  roles:
+  - role: java
+  - role: artemis

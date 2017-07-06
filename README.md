@@ -65,3 +65,7 @@ $ sbt publishLocal
 
 Zookeeper installation contains an ugly workaround for a bug in Cloudera's RPM repositories (http://community.cloudera.com/t5/Cloudera-Manager-Installation/cloudera-manager-installer-fails-on-centos-7-3-vanilla/td-p/55086/highlight/true).
 See `ansible/roles/zookeeper/tasks/main.yml`. This should be removed in the future when the bug is fixed by Cloudera.
+
+# FAQ
+
+- I'm getting: *skipping: no hosts matched*, why? Probably you are runing ansible from project root. Instead cd to `ansible/` (where `ansible.cfg` is located) and try to run playbook from this location. 
