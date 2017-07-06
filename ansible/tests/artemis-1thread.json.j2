@@ -1,5 +1,5 @@
 {
-    "name": "activemq-1thread",
+    "name": "artemis-1thread",
     "mq_type": "Active",
     "sender_threads": 1,
     "msg_count_per_thread": 100000,
@@ -7,7 +7,7 @@
     "max_send_msg_batch_size": 10,
     "receiver_threads": 1,
     "receive_msg_batch_size": 10,
-    "broker_hosts": {{ groups['activemq']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
+    "broker_hosts": {{ groups['artemis']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
     "mq": {
         "transacted": false
     }
