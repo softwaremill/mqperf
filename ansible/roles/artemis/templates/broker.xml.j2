@@ -25,7 +25,7 @@ under the License.
     <core xmlns="urn:activemq:core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="urn:activemq:core ">
 
-        <name>{{ tmpl_var_private_ip }}</name>
+        <name>{{tmpl_var_private_ip|replace(".", "_")}}</name>
 
         <persistence-enabled>true</persistence-enabled>
 
@@ -86,7 +86,7 @@ under the License.
             <!-- Connector used to be announced through cluster connections and notifications -->
             <connector name="artemis">tcp://{{ tmpl_var_private_ip }}:61616</connector>
             {% for connector in tmpl_var_connectors %}
-                <connector name="{{hostvars[connector].ec2_private_ip_address}}">tcp://{{hostvars[connector].ec2_private_ip_address}}:61616</connector>
+                <connector name="{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}">tcp://{{hostvars[connector].ec2_private_ip_address}}:61616</connector>
             {% endfor %}
         </connectors>
 
@@ -131,6 +131,12 @@ under the License.
 
         </acceptors>
 
+        <ha-policy>
+            <replication>
+                {{tmpl_var_replication_policy}}
+            </replication>
+        </ha-policy>
+
         <cluster-user>artemis</cluster-user>
         <cluster-password>artemis</cluster-password>
 
@@ -141,7 +147,7 @@ under the License.
                 <max-hops>0</max-hops>
                 <static-connectors>
                     {% for connector in tmpl_var_connectors %}
-                        <connector-ref>{{hostvars[connector].ec2_private_ip_address}}</connector-ref>
+                        <connector-ref>{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}</connector-ref>
                     {% endfor %}               
                 </static-connectors>
             </cluster-connection>

@@ -63,7 +63,6 @@
     /opt/{{ artemis_name }}/bin/artemis 
     create 
     /opt/{{ artemis_name }}-broker/ 
-    --force 
     --user artemis 
     --password artemis 
     --allow-anonymous 
@@ -81,7 +80,6 @@
     /opt/{{ artemis_name }}/bin/artemis 
     create 
     /opt/{{ artemis_name }}-broker/ 
-    --force 
     --user artemis 
     --password artemis 
     --allow-anonymous 
@@ -99,7 +97,6 @@
     /opt/{{ artemis_name }}/bin/artemis 
     create 
     /opt/{{ artemis_name }}-broker/ 
-    --force 
     --user artemis 
     --password artemis 
     --allow-anonymous 
@@ -111,8 +108,9 @@
     - "{{ artemis_broker_slave_2 }}"
 
 - set_fact: 
-    tmpl_var_private_ip: "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
-    tmpl_var_connectors: "{{ [artemis_broker_slave_1, artemis_broker_slave_2] }}"
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
+    tmpl_var_connectors:          "{{ [artemis_broker_slave_1, artemis_broker_slave_2] }}"
+    tmpl_var_replication_policy:  "<master/>"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
@@ -128,8 +126,9 @@
     - "{{ artemis_broker_master }}"
 
 - set_fact: 
-    tmpl_var_private_ip: "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
-    tmpl_var_connectors: "{{ [artemis_broker_master, artemis_broker_slave_2] }}"
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
+    tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_2] }}"
+    tmpl_var_replication_policy:  "<slave/>"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
@@ -146,8 +145,9 @@
     - "{{ artemis_broker_slave_1 }}"
 
 - set_fact: 
-    tmpl_var_private_ip: "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
-    tmpl_var_connectors: "{{ [artemis_broker_master, artemis_broker_slave_1] }}"
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
+    tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_1] }}"
+    tmpl_var_replication_policy:  "<slave/>"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
