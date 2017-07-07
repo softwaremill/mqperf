@@ -42,6 +42,10 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
 
 * the management console is available on port 8161 (`admin`/`admin`)
 
+## ActiveMQ Artemis
+
+* note that for the client code, we are using the same one as for ActivqMQ (`ActiveMq.scala`)
+
 ## Oracle AQ support
 
 * to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
