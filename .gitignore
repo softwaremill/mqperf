@@ -23,3 +23,6 @@ project/plugins/project/
 
 ansible/*.retry
 */*.pem
+
+.ensime_cache
+impls
