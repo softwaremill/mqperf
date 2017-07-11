@@ -1,0 +1,21 @@
+---
+- name: Copy package-cloud repository setup script
+# https://packagecloud.io/EventStore/EventStore-OSS/install/
+  copy:
+    src: templates/packagecloud.sh
+    dest: "{{ ansible_env.HOME}}"
+    owner: root
+    group: root
+    mode: "u+rwx,g+rwx,o-rwx"
+
+- name: Run package-cloyd repository setup script
+  command: "{{ ansible_env.HOME}}/packagecloud.sh"
+  become: true
+  
+- name: Install eventstore-oss
+  package:
+    name: eventstore-oss
+    state: latest
+  become: true
+    
+    
