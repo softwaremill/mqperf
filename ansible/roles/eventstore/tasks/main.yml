@@ -8,7 +8,7 @@
     group: root
     mode: "u+rwx,g+rwx,o-rwx"
 
-- name: Run package-cloyd repository setup script
+- name: Run package-cloud repository setup script
   command: "{{ ansible_env.HOME}}/packagecloud.sh"
   become: true
   
@@ -18,4 +18,62 @@
     state: latest
   become: true
     
+- set_fact: es_node_0="{{ groups['eventstore'][0] }}"
+- set_fact: es_node_1="{{ groups['eventstore'][1] }}"
+- set_fact: es_node_2="{{ groups['eventstore'][2] }}"
+
+- set_fact: 
+    tmpl_var_private_ip:  "{{ hostvars[es_node_0].ec2_private_ip_address }}" 
+    tmpl_var_gossip_seed: "{{hostvars[es_node_1].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
+  run_once: true  
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ es_node_0 }}"
+        
+- name: Copy eventstore.conf to es_node_0
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: templates/eventstore.conf
+    dest: /etc/eventstore/eventstore.conf
+  with_items:
+      - "{{ es_node_0 }}"
     
+- set_fact: 
+    tmpl_var_private_ip:  "{{ hostvars[es_node_1].ec2_private_ip_address }}" 
+    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
+  run_once: true  
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ es_node_1 }}"
+        
+- name: Copy eventstore.conf to es_node_1
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: templates/eventstore.conf
+    dest: /etc/eventstore/eventstore.conf
+  with_items:
+      - "{{ es_node_1 }}"
+
+- set_fact: 
+    tmpl_var_private_ip:  "{{ hostvars[es_node_2].ec2_private_ip_address }}" 
+    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_1].ec2_private_ip_address}}:2112"
+  run_once: true  
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ es_node_2 }}"
+        
+- name: Copy eventstore.conf to es_node_2
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: templates/eventstore.conf
+    dest: /etc/eventstore/eventstore.conf
+  with_items:
+      - "{{ es_node_2 }}"
+    
+- name: Start eventstore
+  service:
+    name: eventstore
+    state: started
