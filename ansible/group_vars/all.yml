@@ -17,3 +17,4 @@ grafana_port: 3000
 prometheus_port: 9090
 rabbitmq_port: 15672
 activemq_port: 8161
+eventstore_port: 2113
