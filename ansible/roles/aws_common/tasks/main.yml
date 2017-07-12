@@ -102,6 +102,18 @@
         to_port: "{{ activemq_port }}"
         cidr_ip: "{{ all_cidr }}"
 
+- name: Network setup - ActiveMQ Artemis Security Group
+  ec2_group:
+    name: "activemq_artemis_access"
+    description: "activemq_artemis_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ activemq_artemis_jolokia_port }}"
+        to_port: "{{ activemq_artemis_jolokia_port }}"
+        cidr_ip: "{{ all_cidr }}"
+
 - name: Network setup - EventStore Security Group
   ec2_group:
     name: "eventstore_access"

@@ -125,6 +125,15 @@
   with_items:
     - "{{ artemis_broker_master }}"
 
+- name: Copy bootstrap.xml.j2 to master
+  run_once: true  
+  delegate_to: "{{ item }}"
+  template: 
+    src=bootstrap.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
+  with_items:
+    - "{{ artemis_broker_master }}"
+
 - set_fact: 
     tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
     tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_2] }}"
@@ -132,7 +141,6 @@
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
-  
     - "{{ artemis_broker_slave_1 }}"
 
 - name: Copy broker.xml.j2 to slave 1
@@ -143,6 +151,16 @@
     dest=/opt/{{ artemis_name }}-broker/etc/broker.xml
   with_items:
     - "{{ artemis_broker_slave_1 }}"
+
+- name: Copy bootstrap.xml.j2 to slave 1
+  run_once: true  
+  delegate_to: "{{ item }}"
+  template: 
+    src=bootstrap.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
+  with_items:
+    - "{{ artemis_broker_slave_1 }}"
+
 
 - set_fact: 
     tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
@@ -162,10 +180,14 @@
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
-- name: Copy logging.properties
-  template:
-    src:  logging.properties
-    dest: /opt/{{ artemis_name }}-broker/etc/logging.properties
+- name: Copy bootstrap.xml.j2 to slave 2
+  run_once: true  
+  delegate_to: "{{ item }}"
+  template: 
+    src=bootstrap.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
+  with_items:
+    - "{{ artemis_broker_slave_2 }}"
 
 - name: Change broker's owner
   file:
