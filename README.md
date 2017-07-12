@@ -51,6 +51,10 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
     * To view instance's state navigate to e.g.: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/read/org.apache.activemq.artemis:address=mq,broker=172_22_1_61,component=addresses`, where: `org.apache.activemq.artemis:address=mq,broker=172_22_1_61,component=addresses` is the key. To know other keys refer to the previous step. 
     * Since Jolokia also exposes **write** access, remove the security group added in the first step just after the monitoring is finished.
     
+## EventStore
+    
+* the web console is available on port 2113, `admin`/`changeit`    
+    
 ## Oracle AQ support
 
 * to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
