@@ -22,10 +22,11 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
   private val GroupName = "mqperf-group"
 
   private val system = ActorSystem()
+  private val firstHost = testConfig.brokerHosts.head
   private val settings = Settings(
-    //address = new InetSocketAddress("127.0.0.1", 1113),
+    address = new InetSocketAddress(firstHost, 1113),
     cluster = Some(ClusterSettings(
-      gossipSeedsOrDns = GossipSeedsOrDns(testConfig.brokerHosts.map(h => new InetSocketAddress(h, 1113)): _*)
+      gossipSeedsOrDns = GossipSeedsOrDns(testConfig.brokerHosts.map(h => new InetSocketAddress(h, 2113)): _*)
     ))
   )
 
@@ -37,7 +38,8 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
   private lazy val receiveActor = system.actorOf(Props(new AddToBufferActor))
   private lazy val subscriptionActor = system.actorOf(
     PersistentSubscriptionActor.props(connection, receiveActor, EventStream.Id(StreamId),
-      GroupName, None, settings, autoAck = false))
+      GroupName, None, settings, autoAck = false)
+  )
 
   private val msgBuffer = new ConcurrentLinkedQueue[(UUID, String)]()
 
@@ -60,14 +62,17 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
     private def doReceive(acc: List[(UUID, String)], waitForMsgs: Int, count: Int): List[(UUID, String)] = {
       if (count == 0) {
         acc
-      } else {
+      }
+      else {
         val message = msgBuffer.poll()
         if (message == null && waitForMsgs > 0) {
           Thread.sleep(100L)
           doReceive(acc, waitForMsgs - 1, count)
-        } else if (message == null) {
+        }
+        else if (message == null) {
           acc
-        } else {
+        }
+        else {
           doReceive(message :: acc, 0, count - 1)
         }
       }
