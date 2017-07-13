@@ -201,10 +201,17 @@
     src: /opt/{{ artemis_name }}-broker/bin/artemis-service
     dest: /etc/init.d/artemis
 
+- name: Increase xmx
+  replace:
+    path: /opt/apache-artemis-2.1.0-broker/etc/artemis.profile
+    regexp: 'Xmx2G'
+    replace: 'Xmx16G'
+    backup: yes
+
 - name: Start artemis
   environment:
     ARTEMIS_USER: "{{artemis_username}}"
   service:
     name: artemis
-    state: started
+    state: restarted
     
