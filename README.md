@@ -47,7 +47,7 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
 * note that for the client code, we are using the same one as for ActivqMQ (`ActiveMq.scala`)
 * there is no dedicated management console for ActiveMQ Artemis, however monitoring is possible via exposed [Jolokia](https://jolokia.org/) web app. Jolokia web application is deployed along ActiveMQ Artemis by default. To view broker's data:
     * Navigate to: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/list` - plain JSON content should be visible - to verify if it works.
-    * To view instance's state navigate to e.g.: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/read/org.apache.activemq.artemis:address=mq,broker=<BROKER_NAME>,component=addresses`, where: `org.apache.activemq.artemis:address=mq,broker=<BROKER_NAME>,component=addresses` is the key. To know other keys refer to the previous step. 
+    * To view instance's state navigate to e.g.: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/read/org.apache.activemq.artemis:address=mq,broker=<BROKER_NAME>,component=addresses`, where: `org.apache.activemq.artemis:address="mq",broker="<BROKER_NAME>",component=addresses` is the key (`"` signs are obligatory). To know other keys refer to the previous step. 
     * `<BROKER_NAME>` typically resolves to AWS_EC2_PRIVATE_IP with `.` replaced with `_`.
     
 ## EventStore
