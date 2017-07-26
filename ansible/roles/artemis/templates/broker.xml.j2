@@ -31,7 +31,9 @@ under the License.
 
         <!-- this could be ASYNCIO or NIO
          -->
-        <journal-type>ASYNCIO</journal-type>
+        <journal-type>MAPPED</journal-type>
+        
+        <security-enabled>false</security-enabled>
 
         <paging-directory>./data/paging</paging-directory>
 
@@ -41,7 +43,11 @@ under the License.
 
         <large-messages-directory>./data/large-messages</large-messages-directory>
 
-        <journal-datasync>true</journal-datasync>
+        <journal-datasync>false</journal-datasync>
+        
+        <journal-sync-non-transactional>false</journal-sync-non-transactional>
+
+        <journal-sync-transactional>false</journal-sync-transactional>
 
         <journal-min-files>2</journal-min-files>
 
