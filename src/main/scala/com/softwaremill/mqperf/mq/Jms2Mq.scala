@@ -38,16 +38,16 @@ trait Jms2Mq extends Mq {
         override def onCompletion(message: Message) = {
           latch.countDown()
         }
-        
+
         override def onException(message: Message, exception: Exception) = {
           exception.printStackTrace()
         }
       }
       msgs.foreach(msg => producer.send(session.createTextMessage(msg), completionListener))
       if (isTransacted) session.commit()
-      
+
       if (!latch.await(10, TimeUnit.SECONDS)) {
-        throw new IllegalStateException("Completion listener not called as expected.");
+        throw new IllegalStateException("Completion listener not called as expected.")
       }
     }
 
