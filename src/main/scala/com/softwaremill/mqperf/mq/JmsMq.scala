@@ -72,8 +72,8 @@ trait JmsMq extends Mq {
     }
 
     override def ack(ids: List[MsgId]): Unit = {
-      ids.foreach { id =>
-        id.acknowledge()
+      if (ids.nonEmpty) {
+        ids.last.acknowledge()
       }
     }
 
