@@ -1,6 +1,6 @@
-artemis_name:           apache-artemis-2.1.0
+artemis_name:           apache-artemis-2.2.0
 artemis_archive_name:   "{{ artemis_name }}-bin.tar.gz"
 artemis_download_dest:  /tmp/{{ artemis_archive_name }}
-artemis_download_url:   https://archive.apache.org/dist/activemq/activemq-artemis/2.1.0/{{ artemis_archive_name }}
+artemis_download_url:   https://archive.apache.org/dist/activemq/activemq-artemis/2.2.0/{{ artemis_archive_name }}
                         
 artemis_username:       artemis
