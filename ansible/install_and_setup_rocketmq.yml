@@ -1,0 +1,10 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+  - { role: ec2_instance, count: 4, ec2_groups: ['ssh_access', 'default', 'rocketmq_access'], aws_instance_type: t2.small, ec2_tag_group: Rocketmq }
+
+- hosts: rocketmq
+  become: true
+  roles:
+  - role: rocketmq
