@@ -98,8 +98,20 @@
     region: "{{ aws_region }}"
     rules:
       - proto: tcp
-        from_port: "{{ rocketmq_nameserver_port }}"
-        to_port: "{{ rocketmq_nameserver_port }}"
+        from_port: 9876
+        to_port: 9876
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10909
+        to_port: 10909
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10911
+        to_port: 10911
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10912
+        to_port: 10912
         cidr_ip: "{{ all_cidr }}"
 
 - name: Network setup - ActiveMQ Security Group

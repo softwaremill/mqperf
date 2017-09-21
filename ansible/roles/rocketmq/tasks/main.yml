@@ -3,6 +3,7 @@
 - set_fact: rocketmq_broker_master="{{ groups['rocketmq'][1] }}"
 - set_fact: rocketmq_broker_slave_1="{{ groups['rocketmq'][2] }}"
 - set_fact: rocketmq_broker_slave_2="{{ groups['rocketmq'][3] }}"
+- set_fact: rocketmq_name_server_private_ip="{{ hostvars[rocketmq_name_server].ec2_private_ip_address }}"
 
 - name: Remove Java 7
   yum:
@@ -24,7 +25,6 @@
     line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk.x86_64'
 
 - name: Link java
-  run_once: true
   file:
     state: link
     src: /usr/lib/jvm/java-1.8.0-openjdk.x86_64
@@ -154,3 +154,41 @@
   with_items:
     - "{{ rocketmq_name_server }}"
     
+- name: Copy broker.properties
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: broker.properties
+    dest: /opt/rocketmq/broker.properties
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Copy mqbroker.sh
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: mqbroker.sh.j2
+    dest: /opt/rocketmq/mqbroker.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+    
+- name: Link mqbroker init script to /etc/init.d
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqbroker.sh
+    dest: /etc/init.d/mqbroker
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Start mqbroker
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqbroker
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_broker_master }}"

@@ -19,4 +19,3 @@ rabbitmq_port: 15672
 activemq_port: 8161
 eventstore_port: 2113
 activemq_artemis_jolokia_port: 8161
-rocketmq_nameserver_port: 9876
