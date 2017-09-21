@@ -16,6 +16,20 @@
     state: present
   become: true
 
+- name: Set JAVA_HOME
+  lineinfile: 
+    dest: /etc/environment 
+    state: present 
+    regexp: '^JAVA_HOME'
+    line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk.x86_64'
+
+- name: Link java
+  run_once: true
+  file:
+    state: link
+    src: /usr/lib/jvm/java-1.8.0-openjdk.x86_64
+    dest: /usr/java
+
 - name: Set name server hostname 
   run_once: true
   delegate_to: "{{ item }}"
@@ -105,10 +119,38 @@
 - name: Build downloaded artifact
   command: mvn -Prelease-all -DskipTests clean install -U
   args:
-    chdir: /opt/incubator-rocketmq-{{ rocketmq_name }}
+    chdir: /opt/rocketmq
   become: true
   environment:
-    JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk.x86_64
     PATH: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/:{{ ansible_env.PATH }}'
+
+- name: Copy mqnameserver.sh
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: mqnameserver.sh
+    dest: /opt/rocketmq/mqnameserver.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_name_server }}"
     
-security group + startować to wszystko
+- name: Link mqnamesrv init script to /etc/init.d
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqnameserver.sh
+    dest: /etc/init.d/mqnameserver
+  with_items:
+    - "{{ rocketmq_name_server }}"
+
+- name: Start mqnameserver
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqnameserver
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_name_server }}"
+    
