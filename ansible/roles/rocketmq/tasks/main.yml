@@ -154,41 +154,92 @@
   with_items:
     - "{{ rocketmq_name_server }}"
     
-- name: Copy broker.properties
+- name: Copy master.properties to master
   run_once: true
   delegate_to: "{{ item }}"
   copy:
-    src: broker.properties
-    dest: /opt/rocketmq/broker.properties
+    src: master.properties
+    dest: /opt/rocketmq/master.properties
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Copy mqbroker.sh
+- name: Copy mqmaster.sh to master
   run_once: true
   delegate_to: "{{ item }}"
   template:
-    src: mqbroker.sh.j2
-    dest: /opt/rocketmq/mqbroker.sh
+    src: mqmaster.sh.j2
+    dest: /opt/rocketmq/mqmaster.sh
     mode: 0755
   with_items:
     - "{{ rocketmq_broker_master }}"
     
-- name: Link mqbroker init script to /etc/init.d
+- name: Link mqbroker init script to /etc/init.d on master
   run_once: true
   delegate_to: "{{ item }}"
   file:
     state: link
-    src: /opt/rocketmq/mqbroker.sh
-    dest: /etc/init.d/mqbroker
+    src: /opt/rocketmq/mqmaster.sh
+    dest: /etc/init.d/mqmaster
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Start mqbroker
+- name: Start master mqbroker
   run_once: true
   delegate_to: "{{ item }}"
   service:
-    name: mqbroker
+    name: mqmaster
     state: restarted
   become: true
   with_items:
     - "{{ rocketmq_broker_master }}"
+
+- name: Copy slave.properties to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: slave_1.properties
+    dest: /opt/rocketmq/slave.properties
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Copy slave.properties to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: slave_2.properties
+    dest: /opt/rocketmq/slave.properties
+  with_items:
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Copy mqslave.sh to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: mqslave.sh.j2
+    dest: /opt/rocketmq/mqslave.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Link mqslave init script to /etc/init.d on master
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqslave.sh
+    dest: /etc/init.d/mqslave
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Start slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqslave
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
