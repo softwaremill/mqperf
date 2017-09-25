@@ -1,0 +1,245 @@
+---
+- set_fact: rocketmq_name_server="{{ groups['rocketmq'][0] }}"
+- set_fact: rocketmq_broker_master="{{ groups['rocketmq'][1] }}"
+- set_fact: rocketmq_broker_slave_1="{{ groups['rocketmq'][2] }}"
+- set_fact: rocketmq_broker_slave_2="{{ groups['rocketmq'][3] }}"
+- set_fact: rocketmq_name_server_private_ip="{{ hostvars[rocketmq_name_server].ec2_private_ip_address }}"
+
+- name: Remove Java 7
+  yum:
+    name: java-1.7.0-openjdk
+    state: absent
+  become: true
+  
+- name: Install Java 8
+  yum:
+    name: java-1.8.0-openjdk-devel.x86_64
+    state: present
+  become: true
+
+- name: Set JAVA_HOME
+  lineinfile: 
+    dest: /etc/environment 
+    state: present 
+    regexp: '^JAVA_HOME'
+    line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk.x86_64'
+
+- name: Link java
+  file:
+    state: link
+    src: /usr/lib/jvm/java-1.8.0-openjdk.x86_64
+    dest: /usr/java
+
+- name: Set name server hostname 
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "rocketmq_name_server"
+  with_items:
+    - "{{ rocketmq_name_server }}"
+
+- name: Update /etc/hosts 
+  run_once: true
+  delegate_to: "{{ item }}"
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.0.1 rocketmq_name_server"
+  with_items:
+    - "{{ rocketmq_name_server }}"
+
+- name: Set broker master hostname 
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "rocketmq_broker_master"
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Update /etc/hosts 
+  run_once: true
+  delegate_to: "{{ item }}"
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.0.1 rocketmq_broker_master"
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Set slave 1 hostname 
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "rocketmq_broker_slave_1"
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Update /etc/hosts 
+  run_once: true
+  delegate_to: "{{ item }}"
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.0.1 rocketmq_broker_slave_1"
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Set slave 2 hostname 
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "rocketmq_broker_slave_2"
+  with_items:
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Update /etc/hosts 
+  run_once: true
+  delegate_to: "{{ item }}"
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.0.1 rocketmq_broker_slave_2"
+  with_items:
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Download rocketmq
+  get_url:
+    dest: "{{ rocketmq_download_dest }}"
+    url:  "{{ rocketmq_download_url }}"
+    
+- name: Unpack archive
+  unarchive:
+    copy:    no
+    dest:    /opt
+    src:     "{{ rocketmq_download_dest }}"
+    creates: /opt/{{ rocketmq_name }}
+
+- name: Create user-friendly link
+  file:
+    state: link
+    src: /opt/incubator-rocketmq-{{ rocketmq_name }}
+    dest: /opt/rocketmq
+
+- name: Build downloaded artifact
+  command: mvn -Prelease-all -DskipTests clean install -U
+  args:
+    chdir: /opt/rocketmq
+  become: true
+  environment:
+    PATH: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/:{{ ansible_env.PATH }}'
+
+- name: Copy mqnameserver.sh
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: mqnameserver.sh
+    dest: /opt/rocketmq/mqnameserver.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_name_server }}"
+    
+- name: Link mqnamesrv init script to /etc/init.d
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqnameserver.sh
+    dest: /etc/init.d/mqnameserver
+  with_items:
+    - "{{ rocketmq_name_server }}"
+
+- name: Start mqnameserver
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqnameserver
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_name_server }}"
+    
+- name: Copy master.properties to master
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: master.properties
+    dest: /opt/rocketmq/master.properties
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Copy mqmaster.sh to master
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: mqmaster.sh.j2
+    dest: /opt/rocketmq/mqmaster.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+    
+- name: Link mqbroker init script to /etc/init.d on master
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqmaster.sh
+    dest: /etc/init.d/mqmaster
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Start master mqbroker
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqmaster
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_broker_master }}"
+
+- name: Copy slave.properties to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: slave_1.properties
+    dest: /opt/rocketmq/slave.properties
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Copy slave.properties to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: slave_2.properties
+    dest: /opt/rocketmq/slave.properties
+  with_items:
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Copy mqslave.sh to slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src: mqslave.sh.j2
+    dest: /opt/rocketmq/mqslave.sh
+    mode: 0755
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Link mqslave init script to /etc/init.d on master
+  run_once: true
+  delegate_to: "{{ item }}"
+  file:
+    state: link
+    src: /opt/rocketmq/mqslave.sh
+    dest: /etc/init.d/mqslave
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Start slaves
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqslave
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"

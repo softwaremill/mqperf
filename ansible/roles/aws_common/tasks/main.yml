@@ -90,6 +90,30 @@
         to_port: "{{ rabbitmq_port }}"
         cidr_ip: "{{ all_cidr }}"
 
+- name: Network setup - RocketMQ Security Group
+  ec2_group:
+    name: "rocketmq_access"
+    description: "rocketmq_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: 9876
+        to_port: 9876
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10909
+        to_port: 10909
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10911
+        to_port: 10911
+        cidr_ip: "{{ all_cidr }}"
+      - proto: tcp
+        from_port: 10912
+        to_port: 10912
+        cidr_ip: "{{ all_cidr }}"
+
 - name: Network setup - ActiveMQ Security Group
   ec2_group:
     name: "activemq_access"
