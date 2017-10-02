@@ -1,0 +1,14 @@
+{
+    "name": "rocket-1thread",
+    "mq_type": "Rocket",
+    "sender_threads": 1,
+    "msg_count_per_thread": 1000,
+    "msg_size": 100,
+    "max_send_msg_batch_size": 10,
+    "receiver_threads": 1,
+    "receive_msg_batch_size": 10,
+    "broker_hosts": [ {{ hostvars[groups['rocketmq'][0]].ec2_private_ip_address.to_json }} ],
+    "mq": {
+        "transacted": true
+    }
+}

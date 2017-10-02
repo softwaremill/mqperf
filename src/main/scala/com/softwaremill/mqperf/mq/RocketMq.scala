@@ -41,7 +41,8 @@ class RocketMq(testConfig: TestConfig) extends Mq with StrictLogging {
       consumer.registerMessageListener(new MessageListenerConcurrently {
         override def consumeMessage(
           msgs: util.List[MessageExt],
-          context: ConsumeConcurrentlyContext): ConsumeConcurrentlyStatus = {
+          context: ConsumeConcurrentlyContext
+        ): ConsumeConcurrentlyStatus = {
 
           val ms = msgs.asScala.map { m =>
             val s = new Semaphore(0)

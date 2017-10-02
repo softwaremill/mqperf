@@ -113,7 +113,7 @@
 - name: Create user-friendly link
   file:
     state: link
-    src: /opt/incubator-rocketmq-{{ rocketmq_name }}
+    src: /opt/rocketmq-{{ rocketmq_name }}
     dest: /opt/rocketmq
 
 - name: Build downloaded artifact
