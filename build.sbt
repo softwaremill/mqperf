@@ -59,7 +59,8 @@ libraryDependencies ++= Seq(
   "com.geteventstore"           %%  "eventstore-client"     % "4.1.1",
   "org.apache.activemq"         %   "activemq-client"       % "5.14.5"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe"                %   "config"                % "1.3.1",
-  "org.apache.activemq"         %   "artemis-jms-client"    % "2.1.0"     exclude("commons-logging", "commons-logging"),
+  "org.apache.activemq"         %   "artemis-jms-client"    % "2.2.0"     exclude("commons-logging", "commons-logging"),
+  "org.apache.rocketmq"         % "rocketmq-client"         % "4.1.0-incubating",
   "com.softwaremill.kmq"        %%  "core"                  % "0.2",
   "io.prometheus"               %   "simpleclient"          % prometheusVersion,
   "io.prometheus"               %   "simpleclient_common"   % prometheusVersion
