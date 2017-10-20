@@ -154,6 +154,16 @@
   with_items:
     - "{{ rocketmq_name_server }}"
     
+- name: Wait for mqnameserver to start
+  wait_for: 
+    host: "{{ item }}"
+    port: "{{ rocketmq_name_server_port }}"
+    delay: 10
+    timeout: 640
+    state: started
+  with_items: 
+    - "{{ rocketmq_name_server }}"
+    
 - name: Copy master.properties to master
   run_once: true
   delegate_to: "{{ item }}"
@@ -172,7 +182,7 @@
     mode: 0755
   with_items:
     - "{{ rocketmq_broker_master }}"
-    
+
 - name: Link mqbroker init script to /etc/init.d on master
   run_once: true
   delegate_to: "{{ item }}"
@@ -193,7 +203,17 @@
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Copy slave.properties to slaves
+- name: Wait for master mqbroker to start
+  wait_for: 
+    host: "{{ item }}"
+    port: "{{ rocketmq_broker_port_main }}"
+    delay: 10
+    timeout: 640
+    state: started
+  with_items: 
+    - "{{ rocketmq_broker_master }}"
+
+- name: Copy slave.properties to slave 1
   run_once: true
   delegate_to: "{{ item }}"
   template:
@@ -202,7 +222,7 @@
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
 
-- name: Copy slave.properties to slaves
+- name: Copy slave.properties to slaves 2
   run_once: true
   delegate_to: "{{ item }}"
   template:
@@ -222,7 +242,7 @@
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Link mqslave init script to /etc/init.d on master
+- name: Link mqslave init script to /etc/init.d on slaves
   run_once: true
   delegate_to: "{{ item }}"
   file:
@@ -233,7 +253,7 @@
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Start slaves
+- name: Start slave 1
   run_once: true
   delegate_to: "{{ item }}"
   service:
@@ -242,4 +262,33 @@
   become: true
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Wait for master slave 1 to start
+  wait_for: 
+    host: "{{ item }}"
+    port: "{{ rocketmq_broker_port_main }}"
+    delay: 10
+    timeout: 640
+    state: started
+  with_items: 
+    - "{{ rocketmq_broker_slave_1 }}"
+
+- name: Start slave 2
+  run_once: true
+  delegate_to: "{{ item }}"
+  service:
+    name: mqslave
+    state: restarted
+  become: true
+  with_items:
+    - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Wait for master slave 2 to start
+  wait_for: 
+    host: "{{ item }}"
+    port: "{{ rocketmq_broker_port_main }}"
+    delay: 10
+    timeout: 640
+    state: started
+  with_items: 
     - "{{ rocketmq_broker_slave_2 }}"
