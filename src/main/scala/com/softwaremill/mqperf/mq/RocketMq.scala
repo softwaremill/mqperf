@@ -1,6 +1,7 @@
 package com.softwaremill.mqperf.mq
 
 import java.util
+import java.util.Random
 import java.util.concurrent.{ConcurrentLinkedQueue, Semaphore}
 
 import com.softwaremill.mqperf.config.TestConfig
@@ -19,6 +20,7 @@ class RocketMq(testConfig: TestConfig) extends Mq with StrictLogging {
   override type MsgId = Semaphore
 
   val nameServers = testConfig.brokerHosts.map(_ + ":9876").mkString(";")
+  val random = new Random()
 
   var producer: DefaultMQProducer = null
   def startProducer(): Unit = synchronized {
@@ -36,8 +38,9 @@ class RocketMq(testConfig: TestConfig) extends Mq with StrictLogging {
       consumer = new DefaultMQPushConsumer("mqperf_consumer_group")
       consumer.setNamesrvAddr(nameServers)
       consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
-      consumer.setMessageModel(MessageModel.BROADCASTING)
-      consumer.subscribe("mqperf", null: String)
+      consumer.setMessageModel(MessageModel.CLUSTERING)
+      consumer.subscribe("mqperf", "*")
+      consumer.setInstanceName("instance" + random.nextInt(1000))
       consumer.registerMessageListener(new MessageListenerConcurrently {
         override def consumeMessage(
           msgs: util.List[MessageExt],
@@ -62,7 +65,7 @@ class RocketMq(testConfig: TestConfig) extends Mq with StrictLogging {
     startProducer()
 
     override def send(msgs: List[String]): Unit = {
-      val ms = msgs.map(m => new Message("mqperf", m.getBytes("UTF-8")))
+      val ms = msgs.map(m => new Message("mqperf", "tag" + random.nextInt(10), random.nextInt().toString, m.getBytes("UTF-8")))
       val r = producer.send(ms.asJava)
       if (r.getSendStatus != SendStatus.SEND_OK) {
         logger.error(s"Error while sending: $r")

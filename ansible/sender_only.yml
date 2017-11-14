@@ -2,7 +2,7 @@
 
 - hosts: sender
   vars:
-    test_name: "artemis-1thread.json.j2"
+    test_name: "rocket-1thread.json.j2"
   tasks:
   - name: Set facts for env variables
     set_fact:

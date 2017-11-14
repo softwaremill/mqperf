@@ -43,6 +43,12 @@
   delegate_to: 127.0.0.1
   when: assembly|changed
 
+- name: Install boto3
+  become: yes
+  pip:
+    name: boto3
+    extra_args: --ignore-installed
+
 - name: Copy deps artifact from S3
   s3:
     bucket: "{{ s3_bucket }}"

@@ -2,7 +2,7 @@
 
 - hosts: receiver
   vars:
-    test_name: "kmq-25threads.json.j2"
+    test_name: "rocket-1thread.json.j2"
   tasks:
   - name: Set facts for env variables
     set_fact:
