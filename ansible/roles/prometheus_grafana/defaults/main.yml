@@ -2,7 +2,7 @@ storage_fs_type: ext4
 storage_path: /opt/prometheus
 receivers: "{{ groups['receiver'] }}"
 senders: "{{ groups['sender'] }}"
-prometheus_image_tag: latest
+prometheus_image_tag: v1.8.2
 grafana_image_tag: latest
 grafana_admin_password: pass
 mqperf_scrape_port: 9193
