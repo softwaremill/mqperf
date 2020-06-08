@@ -1,17 +1,10 @@
 import sbt._
 import sbt.Keys._
 
-import scalariform.formatter.preferences._
-
 lazy val commonSettings = Seq(
   version := "2.0",
-  scalaVersion := "2.11.11"
-) ++ SbtScalariform.scalariformSettings ++ Seq(
-  scalariformPreferences := scalariformPreferences.value
-    .setPreference(DoubleIndentClassDeclaration, true)
-    .setPreference(PreserveSpaceBeforeArguments, true)
-    .setPreference(CompactControlReadability, true)
-    .setPreference(SpacesAroundMultiImports, false))
+  scalaVersion := "2.12.11"
+)
 
 lazy val root = (project in file(".")).
   settings(commonSettings: _*).
@@ -35,32 +28,31 @@ lazy val oracleaq = project.in(file("oracleaq")).
 
 name := "mqperf"
 
-val prometheusVersion = "0.0.23"
+val prometheusVersion = "0.9.0"
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules"      %%  "scala-java8-compat"    % "0.8.0"     % "test",
-  "com.amazonaws"               %   "aws-java-sdk"          % "1.11.155"   exclude("commons-logging", "commons-logging"),
-  "org.json4s"                  %%  "json4s-native"         % "3.5.2",
-  "org.mongodb"                 %   "mongodb-driver"        % "3.4.2",
-  "com.rabbitmq"                %   "amqp-client"           % "4.1.1",
-  "org.hornetq"                 %   "hornetq-native"        % "2.4.7.Final" from "http://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.7.Final/hornetq-native-2.4.7.Final.jar",
+  "com.amazonaws"               %   "aws-java-sdk"          % "1.11.797"   exclude("commons-logging", "commons-logging"),
+  "org.json4s"                  %%  "json4s-native"         % "3.6.8",
+  "org.mongodb"                 %   "mongodb-driver"        % "3.12.5",
+  "com.rabbitmq"                %   "amqp-client"           % "5.9.0",
+  "org.hornetq"                 %   "hornetq-native"        % "2.4.7.Final" from "https://repo1.maven.org/maven2/org/hornetq/hornetq-native/2.4.7.Final/hornetq-native-2.4.7.Final.jar",
   "org.hornetq"                 %   "hornetq-core-client"   % "2.4.7.Final" exclude("org.hornetq", "hornetq-native")
                                                                             exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
-  "com.typesafe.scala-logging"  %%  "scala-logging"         % "3.5.0",
+  "com.typesafe.scala-logging"  %%  "scala-logging"         % "3.9.2",
   "ch.qos.logback"              %   "logback-classic"       % "1.2.3",
-  "org.slf4j"                   %   "jcl-over-slf4j"        % "1.7.25",
-  "org.slf4j"                   %   "log4j-over-slf4j"      % "1.7.25",
-  "org.apache.kafka"            %   "kafka-clients"         % "0.11.0.0"  exclude("javax.jms", "jms")
+  "org.slf4j"                   %   "jcl-over-slf4j"        % "1.7.30",
+  "org.slf4j"                   %   "log4j-over-slf4j"      % "1.7.30",
+  "org.apache.kafka"            %   "kafka-clients"         % "2.5.0"  exclude("javax.jms", "jms")
                                                                           exclude("com.sun.jdmk", "jmxtools")
                                                                           exclude("com.sun.jmx", "jmxri")
                                                                           exclude("log4j", "log4j")
                                                                           exclude("org.slf4j", "slf4j-log4j12"),
-  "org.scalatest"               %%  "scalatest"             % "3.0.3"     % "test",
-  "com.geteventstore"           %%  "eventstore-client"     % "4.1.1",
-  "org.apache.activemq"         %   "activemq-client"       % "5.14.5"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
-  "com.typesafe"                %   "config"                % "1.3.1",
-  "org.apache.activemq"         %   "artemis-jms-client"    % "2.2.0"     exclude("commons-logging", "commons-logging"),
-  "org.apache.rocketmq"         % "rocketmq-client"         % "4.1.0-incubating",
+  "org.scalatest"               %%  "scalatest"             % "3.1.2"     % Test,
+  "com.geteventstore"           %%  "eventstore-client"     % "7.1.0",
+  "org.apache.activemq"         %   "activemq-client"       % "5.15.12"    exclude("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
+  "com.typesafe"                %   "config"                % "1.4.0",
+  "org.apache.activemq"         %   "artemis-jms-client"    % "2.13.0"     exclude("commons-logging", "commons-logging"),
+  "org.apache.rocketmq"         % "rocketmq-client"         % "4.7.0",
   "com.softwaremill.kmq"        %%  "core"                  % "0.2",
   "io.prometheus"               %   "simpleclient"          % prometheusVersion,
   "io.prometheus"               %   "simpleclient_common"   % prometheusVersion
