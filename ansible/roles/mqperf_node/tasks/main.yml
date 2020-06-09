@@ -8,7 +8,7 @@
   delegate_to: 127.0.0.1
 
 - name: Build mqperf deps artifact
-  command: sbt assemblyPackageDependency
+  command: /usr/local/bin/sbt assemblyPackageDependency
   args:
     chdir: "{{ mqperf_sources_dir }}"
     creates: "{{ mqperf_deps_artifact_path }}"
@@ -48,7 +48,6 @@
   pip:
     name: botocore
     extra_args: --ignore-installed
-    executable: pip3
 
 - name: Install boto3
   become: yes

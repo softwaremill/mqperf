@@ -3,5 +3,5 @@
 - name: Install pip
   become: yes
   yum:
-    name: python3-pip
+    name: python2-pip
     state: present
