@@ -7,4 +7,5 @@
 - hosts: prometheus
   become: true
   roles:
+  - role: python
   - role: prometheus_grafana

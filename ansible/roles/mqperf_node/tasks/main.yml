@@ -1,7 +1,7 @@
 ---
 
 - name: Create S3 bucket
-  s3:
+  aws_s3:
     bucket: "{{ s3_bucket }}"
     mode: create
     region: "{{ aws_region }}"
@@ -24,24 +24,31 @@
   register: assembly
 
 - name: Upload deps artifact to S3
-  s3:
+  aws_s3:
     bucket: "{{ s3_bucket }}"
     mode: put
     object: /jars/mqperf-assembly-deps.jar
     src: "{{ mqperf_deps_artifact_path }}"
     region: "{{ aws_region }}"
   delegate_to: 127.0.0.1
-  when: deps_assembly|changed
+  when: deps_assembly.changed
 
 - name: Upload artifact to S3
-  s3:
+  aws_s3:
     bucket: "{{ s3_bucket }}"
     mode: put
     object: /jars/mqperf-assembly.jar
     src: "{{ mqperf_artifact_path }}"
     region: "{{ aws_region }}"
   delegate_to: 127.0.0.1
-  when: assembly|changed
+  when: assembly.changed
+
+- name: Install botocore
+  become: yes
+  pip:
+    name: botocore
+    extra_args: --ignore-installed
+    executable: pip3
 
 - name: Install boto3
   become: yes
@@ -50,7 +57,7 @@
     extra_args: --ignore-installed
 
 - name: Copy deps artifact from S3
-  s3:
+  aws_s3:
     bucket: "{{ s3_bucket }}"
     mode: get
     object: "/jars/{{ item }}.jar"

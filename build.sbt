@@ -2,7 +2,7 @@ import sbt._
 import sbt.Keys._
 
 lazy val commonSettings = Seq(
-  version := "2.0",
+  version := "3.0",
   scalaVersion := "2.12.11"
 )
 
@@ -57,5 +57,5 @@ assemblyOption in assembly ~= {
 
 assemblyMergeStrategy in assembly := {
   case PathList(ps @ _*) if ps.last == "io.netty.versions.properties" => MergeStrategy.first
-  case x                                                                 => (assemblyMergeStrategy in assembly).value(x)
+  case x                                                              => (assemblyMergeStrategy in assembly).value(x)
 }

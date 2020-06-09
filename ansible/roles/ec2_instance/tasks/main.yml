@@ -27,9 +27,9 @@
     timeout: 640
     state: started
   with_items: "{{ ec2.instances }}"
-  when: ec2|changed
+  when: ec2.changed
 
-- name: Provision and attache EBS volume
+- name: Provision and attach EBS volume
   ec2_vol:
     instance: "{{ item.id }}"
     region: "{{ aws_region }}"
@@ -38,7 +38,7 @@
     volume_type: "gp2"
     delete_on_termination: yes
   with_items: "{{ ec2.instances }}"
-  when: volume_size is defined and ec2|changed
+  when: volume_size is defined and ec2.changed
 
 
 - name: Refresh inventory
