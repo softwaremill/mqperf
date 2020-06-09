@@ -63,7 +63,7 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
         kafkaClients,
         classOf[StringDeserializer],
         classOf[StringDeserializer],
-        PollTimeoutMs
+        java.time.Duration.ofMillis(PollTimeoutMs)
       )
 
       override def receive(maxMsgCount: Int): List[(ConsumerRecord[String, String], String)] = {
