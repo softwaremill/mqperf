@@ -13,7 +13,23 @@ import eventstore.akka.{LiveProcessingStarted, Settings}
 import eventstore.{PersistentSubscription => PS}
 import eventstore.cluster.{ClusterSettings, GossipSeedsOrDns}
 import eventstore.akka.tcp.ConnectionActor
-import eventstore.{Content, EsException, Event, EventData, EventNumber, EventRecord, EventStream, PersistentSubscription, PersistentSubscriptionSettings, ResolvedEvent, Unsubscribed, UserCredentials, Uuid, WriteEvents, WriteEventsCompleted}
+import eventstore.{
+  Content,
+  EsException,
+  Event,
+  EventData,
+  EventNumber,
+  EventRecord,
+  EventStream,
+  PersistentSubscription,
+  PersistentSubscriptionSettings,
+  ResolvedEvent,
+  Unsubscribed,
+  UserCredentials,
+  Uuid,
+  WriteEvents,
+  WriteEventsCompleted
+}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -28,9 +44,11 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
   private val firstHost = testConfig.brokerHosts.head
   private val settings = Settings(
     address = new InetSocketAddress(firstHost, 1113),
-    cluster = Some(ClusterSettings(
-      gossipSeedsOrDns = GossipSeedsOrDns(testConfig.brokerHosts.map(h => new InetSocketAddress(h, 2113)): _*)
-    ))
+    cluster = Some(
+      ClusterSettings(
+        gossipSeedsOrDns = GossipSeedsOrDns(testConfig.brokerHosts.map(h => new InetSocketAddress(h, 2113)): _*)
+      )
+    )
   )
 
   private val connection = system.actorOf(ConnectionActor.props(settings))
@@ -52,37 +70,35 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
     }
   }
 
-  override def createReceiver(): MqReceiver = new MqReceiver {
-    subscriptionActor // force creation
+  override def createReceiver(): MqReceiver =
+    new MqReceiver {
+      subscriptionActor // force creation
 
-    override def receive(maxMsgCount: Int): List[(UUID, String)] = {
-      doReceive(Nil, waitForMsgs = 10, maxMsgCount)
-    }
-
-    @tailrec
-    private def doReceive(acc: List[(UUID, String)], waitForMsgs: Int, count: Int): List[(UUID, String)] = {
-      if (count == 0) {
-        acc
+      override def receive(maxMsgCount: Int): List[(UUID, String)] = {
+        doReceive(Nil, waitForMsgs = 10, maxMsgCount)
       }
-      else {
-        val message = msgBuffer.poll()
-        if (message == null && waitForMsgs > 0) {
-          Thread.sleep(100L)
-          doReceive(acc, waitForMsgs - 1, count)
-        }
-        else if (message == null) {
+
+      @tailrec
+      private def doReceive(acc: List[(UUID, String)], waitForMsgs: Int, count: Int): List[(UUID, String)] = {
+        if (count == 0) {
           acc
-        }
-        else {
-          doReceive(message :: acc, 0, count - 1)
+        } else {
+          val message = msgBuffer.poll()
+          if (message == null && waitForMsgs > 0) {
+            Thread.sleep(100L)
+            doReceive(acc, waitForMsgs - 1, count)
+          } else if (message == null) {
+            acc
+          } else {
+            doReceive(message :: acc, 0, count - 1)
+          }
         }
       }
-    }
 
-    override def ack(ids: List[UUID]): Unit = {
-      //subscriptionActor ! ManualAck(ids)
+      override def ack(ids: List[UUID]): Unit = {
+        //subscriptionActor ! ManualAck(ids)
+      }
     }
-  }
 
   private class WriteListener(p: Promise[Unit]) extends Actor with ActorLogging {
     def receive: Receive = {
@@ -96,15 +112,16 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
     }
   }
 
-  override def createSender(): MqSender = new MqSender {
-    override def send(msgs: List[String]): Unit = {
-      val events = msgs.map(m => EventData("e", data = Content(m)))
-      val p = Promise[Unit]()
-      implicit val writeListener: ActorRef = system.actorOf(Props(new WriteListener(p)))
-      connection ! WriteEvents(EventStream.Id(StreamId), events)
-      Await.result(p.future, 10.seconds)
+  override def createSender(): MqSender =
+    new MqSender {
+      override def send(msgs: List[String]): Unit = {
+        val events = msgs.map(m => EventData("e", data = Content(m)))
+        val p = Promise[Unit]()
+        implicit val writeListener: ActorRef = system.actorOf(Props(new WriteListener(p)))
+        connection ! WriteEvents(EventStream.Id(StreamId), events)
+        Await.result(p.future, 10.seconds)
+      }
     }
-  }
 
   override def close(): Unit = {
     system.terminate()
@@ -229,4 +246,3 @@ A customized PersistentSubscriptionActor from the JVM client:
 //
 //  initialize()
 //}
-

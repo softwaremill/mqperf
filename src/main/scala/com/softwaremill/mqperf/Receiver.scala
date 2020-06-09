@@ -21,22 +21,34 @@ object Receiver {
 
       val labelValues = defaultLabelValues(testConfig, TestConfig.hostId)
 
-      val c = Counter.build("mqperf_received_total", "number of received messages").labelNames(DefaultLabelNames: _*).register()
-      val h = Histogram.build("mqperf_latency_ms", "latency of received messages")
-        .buckets(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
-          1000, 1250, 1500, 1750,
-          2000, 2500, 3000, 3500, 4000, 4500,
-          5000, 6000, 7000, 8000, 9000, 10000,
-          20000, 30000, 40000, 50000, 60000)
-        .labelNames(DefaultLabelNames: _*).register()
-      val g = Gauge.build("mqperf_receive_threads_done", "number of receive threads done").labelNames(DefaultLabelNames: _*).register()
+      val c = Counter
+        .build("mqperf_received_total", "number of received messages")
+        .labelNames(DefaultLabelNames: _*)
+        .register()
+      val h = Histogram
+        .build("mqperf_latency_ms", "latency of received messages")
+        .buckets(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1250, 1500, 1750, 2000,
+          2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 40000, 50000, 60000)
+        .labelNames(DefaultLabelNames: _*)
+        .register()
+      val g = Gauge
+        .build("mqperf_receive_threads_done", "number of receive threads done")
+        .labelNames(DefaultLabelNames: _*)
+        .register()
       g.labels(labelValues: _*).set(0)
 
       val threads = (1 to testConfig.receiverThreads).map { _ =>
-        val t = new Thread(new ReceiverRunnable(mq, testConfig.mqType, testConfig.receiveMsgBatchSize, rootTimestamp,
-          c.labels(labelValues: _*),
-          h.labels(labelValues: _*),
-          g.labels(labelValues: _*)))
+        val t = new Thread(
+          new ReceiverRunnable(
+            mq,
+            testConfig.mqType,
+            testConfig.receiveMsgBatchSize,
+            rootTimestamp,
+            c.labels(labelValues: _*),
+            h.labels(labelValues: _*),
+            g.labels(labelValues: _*)
+          )
+        )
         t.start()
         t
       }
@@ -57,7 +69,8 @@ class ReceiverRunnable(
     receiveLatency: Histogram.Child,
     receiveDone: Gauge.Child,
     clock: Clock = RealClock
-) extends Runnable with StrictLogging {
+) extends Runnable
+    with StrictLogging {
 
   val timeout: FiniteDuration = 60.seconds
   val timeoutMs: Long = timeout.toMillis
@@ -81,10 +94,11 @@ class ReceiverRunnable(
       }
       val tookMs = lastReceivedMs - rootTimestamp.getMillis
       val msgss = totalReceived / (tookMs / 1000)
-      logger.info(s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is $msgss msgs/s")
+      logger.info(
+        s"Test finished, last message read $timeout ago, received a total of $totalReceived over ${tookMs}ms, that is $msgss msgs/s"
+      )
       receiveDone.inc()
-    }
-    finally {
+    } finally {
       mqReceiver.close()
     }
   }

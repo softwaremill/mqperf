@@ -20,10 +20,15 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
 
   override type MsgId = ObjectId
 
-  private val client = new MongoClient(testConfig.brokerHosts.map(TestConfig.parseHostPort).map {
-    case (host, Some(port)) => new ServerAddress(host, port)
-    case (host, None) => new ServerAddress(host)
-  }.asJava)
+  private val client = new MongoClient(
+    testConfig.brokerHosts
+      .map(TestConfig.parseHostPort)
+      .map {
+        case (host, Some(port)) => new ServerAddress(host, port)
+        case (host, None)       => new ServerAddress(host)
+      }
+      .asJava
+  )
 
   private val concern = new WriteConcern(testConfig.mqConfig.getInt("write_concern"))
 
@@ -56,8 +61,8 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
   class MongoCappedMqSender(queueColl: MongoCollection[Document]) extends MqSender {
 
     /**
-     * Synchronous - must wait for the messages to be sent
-     */
+      * Synchronous - must wait for the messages to be sent
+      */
     override def send(msgs: List[String]): Unit = {
       val messagesToInsert: java.util.List[Document] = msgs.map { msg =>
         new Document(MessageField, msg)
@@ -66,7 +71,8 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
     }
   }
 
-  class MongoCappedMqReceiver(queueColl: MongoCollection[Document], cursorStateColl: MongoCollection[Document]) extends MqReceiver {
+  class MongoCappedMqReceiver(queueColl: MongoCollection[Document], cursorStateColl: MongoCollection[Document])
+      extends MqReceiver {
 
     private val nodeId: Int = ObjectId.getGeneratedMachineIdentifier
 
@@ -76,8 +82,7 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
       val existingCursorState = cursorStateColl.find(new BasicDBObject(NodeIdField, nodeId)).first()
       val filter = if (existingCursorState == null) {
         new BasicDBObject()
-      }
-      else {
+      } else {
         val lastDocId = existingCursorState.getObjectId(LastDocField)
         new BasicDBObject(IdField, new BasicDBObject("$gt", lastDocId))
       }
@@ -105,25 +110,27 @@ class MongoCappedMq(testConfig: TestConfig) extends Mq {
             cursor = createCursor
           }
           acc
-        }
-        else {
+        } else {
           val newElement = msg.getObjectId(IdField) -> msg.getString(MessageField)
           doReceive(newElement :: acc, limit - 1)
         }
-      }
-      else {
+      } else {
         acc
       }
     }
 
     /**
-     * Can be asynchronous
-     */
+      * Can be asynchronous
+      */
     override def ack(ids: List[ObjectId]): Unit = {
       implicit val ec = ackExecutionContext
       Future {
         val lastSeenId = ids.max
-        cursorStateColl.updateOne(new BasicDBObject(NodeIdField, nodeId), new BasicDBObject("$set", new BasicDBObject(LastDocField, lastSeenId)), new UpdateOptions().upsert(true))
+        cursorStateColl.updateOne(
+          new BasicDBObject(NodeIdField, nodeId),
+          new BasicDBObject("$set", new BasicDBObject(LastDocField, lastSeenId)),
+          new UpdateOptions().upsert(true)
+        )
       }
     }
   }

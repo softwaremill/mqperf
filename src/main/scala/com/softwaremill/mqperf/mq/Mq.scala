@@ -7,9 +7,10 @@ trait Mq {
   type MsgId
 
   trait MqSender {
+
     /**
-     * Synchronous - must wait for the messages to be sent
-     */
+      * Synchronous - must wait for the messages to be sent
+      */
     def send(msgs: List[String])
 
     def close() {}
@@ -19,8 +20,8 @@ trait Mq {
     def receive(maxMsgCount: Int): List[(MsgId, String)]
 
     /**
-     * Can be asynchronous
-     */
+      * Can be asynchronous
+      */
     def ack(ids: List[MsgId])
 
     def close() {}

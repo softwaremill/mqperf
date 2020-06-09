@@ -8,10 +8,10 @@ import org.hornetq.core.remoting.impl.netty.{NettyConnectorFactory, TransportCon
 import scala.annotation.tailrec
 
 /**
- * Config changes:
- * hornetq-configuration.xml:
- * - <security-enabled>false</security-enabled>
- */
+  * Config changes:
+  * hornetq-configuration.xml:
+  * - <security-enabled>false</security-enabled>
+  */
 class HornetMq(testConfig: TestConfig) extends Mq {
 
   private val QueueName = "mq"
@@ -41,8 +41,7 @@ class HornetMq(testConfig: TestConfig) extends Mq {
     val session = createSession(sf)
     try {
       session.createQueue(QueueName, QueueName, true)
-    }
-    catch {
+    } catch {
       case e: Exception if e.getMessage.contains("HQ119019") => // queue already exists
     }
 
@@ -52,58 +51,58 @@ class HornetMq(testConfig: TestConfig) extends Mq {
 
   type MsgId = ClientMessage
 
-  override def createSender() = new MqSender {
-    val session = createSession(sf)
-    val producer = session.createProducer(QueueName)
+  override def createSender() =
+    new MqSender {
+      val session = createSession(sf)
+      val producer = session.createProducer(QueueName)
 
-    override def send(msgs: List[String]) {
-      for (rawMsg <- msgs) {
-        val msg = session.createMessage(true)
-        msg.putStringProperty(ContentPropertyName, rawMsg)
-        producer.send(msg)
+      override def send(msgs: List[String]) {
+        for (rawMsg <- msgs) {
+          val msg = session.createMessage(true)
+          msg.putStringProperty(ContentPropertyName, rawMsg)
+          producer.send(msg)
+        }
+
+        session.commit()
       }
 
-      session.commit()
-    }
-
-    override def close() {
-      session.close()
-    }
-  }
-
-  override def createReceiver() = new MqReceiver {
-    val session = createSession(sf)
-    val consumer = session.createConsumer(QueueName)
-    session.start()
-
-    override def receive(maxMsgCount: Int) = {
-      doReceive(Nil, waitForMsgs = true, maxMsgCount)
-    }
-
-    @tailrec
-    private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Boolean, count: Int): List[(MsgId, String)] = {
-      if (count == 0) {
-        acc
+      override def close() {
+        session.close()
       }
-      else {
-        val msg = if (waitForMsgs) consumer.receive(1000L) else consumer.receive(0L)
-        if (msg == null) {
+    }
+
+  override def createReceiver() =
+    new MqReceiver {
+      val session = createSession(sf)
+      val consumer = session.createConsumer(QueueName)
+      session.start()
+
+      override def receive(maxMsgCount: Int) = {
+        doReceive(Nil, waitForMsgs = true, maxMsgCount)
+      }
+
+      @tailrec
+      private def doReceive(acc: List[(MsgId, String)], waitForMsgs: Boolean, count: Int): List[(MsgId, String)] = {
+        if (count == 0) {
           acc
-        }
-        else {
-          doReceive((msg, msg.getStringProperty(ContentPropertyName)) :: acc, waitForMsgs = false, count - 1)
+        } else {
+          val msg = if (waitForMsgs) consumer.receive(1000L) else consumer.receive(0L)
+          if (msg == null) {
+            acc
+          } else {
+            doReceive((msg, msg.getStringProperty(ContentPropertyName)) :: acc, waitForMsgs = false, count - 1)
+          }
         }
       }
-    }
 
-    override def ack(ids: List[MsgId]) {
-      ids.foreach(_.acknowledge())
-    }
+      override def ack(ids: List[MsgId]) {
+        ids.foreach(_.acknowledge())
+      }
 
-    override def close() {
-      session.close()
+      override def close() {
+        session.close()
+      }
     }
-  }
 
   override def close() {
     sf.close()

@@ -25,23 +25,33 @@ object PrometheusMetricServer extends StrictLogging {
 
     val routes = get {
       path("metrics") {
-        complete(HttpEntity(contentType, {
-          val writer = new StringWriter()
-          TextFormat.write004(writer, registry.metricFamilySamples())
-          writer.toString
-        }))
+        complete(
+          HttpEntity(
+            contentType, {
+              val writer = new StringWriter()
+              TextFormat.write004(writer, registry.metricFamilySamples())
+              writer.toString
+            }
+          )
+        )
       }
     }
 
-    Http().bindAndHandle(routes, interface, port).map { sb => () => sb.unbind().flatMap(_ => system.terminate()).andThen {
-      case Failure(e) => logger.error("Cannot stop metrics export", e)
-    }
-    }.andThen {
-      case Failure(e) => logger.error("Cannot start metrics export", e)
-    }
+    Http()
+      .bindAndHandle(routes, interface, port)
+      .map { sb => () =>
+        sb.unbind().flatMap(_ => system.terminate()).andThen {
+          case Failure(e) => logger.error("Cannot stop metrics export", e)
+        }
+      }
+      .andThen {
+        case Failure(e) => logger.error("Cannot start metrics export", e)
+      }
   }
 
-  def withMetricsServerSync(registry: CollectorRegistry, interface: String = DefaultInterface, port: Int = DefaultPort)(thunk: => Unit): Unit = {
+  def withMetricsServerSync(registry: CollectorRegistry, interface: String = DefaultInterface, port: Int = DefaultPort)(
+      thunk: => Unit
+  ): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     val metricsExporter = start(registry, interface, port)

@@ -15,8 +15,7 @@ package object config {
     def getOpt[T](path: String, block: (Config, String) => T): Option[T] = {
       if (config.hasPath(path)) {
         Option(block(config, path))
-      }
-      else {
+      } else {
         None
       }
     }

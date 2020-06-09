@@ -32,20 +32,21 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
   override type MsgId = ConsumerRecord[String, String]
 
-  override def createSender() = new MqSender {
-    val producersProps = new Properties()
-    producersProps.put("bootstrap.servers", kafkaHosts)
-    producersProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    producersProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    producersProps.put("acks", testConfig.mqConfig.getString("acks"))
-    val producer = new KafkaProducer[String, String](producersProps)
+  override def createSender() =
+    new MqSender {
+      val producersProps = new Properties()
+      producersProps.put("bootstrap.servers", kafkaHosts)
+      producersProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+      producersProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+      producersProps.put("acks", testConfig.mqConfig.getString("acks"))
+      val producer = new KafkaProducer[String, String](producersProps)
 
-    override def send(msgs: List[String]): Unit = {
-      msgs
-        .map(msg => producer.send(new ProducerRecord[String, String](Topic, null, msg)))
-        .foreach(_.get())
+      override def send(msgs: List[String]): Unit = {
+        msgs
+          .map(msg => producer.send(new ProducerRecord[String, String](Topic, null, msg)))
+          .foreach(_.get())
+      }
     }
-  }
 
   override def createReceiver() = {
     val kafkaClients = new KafkaClients(kafkaHosts)
@@ -60,7 +61,8 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
       private val kmqClient = new KmqClient[String, String](
         kmqConfig,
         kafkaClients,
-        classOf[StringDeserializer], classOf[StringDeserializer],
+        classOf[StringDeserializer],
+        classOf[StringDeserializer],
         PollTimeoutMs
       )
 
@@ -82,4 +84,3 @@ class KmqMq(testConfig: TestConfig) extends Mq with StrictLogging {
     closeRedeliveryTracker.getAndSet(() => ()).apply()
   }
 }
-
