@@ -1,0 +1,92 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+
+  tasks:
+    - name: Gather EC2 instances facts
+      ec2_instance_info:
+        filters:
+          "tag:kind": mqperf-instance
+      register: ec2_facts
+
+    - name: Gather VPC facts
+      ec2_vpc_net_info:
+        filters:
+          "tag:Name": "{{ vpc_name }}"
+      register: vpc_facts
+
+    - set_fact: vpc_id="{{ (vpc_facts.vpcs | first).id }}"
+      when: vpc_facts.vpcs|length > 0
+
+    - name: Terminate mqperf instances
+      ec2:
+        instance_ids: "{{ ec2_facts.instances|map(attribute='instance_id')|list }}"
+        state: absent
+        wait: true
+      when: ec2_facts.instances|length > 0
+
+    - name: Delete security groups
+      ec2_group: 
+        name: "{{item}}"
+        state: absent
+        description:
+      with_items: 
+        - grafana_access
+        - prometheus_access
+        - rabbitmq_access
+        - rocketmq_access
+        - activemq_access
+        - activemq_artemis_access
+        - eventstore_access
+        - all_access
+        - ssh_access
+        
+    - name: Drop keys
+      ec2_key:
+        name: "{{ key_name }}"
+        state: absent
+
+    - name: Delete local key file
+      file:
+        path: "./{{ key_name }}.pem"
+        state: absent
+
+    - name: Delete internet gateway
+      ec2_vpc_igw:
+        vpc_id: "{{ vpc_id }}"
+        state: absent
+      when: vpc_id is defined
+
+    - name: Delete subnet
+      ec2_vpc_subnet:
+        vpc_id: "{{ vpc_id }}"
+        cidr: "{{ subnet_cidr }}"
+        state: absent
+      when: vpc_id is defined
+
+    - name: Gather routing table facts
+      ec2_vpc_route_table_facts:
+        filters:
+          "tag:Name": "mqperf"
+      register: routing_table_facts
+
+    - set_fact: routing_table_id="{{ (routing_table_facts.route_tables | first).id }}"
+      when: routing_table_facts.route_tables|length > 0
+
+    - name: Delete routing table
+      ec2_vpc_route_table:
+        vpc_id: "{{ vpc_id }}"
+        route_table_id: "{{ routing_table_id }}"
+        lookup: id
+        state: absent
+      when: routing_table_id is defined
+
+    - name: Delete VPC
+      ec2_vpc_net:
+        name: "{{ vpc_name }}"
+        cidr_block: "{{ vpc_cidr_block }}"
+        state: absent
