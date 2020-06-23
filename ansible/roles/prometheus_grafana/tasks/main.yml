@@ -21,8 +21,8 @@
 - name: Ensure prometheus in docker container is running
   docker_container:
     command:
-      - '-config.file=/etc/prometheus.yml'
-      - '-storage.local.path=/prometheus'
+      - '--config.file=/etc/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
     volumes:
       - /etc/prometheus.yml:/etc/prometheus.yml
       - /etc/prometheus.rules:/etc/prometheus.rules
