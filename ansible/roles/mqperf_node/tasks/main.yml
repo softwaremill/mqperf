@@ -8,7 +8,7 @@
   delegate_to: 127.0.0.1
 
 - name: Build mqperf deps artifact
-  command: /usr/local/bin/sbt assemblyPackageDependency
+  command: sbt assemblyPackageDependency
   args:
     chdir: "{{ mqperf_sources_dir }}"
     creates: "{{ mqperf_deps_artifact_path }}"
