@@ -1,1 +1,1 @@
-storage_device: /dev/xvdf
+storage_device: /dev/nvme1n1
