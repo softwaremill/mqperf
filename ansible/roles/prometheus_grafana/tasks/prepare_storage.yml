@@ -3,11 +3,11 @@
     fstype: "{{ storage_fs_type }}"
     dev: "{{ storage_device }}"
 
-- name: Ensure mount point exists
+- name: Ensure mount point exists and has correct owner
   file:
     state: directory
     path: "{{ storage_path }}"
-
+    owner: 65534
 
 - name: Ensure data direcory is mounted
   mount:
