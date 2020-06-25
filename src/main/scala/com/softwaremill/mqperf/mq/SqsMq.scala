@@ -2,7 +2,12 @@ package com.softwaremill.mqperf.mq
 
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient
-import com.amazonaws.services.sqs.model.{DeleteMessageRequest, ReceiveMessageRequest, SendMessageBatchRequestEntry}
+import com.amazonaws.services.sqs.model.{
+  DeleteMessageBatchRequest,
+  DeleteMessageBatchRequestEntry,
+  ReceiveMessageRequest,
+  SendMessageBatchRequestEntry
+}
 import com.softwaremill.mqperf.config.{AWS, TestConfig}
 
 import scala.collection.JavaConverters._
@@ -43,7 +48,12 @@ class SqsMq(testConfig: TestConfig) extends Mq {
       }
 
       override def ack(ids: List[MsgId]) = {
-        ids.foreach { id => asyncBufferedClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, id)) }
+        asyncBufferedClient.deleteMessageBatchAsync(
+          new DeleteMessageBatchRequest(
+            queueUrl,
+            ids.zipWithIndex.map { case (m, i) => new DeleteMessageBatchRequestEntry(i.toString, m) }.asJava
+          )
+        )
       }
     }
 }
