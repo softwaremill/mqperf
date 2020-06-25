@@ -7,7 +7,7 @@
   file:
     state: directory
     path: "{{ storage_path }}"
-    owner: 65534
+    owner: '65534'
 
 - name: Ensure data direcory is mounted
   mount:
