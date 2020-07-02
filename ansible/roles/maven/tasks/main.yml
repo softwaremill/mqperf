@@ -1,25 +1,41 @@
-# https://raw.githubusercontent.com/tecris/ansible-maven/master/tasks/install-maven.yml
 ---
+# tasks file for apache-maven
 - name: Checking if Maven is already installed
-  stat: 
-    path: "{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}"
+  stat:
+    path: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}'
   register: maven_installed
-- name: Unarchive maven
+
+- name: Downloading Maven Binaries
+  get_url:
+    url: '{{ maven_download_url }}'
+    dest: '{{ maven_home_parent_directory }}/{{ maven_file_name }}'
+    url_username: '{{ maven_download_username }}'
+    url_password: '{{ maven_download_password }}'
+  when: not maven_installed.stat.exists
+
+- name: Unarchive Maven Binaries
   unarchive:
-    src: "http://www.apache.org/dist/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries/apache-maven-{{ maven_version }}-bin.tar.gz"
-    dest: "{{maven_home_parent_directory}}"
+    src: '{{ maven_home_parent_directory }}/{{ maven_file_name }}'
+    dest: '{{ maven_home_parent_directory }}'
     copy: no
-  when: maven_installed.stat.exists != True
+  when: not maven_installed.stat.exists
+
 - name: Remove old path configuration
   file:
     path: /etc/profile.d/maven.sh
     state: absent
+
 - name: Maven path configuration
   lineinfile:
     dest: /etc/profile.d/maven.sh
-    line: "{{ item.line }}"
+    line: '{{ item.line }}'
     create: yes
     state: present
   with_items:
-    - { line: 'M2_HOME={{maven_home_parent_directory}}/apache-maven-{{maven_version}}' }
+    - { line: 'M2_HOME={{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}' }
     - { line: 'PATH=$PATH:$M2_HOME/bin' }
+
+- name: Cleaning Up
+  file:
+    state: absent
+    path: '{{ maven_home_parent_directory }}/{{ maven_file_name }}'
