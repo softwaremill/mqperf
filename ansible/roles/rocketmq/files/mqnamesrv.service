@@ -1,0 +1,10 @@
+[Unit]
+Description=RocketMQ Name Server
+After=network.target
+[Service]
+Type=simple
+Environment="ROCKETMQ_HOME=/opt/rocketmq"
+ExecStart=/opt/rocketmq/bin/mqnamesrv
+ExecStop=/opt/rocketmq/bin/mqshutdown namesrv
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,3 @@
-rocketmq_name:           rocketmq-all-4.1.0-incubating
-rocketmq_archive_name:   "{{ rocketmq_name }}.zip"
-rocketmq_download_dest:  /tmp/{{ rocketmq_archive_name }}
-rocketmq_download_url:   https://github.com/apache/incubator-rocketmq/archive/{{ rocketmq_archive_name }}
+rocketmq_version: 4.7.1
+rocketmq_dir:  /opt/rocketmq
+rocketmq_download_url: https://archive.apache.org/dist/rocketmq/{{ rocketmq_version }}/rocketmq-all-{{ rocketmq_version }}-bin-release.zip

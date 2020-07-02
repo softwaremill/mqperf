@@ -22,12 +22,12 @@
     dest: /etc/environment 
     state: present 
     regexp: '^JAVA_HOME'
-    line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk.x86_64'
+    line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk'
 
 - name: Link java
   file:
     state: link
-    src: /usr/lib/jvm/java-1.8.0-openjdk.x86_64
+    src: /usr/lib/jvm/java-1.8.0-openjdk
     dest: /usr/java
 
 - name: Set name server hostname 
@@ -98,62 +98,49 @@
   with_items:
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Download rocketmq
-  get_url:
-    dest: "{{ rocketmq_download_dest }}"
-    url:  "{{ rocketmq_download_url }}"
-    
-- name: Unpack archive
+- name: Download RocketMQ
   unarchive:
-    copy:    no
-    dest:    /opt
-    src:     "{{ rocketmq_download_dest }}"
-    creates: /opt/{{ rocketmq_name }}
+    src: "{{rocketmq_download_url}}"
+    dest: /opt
+    remote_src: yes
 
-- name: Create user-friendly link
+- name: Create convenient link
   file:
     state: link
-    src: /opt/rocketmq-{{ rocketmq_name }}
+    src: /opt/rocketmq-all-{{ rocketmq_version }}-bin-release
     dest: /opt/rocketmq
 
-- name: Build downloaded artifact
-  command: mvn -Prelease-all -DskipTests clean install -U
-  args:
-    chdir: /opt/rocketmq
-  become: true
-  environment:
-    PATH: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/:{{ ansible_env.PATH }}'
+- name: Setting Environment
+  shell: |
+    echo 'export PATH="$PATH:{{ rocketmq_dir }}/bin"' >> /etc/profile
+    echo 'export NAMESRV_ADDR={{ rocketmq_name_server_private_ip }}:9876'
 
-- name: Copy mqnameserver.sh
+- name: Configuration RocketMQ Name Server
   run_once: true
   delegate_to: "{{ item }}"
   copy:
-    src: mqnameserver.sh
-    dest: /opt/rocketmq/mqnameserver.sh
-    mode: 0755
-  with_items:
-    - "{{ rocketmq_name_server }}"
-    
-- name: Link mqnamesrv init script to /etc/init.d
-  run_once: true
-  delegate_to: "{{ item }}"
-  file:
-    state: link
-    src: /opt/rocketmq/mqnameserver.sh
-    dest: /etc/init.d/mqnameserver
+    src: mqnamesrv.service
+    dest: /lib/systemd/system/
   with_items:
     - "{{ rocketmq_name_server }}"
 
-- name: Start mqnameserver
+- name: Reload daemon service on nameserver
+  run_once: true
+  delegate_to: "{{ item }}"
+  shell: systemctl daemon-reload
+  with_items:
+    - "{{ rocketmq_name_server }}"
+
+- name: Start RocketMQ Name Server
   run_once: true
   delegate_to: "{{ item }}"
   service:
-    name: mqnameserver
-    state: restarted
-  become: true
+    name: mqnamesrv
+    state: started
+    enabled: yes
   with_items:
     - "{{ rocketmq_name_server }}"
-    
+
 - name: Wait for mqnameserver to start
   wait_for: 
     host: "{{ item }}"
@@ -173,50 +160,46 @@
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Copy mqmaster.sh to master
+- name: Configuration master RocketMQ Broker Server
   run_once: true
   delegate_to: "{{ item }}"
   template:
-    src: mqmaster.sh.j2
-    dest: /opt/rocketmq/mqmaster.sh
-    mode: 0755
+    src: mqbroker-master.service.j2
+    dest: /lib/systemd/system/mqbroker.service
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Link mqbroker init script to /etc/init.d on master
+- name: Reload daemon service on master
   run_once: true
   delegate_to: "{{ item }}"
-  file:
-    state: link
-    src: /opt/rocketmq/mqmaster.sh
-    dest: /etc/init.d/mqmaster
+  shell: systemctl daemon-reload
   with_items:
     - "{{ rocketmq_broker_master }}"
 
-- name: Start master mqbroker
+- name: Start master RocketMQ Broker Server
   run_once: true
   delegate_to: "{{ item }}"
   service:
-    name: mqmaster
-    state: restarted
-  become: true
+    name: mqbroker
+    state: started
+    enabled: yes
   with_items:
     - "{{ rocketmq_broker_master }}"
 
 - name: Wait for master mqbroker to start
-  wait_for: 
+  wait_for:
     host: "{{ item }}"
     port: "{{ rocketmq_broker_port_main }}"
     delay: 10
     timeout: 640
     state: started
-  with_items: 
+  with_items:
     - "{{ rocketmq_broker_master }}"
 
 - name: Copy slave.properties to slave 1
   run_once: true
   delegate_to: "{{ item }}"
-  template:
+  copy:
     src: slave_1.properties
     dest: /opt/rocketmq/slave.properties
   with_items:
@@ -225,30 +208,26 @@
 - name: Copy slave.properties to slaves 2
   run_once: true
   delegate_to: "{{ item }}"
-  template:
+  copy:
     src: slave_2.properties
     dest: /opt/rocketmq/slave.properties
   with_items:
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Copy mqslave.sh to slaves
+- name: Configuration slaves RocketMQ Broker Server
   run_once: true
   delegate_to: "{{ item }}"
   template:
-    src: mqslave.sh.j2
-    dest: /opt/rocketmq/mqslave.sh
-    mode: 0755
+    src: mqbroker-slave.service.j2
+    dest: /lib/systemd/system/mqbroker.service
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Link mqslave init script to /etc/init.d on slaves
+- name: Reload daemon service on slaves
   run_once: true
   delegate_to: "{{ item }}"
-  file:
-    state: link
-    src: /opt/rocketmq/mqslave.sh
-    dest: /etc/init.d/mqslave
+  shell: systemctl daemon-reload
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
@@ -257,38 +236,38 @@
   run_once: true
   delegate_to: "{{ item }}"
   service:
-    name: mqslave
-    state: restarted
-  become: true
+    name: mqbroker
+    state: started
+    enabled: yes
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
 
-- name: Wait for master slave 1 to start
-  wait_for: 
+- name: Wait for slave 1 broker to start
+  wait_for:
     host: "{{ item }}"
     port: "{{ rocketmq_broker_port_main }}"
     delay: 10
     timeout: 640
     state: started
-  with_items: 
+  with_items:
     - "{{ rocketmq_broker_slave_1 }}"
 
 - name: Start slave 2
   run_once: true
   delegate_to: "{{ item }}"
   service:
-    name: mqslave
-    state: restarted
-  become: true
+    name: mqbroker
+    state: started
+    enabled: yes
   with_items:
     - "{{ rocketmq_broker_slave_2 }}"
 
-- name: Wait for master slave 2 to start
-  wait_for: 
+- name: Wait for slave 2 broker to start
+  wait_for:
     host: "{{ item }}"
     port: "{{ rocketmq_broker_port_main }}"
     delay: 10
     timeout: 640
     state: started
-  with_items: 
+  with_items:
     - "{{ rocketmq_broker_slave_2 }}"

@@ -1,0 +1,9 @@
+[Unit]
+Description=RocketMQ Broker
+After=network.target
+[Service]
+Type=simple
+ExecStart=/opt/rocketmq/bin/mqbroker -c /opt/rocketmq/master.properties -n {{ rocketmq_name_server_private_ip }}:{{ rocketmq_name_server_port }}
+ExecStop=/opt/rocketmq/bin/mqshutdown broker
+[Install]
+WantedBy=multi-user.target
