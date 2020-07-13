@@ -11,9 +11,14 @@
   set_fact:
     rabbitmq_first_host: "{{ hostvars[groups['rabbitmq'][0]]['ansible_hostname'] }}"
 
+- name: Remove preinstalled erlang
+  yum:
+    name: erlang-erts-R16B-03.18.el7.x86_64
+    state: absent
+
 - name: Ensure erlang is installed
   yum:
-    name: erlang
+    name: https://packages.erlang-solutions.com/erlang/rpm/centos/7/x86_64/esl-erlang_23.0.2-2~centos~7_amd64.rpm
     state: present
 
 - name: Install rabbitmq-server
@@ -64,5 +69,22 @@
     name: rabbitmq-server
     state: started
 
-- name: Create ha policy
-  command: rabbitmqctl set_policy ha-all "^ha\." '{"ha-mode":"all"}'
+- name: Install python3 (required for rabbitmqadmin)
+  yum:
+    name: python3
+    state: present
+  when: ansible_hostname == rabbitmq_first_host
+
+- name: Download rabbitmqadmin
+  get_url:
+    url: http://{{ rabbitmq_first_host }}:15672/cli/rabbitmqadmin
+    dest: /usr/local/bin
+  when: ansible_hostname == rabbitmq_first_host
+
+- name: Make rabbitmqadmin executable
+  file: dest=/usr/local/bin/rabbitmqadmin mode=a+x
+  when: ansible_hostname == rabbitmq_first_host
+
+- name: Create queue
+  command: rabbitmqadmin declare queue name="quorum.perf" queue_type=quorum
+  when: ansible_hostname == rabbitmq_first_host

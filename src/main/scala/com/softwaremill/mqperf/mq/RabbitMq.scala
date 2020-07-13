@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 
 class RabbitMq(testConfig: TestConfig) extends Mq {
 
-  private val QueueName = "ha.mqperf"
+  private val QueueName = "quorum.mqperf"
 
   private val cf = new ConnectionFactory()
   cf.setHost(testConfig.brokerHosts.head)
