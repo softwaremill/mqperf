@@ -21,7 +21,7 @@ class RabbitMq(testConfig: TestConfig) extends Mq {
 
   def newChannel(): Channel = {
     val channel = conn.createChannel()
-    channel.queueDeclare(QueueName, true, false, false, null)
+    channel.queueDeclarePassive(QueueName)
     channel
   }
 
