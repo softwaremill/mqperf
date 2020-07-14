@@ -78,13 +78,13 @@
 - name: Download rabbitmqadmin
   get_url:
     url: http://{{ rabbitmq_first_host }}:15672/cli/rabbitmqadmin
-    dest: /usr/local/bin
+    dest: /usr/sbin
   when: ansible_hostname == rabbitmq_first_host
 
 - name: Make rabbitmqadmin executable
-  file: dest=/usr/local/bin/rabbitmqadmin mode=a+x
+  file: dest=/usr/sbin/rabbitmqadmin mode=a+x
   when: ansible_hostname == rabbitmq_first_host
 
 - name: Create queue
-  command: rabbitmqadmin declare queue name="quorum.perf" queue_type=quorum
+  command: rabbitmqadmin declare queue name="quorum.mqperf" queue_type=quorum
   when: ansible_hostname == rabbitmq_first_host
