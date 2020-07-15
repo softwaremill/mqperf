@@ -46,7 +46,7 @@ class RabbitMq(testConfig: TestConfig) extends Mq {
   override def createReceiver() =
     new MqReceiver {
       private val channel = newChannel()
-      channel.basicQos(testConfig.mqConfig.getInt("qos"), true) // fair dispatch - up to `qos` unack can be received
+      channel.basicQos(testConfig.mqConfig.getInt("qos"), false) // fair dispatch - up to `qos` unack can be received
 
       // unbounded queue - but we'll only get up to `qos` entries
       private val queue = new ConcurrentLinkedQueue[(MsgId, String)]()
