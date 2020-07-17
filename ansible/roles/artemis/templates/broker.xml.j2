@@ -20,6 +20,7 @@ under the License.
 
 <configuration xmlns="urn:activemq"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xi="http://www.w3.org/2001/XInclude"
                xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
 
     <core xmlns="urn:activemq:core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -32,31 +33,47 @@ under the License.
         <!-- this could be ASYNCIO or NIO
          -->
         <journal-type>MAPPED</journal-type>
-        
+
         <security-enabled>false</security-enabled>
 
-        <paging-directory>./data/paging</paging-directory>
+         <paging-directory>data/paging</paging-directory>
 
-        <bindings-directory>./data/bindings</bindings-directory>
+        <bindings-directory>data/bindings</bindings-directory>
 
-        <journal-directory>./data/journal</journal-directory>
+         <journal-directory>data/journal</journal-directory>
 
-        <large-messages-directory>./data/large-messages</large-messages-directory>
+         <large-messages-directory>data/large-messages</large-messages-directory>
 
-        <journal-datasync>false</journal-datasync>
-        
-        <journal-sync-non-transactional>false</journal-sync-non-transactional>
+         <journal-datasync>false</journal-datasync>
 
-        <journal-sync-transactional>false</journal-sync-transactional>
+         <journal-min-files>2</journal-min-files>
 
-        <journal-min-files>2</journal-min-files>
+         <journal-pool-files>10</journal-pool-files>
 
-        <journal-pool-files>-1</journal-pool-files>
+      <journal-device-block-size>4096</journal-device-block-size>
 
-        <!--
-          You can specify the NIC you want to use to verify if the network
-           <network-check-NIC>theNickName</network-check-NIC>
-          -->
+      <journal-file-size>10M</journal-file-size>
+
+      <!--
+       This value was determined through a calculation.
+       Your system could perform 7.14 writes per millisecond
+       on the current journal configuration.
+       That translates as a sync write every 140000 nanoseconds.
+
+       Note: If you specify 0 the system will perform writes directly to the disk.
+             We recommend this to be 0 if you are using journalType=MAPPED and journal-datasync=false.
+      -->
+      <journal-buffer-timeout>736000</journal-buffer-timeout>
+
+
+      <!--
+        When using ASYNCIO, this will determine the writing queue depth for libaio.
+       -->
+      <journal-max-io>4096</journal-max-io>
+      <!--
+        You can verify the network health of a particular NIC by specifying the <network-check-NIC> element.
+         <network-check-NIC>theNicName</network-check-NIC>
+        -->
 
         <!--
           Use this to use an HTTP server to validate the network
@@ -67,7 +84,7 @@ under the License.
 
         <!-- this is a comma separated list, no spaces, just DNS or IPs
              it should accept IPV6
-  
+
              Warning: Make sure you understand your network topology as this is meant to validate if your network is valid.
                       Using IPs that could eventually disappear or be partially visible may defeat the purpose.
                       You can use a list of multiple IPs, and if any successful ping will make the server OK to continue running -->
@@ -80,13 +97,6 @@ under the License.
         <!-- <network-check-ping6-command>ping6 -c 1 %2$s</network-check-ping6-command> -->
 
 
-        <!--
-         This value was determined through a calculation.
-         Your system could perform 1.36 writes per millisecond
-         on the current journal configuration.
-         That translates as a sync write every 736000 nanoseconds
-        -->
-        <journal-buffer-timeout>736000</journal-buffer-timeout>
 
         <connectors>
             <!-- Connector used to be announced through cluster connections and notifications -->
@@ -104,31 +114,55 @@ under the License.
              that won't support flow control. -->
         <max-disk-usage>90</max-disk-usage>
 
-        <!-- the system will enter into page mode once you hit this limit.
-             This is an estimate in bytes of how much the messages are using in memory
-  
-              The system will use half of the available memory (-Xmx) by default for the global-max-size.
-              You may specify a different value here if you need to customize it to your needs.
-        -->
-        <global-max-size>8G</global-max-size>
+      <!-- should the broker detect dead locks and other issues -->
+      <critical-analyzer>true</critical-analyzer>
 
-        <acceptors>
+      <critical-analyzer-timeout>120000</critical-analyzer-timeout>
 
-            <!-- useEpoll means: it will use Netty epoll if you are on a system (Linux) that supports it -->
-            <!-- amqpCredits: The number of credits sent to AMQP producers -->
-            <!-- amqpLowCredits: The server will send the # credits specified at amqpCredits at this low mark -->
+      <critical-analyzer-check-period>60000</critical-analyzer-check-period>
+
+      <critical-analyzer-policy>HALT</critical-analyzer-policy>
+
+
+      <page-sync-timeout>720000</page-sync-timeout>
+
+
+            <!-- the system will enter into page mode once you hit this limit.
+           This is an estimate in bytes of how much the messages are using in memory
+
+            The system will use half of the available memory (-Xmx) by default for the global-max-size.
+            You may specify a different value here if you need to customize it to your needs.
+
+            <global-max-size>8GB</global-max-size>
+
+      -->
+
+      <acceptors>
+
+         <!-- useEpoll means: it will use Netty epoll if you are on a system (Linux) that supports it -->
+         <!-- amqpCredits: The number of credits sent to AMQP producers -->
+         <!-- amqpLowCredits: The server will send the # credits specified at amqpCredits at this low mark -->
+         <!-- amqpDuplicateDetection: If you are not using duplicate detection, set this to false
+                                      as duplicate detection requires applicationProperties to be parsed on the server. -->
+         <!-- amqpMinLargeMessageSize: Determines how many bytes are considered large, so we start using files to hold their data.
+                                       default: 102400, -1 would mean to disable large mesasge control -->
+
+         <!-- Note: If an acceptor needs to be compatible with HornetQ and/or Artemis 1.x clients add
+                    "anycastPrefix=jms.queue.;multicastPrefix=jms.topic." to the acceptor url.
+                    See https://issues.apache.org/jira/browse/ARTEMIS-1644 for more information. -->
+
 
             <!-- Acceptor for every supported protocol -->
             <acceptor name="artemis">tcp://{{tmpl_var_private_ip}}:61616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
 
-            <!-- AMQP Acceptor.  Listens on default AMQP port for AMQP traffic.-->
-            <acceptor name="amqp">tcp://{{tmpl_var_private_ip}}:5672?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=AMQP;useEpoll=true;amqpCredits=1000;amqpMinCredits=300</acceptor>
+         <!-- AMQP Acceptor.  Listens on default AMQP port for AMQP traffic.-->
+         <acceptor name="amqp">tcp://{{tmpl_var_private_ip}}:5672?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=AMQP;useEpoll=true;amqpCredits=1000;amqpLowCredits=300;amqpMinLargeMessageSize=102400;amqpDuplicateDetection=false</acceptor>
 
             <!-- STOMP Acceptor. -->
             <acceptor name="stomp">tcp://{{tmpl_var_private_ip}}:61613?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=STOMP;useEpoll=true</acceptor>
 
-            <!-- HornetQ Compatibility Acceptor.  Enables HornetQ Core and STOMP for legacy HornetQ clients. -->
-            <acceptor name="hornetq">tcp://{{tmpl_var_private_ip }}:5445?protocols=HORNETQ,STOMP;useEpoll=true</acceptor>
+         <!-- HornetQ Compatibility Acceptor.  Enables HornetQ Core and STOMP for legacy HornetQ clients. -->
+         <acceptor name="hornetq">tcp://{{tmpl_var_private_ip}}:5445?anycastPrefix=jms.queue.;multicastPrefix=jms.topic.;protocols=HORNETQ,STOMP;useEpoll=true</acceptor>
 
             <!-- MQTT Acceptor -->
             <acceptor name="mqtt">tcp://{{tmpl_var_private_ip}}:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;useEpoll=true</acceptor>
@@ -144,79 +178,80 @@ under the License.
         <cluster-user>artemis</cluster-user>
         <cluster-password>artemis</cluster-password>
 
-        <cluster-connections>
-            <cluster-connection name="my-cluster">
-                <connector-ref>artemis</connector-ref>
-                <message-load-balancing>ON_DEMAND</message-load-balancing>
-                <max-hops>0</max-hops>
-                <static-connectors>
-                    {% for connector in tmpl_var_connectors %}
-                        <connector-ref>{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}</connector-ref>
-                    {% endfor %}               
-                </static-connectors>
-            </cluster-connection>
-        </cluster-connections>
+      <cluster-connections>
+         <cluster-connection name="my-cluster">
+            <connector-ref>artemis</connector-ref>
+            <message-load-balancing>ON_DEMAND</message-load-balancing>
+            <max-hops>0</max-hops>
+             <static-connectors>
+                      {% for connector in tmpl_var_connectors %}
+                          <connector-ref>{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}</connector-ref>
+                      {% endfor %}
+            </static-connectors>
+         </cluster-connection>
+      </cluster-connections>
 
-        <security-settings>
-            <security-setting match="#">
-                <permission type="createNonDurableQueue" roles="amq"/>
-                <permission type="deleteNonDurableQueue" roles="amq"/>
-                <permission type="createDurableQueue" roles="amq"/>
-                <permission type="deleteDurableQueue" roles="amq"/>
-                <permission type="createAddress" roles="amq"/>
-                <permission type="deleteAddress" roles="amq"/>
-                <permission type="consume" roles="amq"/>
-                <permission type="browse" roles="amq"/>
-                <permission type="send" roles="amq"/>
-                <!-- we need this otherwise ./artemis data imp wouldn't work -->
-                <permission type="manage" roles="amq"/>
-            </security-setting>
-        </security-settings>
 
-        <address-settings>
-            <!-- if you define auto-create on certain queues, management has to be auto-create -->
-            <address-setting match="activemq.management#">
-                <dead-letter-address>DLQ</dead-letter-address>
-                <expiry-address>ExpiryQueue</expiry-address>
-                <redelivery-delay>0</redelivery-delay>
-                <!-- with -1 only the global-max-size is in use for limiting -->
-                <max-size-bytes>-1</max-size-bytes>
-                <message-counter-history-day-limit>10</message-counter-history-day-limit>
-                <address-full-policy>PAGE</address-full-policy>
-                <auto-create-queues>true</auto-create-queues>
-                <auto-create-addresses>true</auto-create-addresses>
-                <auto-create-jms-queues>true</auto-create-jms-queues>
-                <auto-create-jms-topics>true</auto-create-jms-topics>
-            </address-setting>
-            <!--default for catch all-->
-            <address-setting match="#">
-                <dead-letter-address>DLQ</dead-letter-address>
-                <expiry-address>ExpiryQueue</expiry-address>
-                <redelivery-delay>0</redelivery-delay>
-                <!-- with -1 only the global-max-size is in use for limiting -->
-                <max-size-bytes>-1</max-size-bytes>
-                <message-counter-history-day-limit>10</message-counter-history-day-limit>
-                <address-full-policy>PAGE</address-full-policy>
-                <auto-create-queues>true</auto-create-queues>
-                <auto-create-addresses>true</auto-create-addresses>
-                <auto-create-jms-queues>true</auto-create-jms-queues>
-                <auto-create-jms-topics>true</auto-create-jms-topics>
-            </address-setting>
-        </address-settings>
+      <security-settings>
+         <security-setting match="#">
+            <permission type="createNonDurableQueue" roles="amq"/>
+            <permission type="deleteNonDurableQueue" roles="amq"/>
+            <permission type="createDurableQueue" roles="amq"/>
+            <permission type="deleteDurableQueue" roles="amq"/>
+            <permission type="createAddress" roles="amq"/>
+            <permission type="deleteAddress" roles="amq"/>
+            <permission type="consume" roles="amq"/>
+            <permission type="browse" roles="amq"/>
+            <permission type="send" roles="amq"/>
+            <!-- we need this otherwise ./artemis data imp wouldn't work -->
+            <permission type="manage" roles="amq"/>
+         </security-setting>
+      </security-settings>
 
-        <addresses>
-            <address name="DLQ">
-                <anycast>
-                    <queue name="DLQ"/>
-                </anycast>
-            </address>
-            <address name="ExpiryQueue">
-                <anycast>
-                    <queue name="ExpiryQueue"/>
-                </anycast>
-            </address>
+      <address-settings>
+         <!-- if you define auto-create on certain queues, management has to be auto-create -->
+         <address-setting match="activemq.management#">
+            <dead-letter-address>DLQ</dead-letter-address>
+            <expiry-address>ExpiryQueue</expiry-address>
+            <redelivery-delay>0</redelivery-delay>
+            <!-- with -1 only the global-max-size is in use for limiting -->
+            <max-size-bytes>-1</max-size-bytes>
+            <message-counter-history-day-limit>10</message-counter-history-day-limit>
+            <address-full-policy>PAGE</address-full-policy>
+            <auto-create-queues>true</auto-create-queues>
+            <auto-create-addresses>true</auto-create-addresses>
+            <auto-create-jms-queues>true</auto-create-jms-queues>
+            <auto-create-jms-topics>true</auto-create-jms-topics>
+         </address-setting>
+         <!--default for catch all-->
+         <address-setting match="#">
+            <dead-letter-address>DLQ</dead-letter-address>
+            <expiry-address>ExpiryQueue</expiry-address>
+            <redelivery-delay>0</redelivery-delay>
+            <!-- with -1 only the global-max-size is in use for limiting -->
+            <max-size-bytes>-1</max-size-bytes>
+            <message-counter-history-day-limit>10</message-counter-history-day-limit>
+            <address-full-policy>PAGE</address-full-policy>
+            <auto-create-queues>true</auto-create-queues>
+            <auto-create-addresses>true</auto-create-addresses>
+            <auto-create-jms-queues>true</auto-create-jms-queues>
+            <auto-create-jms-topics>true</auto-create-jms-topics>
+         </address-setting>
+      </address-settings>
 
-        </addresses>
+      <addresses>
+         <address name="DLQ">
+            <anycast>
+               <queue name="DLQ" />
+            </anycast>
+         </address>
+         <address name="ExpiryQueue">
+            <anycast>
+               <queue name="ExpiryQueue" />
+            </anycast>
+         </address>
 
-    </core>
+      </addresses>
+
+   </core>
 </configuration>
