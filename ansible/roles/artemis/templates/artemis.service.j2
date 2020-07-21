@@ -1,0 +1,14 @@
+[Unit]
+Description=Apache ActiveMQ Artemis
+After=network.target
+[Service]
+Type=forking
+User=artemis
+Group=artemis
+ExecStart=/opt/{{ artemis_name }}-broker/bin/artemis-service start
+ExecStop=/opt/{{ artemis_name }}-broker/bin/artemis-service stop
+UMask=0007
+RestartSec=10
+Restart=always
+[Install]
+WantedBy=multi-user.target

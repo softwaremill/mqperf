@@ -3,11 +3,11 @@
   package:
     name:   libaio
     state:  installed
-    
+
 - name: Create artemis user
   user:
     name: "{{ artemis_username }}"
-    shell: /bin/bash    
+    shell: /bin/bash
 
 - name: Download artemis
   get_url:
@@ -70,6 +70,7 @@
     --host "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
     --cluster-user artemis 
     --cluster-password artemis
+    --force
   with_items:
     - "{{ artemis_broker_master }}"
     
@@ -87,6 +88,7 @@
     --host "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
     --cluster-user artemis 
     --cluster-password artemis
+    --force
   with_items:
     - "{{ artemis_broker_slave_1 }}"
 
@@ -104,11 +106,13 @@
     --host "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
     --cluster-user artemis 
     --cluster-password artemis
+    --force
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
 - set_fact: 
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}"
+    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_master].ec2_ip_address }}"
     tmpl_var_connectors:          "{{ [artemis_broker_slave_1, artemis_broker_slave_2] }}"
     tmpl_var_replication_policy:  "<master/>"
   run_once: true  
@@ -134,8 +138,18 @@
   with_items:
     - "{{ artemis_broker_master }}"
 
+- name: Copy jolokia-access.xml to master
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src=jolokia-access.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
+  with_items:
+    - "{{ artemis_broker_master }}"
+
 - set_fact: 
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}"
+    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_slave_1].ec2_ip_address }}"
     tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_2] }}"
     tmpl_var_replication_policy:  "<slave/>"
   run_once: true  
@@ -161,12 +175,21 @@
   with_items:
     - "{{ artemis_broker_slave_1 }}"
 
+- name: Copy jolokia-access.xml to slave 1
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src=jolokia-access.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
+  with_items:
+    - "{{ artemis_broker_slave_1 }}"
 
-- set_fact: 
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
+- set_fact:
+    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}"
+    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_slave_2].ec2_ip_address }}"
     tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_1] }}"
     tmpl_var_replication_policy:  "<slave/>"
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
   with_items:
     - "{{ artemis_broker_slave_2 }}"
@@ -189,21 +212,30 @@
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
+- name: Copy jolokia-access.xml to slave 2
+  run_once: true
+  delegate_to: "{{ item }}"
+  template:
+    src=jolokia-access.xml.j2
+    dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
+  with_items:
+    - "{{ artemis_broker_slave_2 }}"
+
+- name: Copy systemd artemis.service to all nodes
+  template:
+    src=artemis.service.j2
+    dest=/lib/systemd/system/artemis.service
+
 - name: Change broker's owner
   file:
     path: /opt/{{ artemis_name }}-broker/
     owner: "{{artemis_username}}"
     group: "{{artemis_username}}"
-
-- name: Link init script to /etc/init.d
-  file:
-    state: link
-    src: /opt/{{ artemis_name }}-broker/bin/artemis-service
-    dest: /etc/init.d/artemis
+    recurse: true
 
 - name: Increase xmx
   replace:
-    path: /opt/apache-artemis-2.2.0-broker/etc/artemis.profile
+    path: /opt/{{ artemis_name }}-broker/etc/artemis.profile
     regexp: 'Xmx2G'
     replace: 'Xmx16G'
     backup: yes
@@ -214,4 +246,3 @@
   service:
     name: artemis
     state: restarted
-    
