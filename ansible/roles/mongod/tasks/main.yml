@@ -3,8 +3,8 @@
 
 - name: Create the repository for Mongodb
   copy: 
-    src: mongodb-org-3.4.repo 
-    dest: /etc/yum.repos.d/mongodb-org-3.4.repo
+    src: mongodb-org-4.2.repo
+    dest: /etc/yum.repos.d/mongodb-org-4.2.repo
   become: true
 
 - name: Install mongo packages
