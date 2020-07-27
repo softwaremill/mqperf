@@ -29,6 +29,7 @@ lazy val oracleaq = project.in(file("oracleaq")).
 name := "mqperf"
 
 val prometheusVersion = "0.9.0"
+val doobieVersion = "0.9.0"
 
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk" % "1.11.797" exclude ("commons-logging", "commons-logging"),
@@ -48,7 +49,9 @@ libraryDependencies ++= Seq(
   "org.apache.rocketmq" % "rocketmq-client" % "4.7.0" exclude ("io.netty", "netty-all") exclude ("commons-logging", "commons-logging"),
   "com.softwaremill.kmq" %% "core" % "0.2.3",
   "io.prometheus" % "simpleclient" % prometheusVersion,
-  "io.prometheus" % "simpleclient_common" % prometheusVersion
+  "io.prometheus" % "simpleclient_common" % prometheusVersion,
+  "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+  "org.tpolecat" %% "doobie-hikari" % doobieVersion
 )
 
 assemblyOption in assembly ~= {

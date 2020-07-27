@@ -55,9 +55,14 @@ object PrometheusMetricServer extends StrictLogging {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     val metricsExporter = start(registry, interface, port)
-    metricsExporter.onFailure { case _ => System.exit(-1) }
+    metricsExporter.onFailure { case _ => System.exit(1) }
 
-    thunk
+    try thunk
+    catch {
+      case e: Throwable =>
+        metricsExporter.map(_()) //terminate http server
+        throw e
+    }
 
     Thread.sleep(10000) // wait for the last metrics export
     metricsExporter.foreach(_())
