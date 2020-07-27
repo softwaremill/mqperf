@@ -58,14 +58,10 @@ object PrometheusMetricServer extends StrictLogging {
     metricsExporter.onFailure { case _ => System.exit(1) }
 
     try thunk
-    catch {
-      case e: Throwable =>
-        metricsExporter.map(_()) //terminate http server
-        throw e
+    finally {
+      Thread.sleep(10000) // wait for the last metrics export
+      metricsExporter.foreach(_()) //terminate http server
     }
-
-    Thread.sleep(10000) // wait for the last metrics export
-    metricsExporter.foreach(_())
   }
 
   val DefaultInterface = "0.0.0.0"
