@@ -63,7 +63,15 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
     closingHandle.unsafeRunTimed(10 seconds).getOrElse(throw new TimeoutException())
   }
 
+  private def createJobTable(): Unit = {
+    sql"""CREATE TABLE IF NOT EXISTS jobs(ID UUID PRIMARY KEY, CONTENT TEXT NOT NULL, NEXT_DELIVERY TIMESTAMPTZ NOT NULL)""".update.run
+      .transact(transactor)
+      .unsafeRunTimed(10 seconds)
+      .getOrElse(throw new TimeoutException())
+  }
+
   override def createSender(): MqSender = {
+    createJobTable()
     new MqSender {
       def insertMany(ps: List[String]): ConnectionIO[Int] = {
         val sql = "insert into jobs(id, content, next_delivery) values (?, ?, ?)"
@@ -91,6 +99,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
   }
 
   override def createReceiver(): MqReceiver = {
+    createJobTable()
     new MqReceiver {
       override def receive(maxMsgCount: Int): List[(MsgId, String)] = {
         val now = Instant.now()

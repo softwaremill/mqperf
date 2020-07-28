@@ -142,24 +142,6 @@
   with_items:
     - "{{ postgres_master }}"
 
-- name: '[Master] Create jobs table'
-  run_once: true
-  become: true
-  delegate_to: "{{ item }}"
-  become_user: postgres
-  postgresql_table:
-    login_unix_socket:
-    login_user: postgres
-    db: mq
-    name: jobs
-    owner: mq
-    columns:
-      - id uuid primary key
-      - content text not null
-      - next_delivery timestamptz not null
-  with_items:
-    - "{{ postgres_master }}"
-
 - name: '[Slave1] Backup master to slave'
   run_once: true
   command: pg_basebackup -h postgres_master -D /var/lib/pgsql/12/data -U postgres -P -v  -R -X stream -C -S {{ hostvars[item].ec2_private_ip_address|replace(".", "_") }}
