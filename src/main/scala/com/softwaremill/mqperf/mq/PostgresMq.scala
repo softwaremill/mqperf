@@ -2,7 +2,7 @@ package com.softwaremill.mqperf.mq
 
 import java.time.Instant
 import java.util.UUID
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{Executors, TimeoutException}
 
 import cats.data.NonEmptyList
 import com.softwaremill.mqperf.config.TestConfig
@@ -17,12 +17,14 @@ import doobie.hikari.HikariTransactor
 import scala.concurrent.duration._
 import doobie.util.log.{ExecFailure, ProcessingFailure, Success}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 class PostgresMq(testConfig: TestConfig) extends Mq {
   override type MsgId = UUID
-  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-  implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+  private val supportEC: ExecutionContextExecutorService =
+    ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+  implicit val cs: ContextShift[IO] = IO.contextShift(supportEC)
+  implicit val timer: Timer[IO] = IO.timer(supportEC)
 
   val transactorResource: Resource[IO, Transactor[IO]] = {
     /*
