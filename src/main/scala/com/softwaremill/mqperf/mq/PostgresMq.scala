@@ -39,7 +39,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
      * See also: https://tpolecat.github.io/doobie/docs/14-Managing-Connections.html#about-threading
      */
     for {
-      connectEC <- doobie.util.ExecutionContexts.fixedThreadPool[IO](32)
+      connectEC <- doobie.util.ExecutionContexts.fixedThreadPool[IO](testConfig.receiverThreads)
       transactEC <- doobie.util.ExecutionContexts.cachedThreadPool[IO]
       _ <- Resource.liftF(Async[IO].delay(Class.forName("org.postgresql.Driver")))
       xa <- HikariTransactor.initial[IO](connectEC, Blocker.liftExecutionContext(transactEC))
