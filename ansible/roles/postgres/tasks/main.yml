@@ -1,0 +1,216 @@
+---
+# This role deploys the postgres processes and sets up the replication set.
+# run "sudo -u postgres psql" to access psql
+# based on https://qiita.com/tmiki/items/00d22edc6a554f61bd04#%E3%82%B2%E3%82%B9%E3%83%88os%E3%81%8B%E3%82%89tcpip%E7%B5%8C%E7%94%B1%E3%81%A7%E6%8E%A5%E7%B6%9A%E3%81%A7%E3%81%8D%E3%82%8B%E3%82%88%E3%81%86%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B
+
+- name: '[All] Install a yum repository file of pgdg 1/2'
+  # The repository file will be downloaded from the URL https://yum.postgresql.org/repopackages.php
+  # This task cannot use the "yum" module because you cannot specify the "--nodeps" option with running the yum/rpm command.
+  command: "rpm -ivh --nodeps https://download.postgresql.org/pub/repos/yum/12/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+  args:
+    creates: /etc/yum.repos.d/pgdg-redhat-all.repo
+  become: true
+
+- name: '[All] Install a yum repository file of pgdg 2/2'
+  replace:
+    path: /etc/yum.repos.d/pgdg-redhat-all.repo
+    regexp: '\$releasever'
+    replace: '7'
+  become: true
+
+- name: '[All] Install PostgreSQL 12 packages'
+  yum:
+    name:
+      - python-psycopg2
+      - postgresql12
+      - postgresql12-server
+  become: true
+
+- set_fact: postgres_master="{{ groups['postgres'][0] }}"
+- set_fact: postgres_slave_1="{{ groups['postgres'][1] }}"
+- set_fact: postgres_slave_2="{{ groups['postgres'][2] }}"
+
+- name: '[Master] Set hostname'
+  run_once: true
+  become: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "postgres_master"
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Slave1] Set hostname'
+  run_once: true
+  become: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "postgres_slave_1"
+  with_items:
+    - "{{ postgres_slave_1 }}"
+
+- name: '[Slave2] Set hostname'
+  run_once: true
+  become: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "postgres_slave_2"
+  with_items:
+    - "{{ postgres_slave_2 }}"
+
+- name: '[All] Add nodes to /etc/hosts'
+  become: true
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {{ hostvars[postgres_master].ec2_private_ip_address }} postgres_master
+      {{ hostvars[postgres_slave_1].ec2_private_ip_address }} postgres_slave_1
+      {{ hostvars[postgres_slave_2].ec2_private_ip_address }} postgres_slave_2
+
+- name: '[Master] Perform the initdb command'
+  run_once: true
+  delegate_to: "{{ item }}"
+  command: "/usr/pgsql-12/bin/postgresql-12-setup initdb"
+  environment:
+    PGSETUP_INITDB_OPTIONS: '--encoding=UTF-8'
+  args:
+    creates: /var/lib/pgsql/12/data/PG_VERSION
+  become: true
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Make the PostgreSQL server can be connected with TCP/IP'
+  run_once: true
+  delegate_to: "{{ item }}"
+  lineinfile:
+    path: /var/lib/pgsql/12/data/postgresql.conf
+    regexp: "^listen_addresses = .*$"
+    line: "listen_addresses = '*'"
+  become: true
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Configure network access'
+  run_once: true
+  delegate_to: "{{ item }}"
+  blockinfile:
+    path: /var/lib/pgsql/12/data/pg_hba.conf
+    content: |
+      # authorized receiver/sender connection
+      host all         all 0.0.0.0/0          md5
+      # trusted slaves connections
+      host replication all postgres_slave_1 trust
+      host replication all postgres_slave_2 trust
+  become: true
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Start the PostgreSQL 12 service and make it running on rebooting'
+  run_once: true
+  delegate_to: "{{ item }}"
+  systemd:
+    name: postgresql-12
+    enabled: yes
+    state: started
+  become: true
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Create a PostgerSQL user named mq'
+  run_once: true
+  become: yes
+  delegate_to: "{{ item }}"
+  become_user: postgres
+  postgresql_user:
+    login_unix_socket:
+    login_user: postgres
+    name: mq
+    password: pass
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Create the mq database'
+  run_once: true
+  become: true
+  delegate_to: "{{ item }}"
+  become_user: postgres
+  postgresql_db:
+    login_unix_socket:
+    login_user: postgres
+    name: mq
+    owner: mq
+    state: present
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Slave1] Backup master to slave'
+  run_once: true
+  command: pg_basebackup -h postgres_master -D /var/lib/pgsql/12/data -U postgres -P -v  -R -X stream -C -S {{ hostvars[item].ec2_private_ip_address|replace(".", "_") }}
+  delegate_to: "{{ item }}"
+  args:
+    creates: /var/lib/pgsql/12/data/PG_VERSION
+  become: true
+  become_user: postgres
+  with_items:
+    - "{{ postgres_slave_1 }}"
+
+- name: '[Slave2] Backup master to slave'
+  run_once: true
+  command: pg_basebackup -h postgres_master -D /var/lib/pgsql/12/data -U postgres -P -v  -R -X stream -C -S {{ hostvars[item].ec2_private_ip_address|replace(".", "_") }}
+  delegate_to: "{{ item }}"
+  args:
+    creates: /var/lib/pgsql/12/data/PG_VERSION
+  become: true
+  become_user: postgres
+  with_items:
+    - "{{ postgres_slave_2 }}"
+
+- name: '[Slave1] Configure application name'
+  run_once: true
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ postgres_slave_1 }}"
+  become: true
+  lineinfile:
+    path: /var/lib/pgsql/12/data/postgresql.auto.conf
+    regexp: '^primary_conninfo = '
+    line: "primary_conninfo = 'application_name=slave1 user=postgres passfile=''/var/lib/pgsql/.pgpass'' host=postgres_master port=5432 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any'"
+
+- name: '[Slave2] Configure application name'
+  run_once: true
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ postgres_slave_2 }}"
+  become: true
+  lineinfile:
+    path: /var/lib/pgsql/12/data/postgresql.auto.conf
+    regexp: '^primary_conninfo = '
+    line: "primary_conninfo = 'application_name=slave2 user=postgres passfile=''/var/lib/pgsql/.pgpass'' host=postgres_master port=5432 sslmode=prefer sslcompression=0 gssencmode=prefer krbsrvname=postgres target_session_attrs=any'"
+
+- name: '[Master] Turn on synchronous replication'
+  delegate_to: "{{ item }}"
+  run_once: true
+  become: true
+  become_user: postgres
+  postgresql_set:
+    name: synchronous_standby_names
+    value: 'ANY 1 (slave1, slave2)'
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[Master] Do not require fsync on slaves to ack'
+  delegate_to: "{{ item }}"
+  run_once: true
+  become: true
+  become_user: postgres
+  postgresql_set:
+    name: synchronous_commit
+    value: remote_write
+  with_items:
+    - "{{ postgres_master }}"
+
+- name: '[All] Start the PostgreSQL 12 service and make it running on rebooting'
+  systemd:
+    name: postgresql-12
+    enabled: yes
+    state: restarted
+  become: true
