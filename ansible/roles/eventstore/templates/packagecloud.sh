@@ -13,6 +13,22 @@ unknown_os ()
   exit 1
 }
 
+gpg_check ()
+{
+  echo "Checking for gpg..."
+  if command -v gpg > /dev/null; then
+    echo "Detected gpg..."
+  else
+    echo "Installing gnupg for GPG verification..."
+    apt-get install -y gnupg
+    if [ "$?" -ne "0" ]; then
+      echo "Unable to install GPG! Your base system has a problem; please check your default OS's package repositories because GPG should work."
+      echo "Repository installation aborted."
+      exit 1
+    fi
+  fi
+}
+
 curl_check ()
 {
   echo "Checking for curl..."
@@ -21,6 +37,11 @@ curl_check ()
   else
     echo "Installing curl..."
     apt-get install -q -y curl
+    if [ "$?" -ne "0" ]; then
+      echo "Unable to install curl! Your base system has a problem; please check your default OS's package repositories because curl should work."
+      echo "Repository installation aborted."
+      exit 1
+    fi
   fi
 }
 
@@ -88,6 +109,7 @@ main ()
 {
   detect_os
   curl_check
+  gpg_check
 
   # Need to first run apt-get update so that apt-transport-https can be
   # installed
