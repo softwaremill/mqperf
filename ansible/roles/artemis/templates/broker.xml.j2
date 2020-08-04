@@ -67,7 +67,7 @@ under the License.
        Note: If you specify 0 the system will perform writes directly to the disk.
              We recommend this to be 0 if you are using journalType=MAPPED and journal-datasync=false.
       -->
-      <journal-buffer-timeout>736000</journal-buffer-timeout>
+      <journal-buffer-timeout>0</journal-buffer-timeout>
 
 
       <!--
@@ -136,10 +136,10 @@ under the License.
 
             The system will use half of the available memory (-Xmx) by default for the global-max-size.
             You may specify a different value here if you need to customize it to your needs.
-
-            <global-max-size>8GB</global-max-size>
-
       -->
+
+      <global-max-size>8GB</global-max-size>
+
 
       <acceptors>
 

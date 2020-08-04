@@ -22,6 +22,11 @@
     creates: /opt/{{ artemis_name }}
     owner:   "{{ artemis_username }}"
 
+- name: Replace artemis.so x64
+  copy:
+    src: libartemis-native-64.so
+    dest: /opt/{{ artemis_name }}/bin/lib/linux-x86_64/libartemis-native-64.so
+
 - name: Create user-friendly link
   file:
     state: link
@@ -237,7 +242,14 @@
   replace:
     path: /opt/{{ artemis_name }}-broker/etc/artemis.profile
     regexp: 'Xmx2G'
-    replace: 'Xmx48G'
+    replace: 'Xmx16G'
+    backup: yes
+
+- name: Drop UseStringDeduplication
+  replace:
+    path: /opt/{{ artemis_name }}-broker/etc/artemis.profile
+    regexp: '-XX:\+UseStringDeduplication'
+    replace: ''
     backup: yes
 
 - name: Start artemis
