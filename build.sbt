@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "log4j-over-slf4j" % "1.7.30",
   "org.apache.kafka" % "kafka-clients" % "2.5.0",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
-  "com.geteventstore" %% "eventstore-client" % "7.1.0",
+  "com.geteventstore" %% "eventstore-client" % "7.2.0",
   "org.apache.activemq" % "activemq-client" % "5.15.12" exclude ("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe" % "config" % "1.4.0",
   "org.apache.activemq" % "artemis-jms-client" % "2.13.0" exclude ("commons-logging", "commons-logging"),
