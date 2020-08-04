@@ -25,7 +25,7 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
   private val system = ActorSystem()
   private val firstHost = testConfig.brokerHosts.head
   private val settings = Settings(
-    address = new InetSocketAddress(firstHost, 1113),
+    address = new InetSocketAddress(firstHost, 2112),
     cluster = Some(
       ClusterSettings(
         gossipSeedsOrDns = GossipSeedsOrDns(testConfig.brokerHosts.map(h => new InetSocketAddress(h, 2112)): _*)
