@@ -9,10 +9,10 @@
     name: "{{ artemis_username }}"
     shell: /bin/bash
 
-- name: Download artemis
-  get_url:
+- name: Copy custom artemis
+  copy:
+    src: apache-artemis-2.15.0-SNAPSHOT-bin.tar.gz
     dest: "{{ artemis_download_dest }}"
-    url:  "{{ artemis_download_url }}"
     
 - name: Unpack archive
   unarchive:
@@ -21,11 +21,6 @@
     src:     "{{ artemis_download_dest }}"
     creates: /opt/{{ artemis_name }}
     owner:   "{{ artemis_username }}"
-
-- name: Replace artemis.so x64
-  copy:
-    src: libartemis-native-64.so
-    dest: /opt/{{ artemis_name }}/bin/lib/linux-x86_64/libartemis-native-64.so
 
 - name: Create user-friendly link
   file:
