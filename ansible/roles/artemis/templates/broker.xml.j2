@@ -225,6 +225,9 @@ under the License.
       </security-settings>
 
       <address-settings>
+         <address-setting match="#">
+            <redistribution-delay>0</redistribution-delay>
+         </address-setting>
          <!-- if you define auto-create on certain queues, management has to be auto-create -->
          <address-setting match="activemq.management#">
             <dead-letter-address>DLQ</dead-letter-address>
