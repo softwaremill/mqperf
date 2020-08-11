@@ -26,7 +26,7 @@ under the License.
     <core xmlns="urn:activemq:core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="urn:activemq:core ">
 
-        <name>{{tmpl_var_private_ip|replace(".", "_")}}</name>
+        <name>{{hostvars[item].ec2_private_ip_address|replace(".", "_")}}</name>
 
         <persistence-enabled>true</persistence-enabled>
 
@@ -67,7 +67,7 @@ under the License.
        Note: If you specify 0 the system will perform writes directly to the disk.
              We recommend this to be 0 if you are using journalType=MAPPED and journal-datasync=false.
       -->
-      <journal-buffer-timeout>736000</journal-buffer-timeout>
+      <journal-buffer-timeout>0</journal-buffer-timeout>
 
 
       <!--
@@ -104,11 +104,37 @@ under the License.
 
         <connectors>
             <!-- Connector used to be announced through cluster connections and notifications -->
-            <connector name="artemis">tcp://{{ tmpl_var_private_ip }}:61616</connector>
-            {% for connector in tmpl_var_connectors %}
-                <connector name="{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}">tcp://{{hostvars[connector].ec2_private_ip_address}}:61616</connector>
-            {% endfor %}
+            <connector name="netty-connector">tcp://{{ hostvars[item].ec2_private_ip_address }}:61616</connector>
         </connectors>
+
+           <!-- Clustering configuration -->
+          <broadcast-groups>
+             <broadcast-group name="my-broadcast-group">
+                <group-address>231.7.7.7</group-address>
+                <group-port>9876</group-port>
+                <broadcast-period>100</broadcast-period>
+                <connector-ref>netty-connector</connector-ref>
+             </broadcast-group>
+          </broadcast-groups>
+
+          <discovery-groups>
+             <discovery-group name="my-discovery-group">
+                <group-address>231.7.7.7</group-address>
+                <group-port>9876</group-port>
+                <refresh-timeout>10000</refresh-timeout>
+             </discovery-group>
+          </discovery-groups>
+
+          <cluster-connections>
+             <cluster-connection name="my-cluster">
+                <connector-ref>netty-connector</connector-ref>
+                <retry-interval>500</retry-interval>
+                <use-duplicate-detection>true</use-duplicate-detection>
+                <message-load-balancing>ON_DEMAND</message-load-balancing>
+                <max-hops>1</max-hops>
+                <discovery-group-ref discovery-group-name="my-discovery-group"/>
+             </cluster-connection>
+          </cluster-connections>
 
 
         <!-- how often we are looking for how many bytes are being used on the disk in ms -->
@@ -136,10 +162,9 @@ under the License.
 
             The system will use half of the available memory (-Xmx) by default for the global-max-size.
             You may specify a different value here if you need to customize it to your needs.
+            -->
 
-            <global-max-size>8GB</global-max-size>
-
-      -->
+      <global-max-size>48GB</global-max-size>
 
       <acceptors>
 
@@ -157,19 +182,19 @@ under the License.
 
 
             <!-- Acceptor for every supported protocol -->
-            <acceptor name="artemis">tcp://{{tmpl_var_private_ip}}:61616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+            <acceptor name="netty-acceptor">tcp://{{hostvars[item].ec2_private_ip_address}}:61616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
 
          <!-- AMQP Acceptor.  Listens on default AMQP port for AMQP traffic.-->
-         <acceptor name="amqp">tcp://{{tmpl_var_private_ip}}:5672?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=AMQP;useEpoll=true;amqpCredits=1000;amqpLowCredits=300;amqpMinLargeMessageSize=102400;amqpDuplicateDetection=false</acceptor>
+         <acceptor name="amqp">tcp://{{hostvars[item].ec2_private_ip_address}}:5672?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=AMQP;useEpoll=true;amqpCredits=1000;amqpLowCredits=300;amqpMinLargeMessageSize=102400;amqpDuplicateDetection=false</acceptor>
 
             <!-- STOMP Acceptor. -->
-            <acceptor name="stomp">tcp://{{tmpl_var_private_ip}}:61613?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=STOMP;useEpoll=true</acceptor>
+            <acceptor name="stomp">tcp://{{hostvars[item].ec2_private_ip_address}}:61613?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=STOMP;useEpoll=true</acceptor>
 
          <!-- HornetQ Compatibility Acceptor.  Enables HornetQ Core and STOMP for legacy HornetQ clients. -->
-         <acceptor name="hornetq">tcp://{{tmpl_var_private_ip}}:5445?anycastPrefix=jms.queue.;multicastPrefix=jms.topic.;protocols=HORNETQ,STOMP;useEpoll=true</acceptor>
+         <acceptor name="hornetq">tcp://{{hostvars[item].ec2_private_ip_address}}:5445?anycastPrefix=jms.queue.;multicastPrefix=jms.topic.;protocols=HORNETQ,STOMP;useEpoll=true</acceptor>
 
             <!-- MQTT Acceptor -->
-            <acceptor name="mqtt">tcp://{{tmpl_var_private_ip}}:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;useEpoll=true</acceptor>
+            <acceptor name="mqtt">tcp://{{hostvars[item].ec2_private_ip_address}}:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;useEpoll=true</acceptor>
 
         </acceptors>
 
@@ -181,19 +206,6 @@ under the License.
 
         <cluster-user>artemis</cluster-user>
         <cluster-password>artemis</cluster-password>
-
-      <cluster-connections>
-         <cluster-connection name="my-cluster">
-            <connector-ref>artemis</connector-ref>
-            <message-load-balancing>ON_DEMAND</message-load-balancing>
-            <max-hops>0</max-hops>
-             <static-connectors>
-                      {% for connector in tmpl_var_connectors %}
-                          <connector-ref>{{hostvars[connector].ec2_private_ip_address|replace(".", "_")}}</connector-ref>
-                      {% endfor %}
-            </static-connectors>
-         </cluster-connection>
-      </cluster-connections>
 
 
       <security-settings>

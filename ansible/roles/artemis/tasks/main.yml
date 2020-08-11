@@ -28,19 +28,38 @@
     src: /opt/{{ artemis_name }}
     dest: /opt/artemis
 
-- set_fact: artemis_broker_master="{{ groups['artemis'][0] }}"
-- set_fact: artemis_broker_slave_1="{{ groups['artemis'][1] }}"
-- set_fact: artemis_broker_slave_2="{{ groups['artemis'][2] }}"
+- set_fact: artemis_broker_master_1="{{ groups['artemis'][0] }}"
+- set_fact: artemis_broker_master_2="{{ groups['artemis'][1] }}"
+- set_fact: artemis_broker_master_3="{{ groups['artemis'][2] }}"
+- set_fact: artemis_broker_slave_1="{{ groups['artemis'][3] }}"
+- set_fact: artemis_broker_slave_2="{{ groups['artemis'][4] }}"
+- set_fact: artemis_broker_slave_3="{{ groups['artemis'][5] }}"
 
-- name: Set hostname master
+- name: Set hostname master 1/3
   run_once: true
   delegate_to: "{{ item }}"
   hostname:
-    name: "artemis_broker_master"
+    name: "artemis_broker_master_1"
   with_items:
-    - "{{ artemis_broker_master }}"
+    - "{{ artemis_broker_master_1 }}"
 
-- name: Set hostname slave 1
+- name: Set hostname master 2/3
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_master_2"
+  with_items:
+    - "{{ artemis_broker_master_2 }}"
+
+- name: Set hostname master 3/3
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_master_3"
+  with_items:
+    - "{{ artemis_broker_master_3 }}"
+
+- name: Set hostname slave 1/3
   run_once: true
   delegate_to: "{{ item }}"
   hostname:
@@ -48,7 +67,7 @@
   with_items:
     - "{{ artemis_broker_slave_1 }}"
 
-- name: Set hostname slave 2
+- name: Set hostname slave 2/3
   run_once: true
   delegate_to: "{{ item }}"
   hostname:
@@ -56,7 +75,15 @@
   with_items:
     - "{{ artemis_broker_slave_2 }}"
 
-- name: Create master broker
+- name: Set hostname slave 3/3
+  run_once: true
+  delegate_to: "{{ item }}"
+  hostname:
+    name: "artemis_broker_slave_3"
+  with_items:
+    - "{{ artemis_broker_slave_3 }}"
+
+- name: Create master brokers
   run_once: true
   delegate_to: "{{ item }}"
   command: |
@@ -67,14 +94,16 @@
     --password artemis 
     --allow-anonymous 
     --clustered 
-    --host "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}" 
+    --host "{{ hostvars[item].ec2_private_ip_address }}"
     --cluster-user artemis 
     --cluster-password artemis
     --force
   with_items:
-    - "{{ artemis_broker_master }}"
-    
-- name: Create slave 1 broker
+    - "{{ artemis_broker_master_1 }}"
+    - "{{ artemis_broker_master_2 }}"
+    - "{{ artemis_broker_master_3 }}"
+
+- name: Create slave brokers
   run_once: true
   delegate_to: "{{ item }}"
   command: |
@@ -85,58 +114,45 @@
     --password artemis 
     --allow-anonymous 
     --clustered 
-    --host "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}" 
+    --host "{{ hostvars[item].ec2_private_ip_address }}"
     --cluster-user artemis 
     --cluster-password artemis
     --force
   with_items:
     - "{{ artemis_broker_slave_1 }}"
+    - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_slave_3 }}"
 
-- name: Create slave 2 broker
+- set_fact:
+    tmpl_var_replication_policy:  "<master/>"
   run_once: true
   delegate_to: "{{ item }}"
-  command: |
-    /opt/{{ artemis_name }}/bin/artemis 
-    create 
-    /opt/{{ artemis_name }}-broker/ 
-    --user artemis 
-    --password artemis 
-    --allow-anonymous 
-    --clustered 
-    --host "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}" 
-    --cluster-user artemis 
-    --cluster-password artemis
-    --force
   with_items:
-    - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_master_1 }}"
+    - "{{ artemis_broker_master_2 }}"
+    - "{{ artemis_broker_master_3 }}"
 
-- set_fact: 
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_master].ec2_private_ip_address }}"
-    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_master].ec2_ip_address }}"
-    tmpl_var_connectors:          "{{ [artemis_broker_slave_1, artemis_broker_slave_2] }}"
-    tmpl_var_replication_policy:  "<master/>"
-  run_once: true  
-  delegate_to: "{{ item }}"
-  with_items:
-    - "{{ artemis_broker_master }}"
-  
 - name: Copy broker.xml.j2 to master
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
-  template: 
+  template:
     src=broker.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/broker.xml
   with_items:
-    - "{{ artemis_broker_master }}"
+    - "{{ artemis_broker_master_1 }}"
+    - "{{ artemis_broker_master_2 }}"
+    - "{{ artemis_broker_master_3 }}"
 
 - name: Copy bootstrap.xml.j2 to master
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
-  template: 
+  template:
     src=bootstrap.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
   with_items:
-    - "{{ artemis_broker_master }}"
+    - "{{ artemis_broker_master_1 }}"
+    - "{{ artemis_broker_master_2 }}"
+    - "{{ artemis_broker_master_3 }}"
 
 - name: Copy jolokia-access.xml to master
   run_once: true
@@ -145,81 +161,51 @@
     src=jolokia-access.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
   with_items:
-    - "{{ artemis_broker_master }}"
-
-- set_fact: 
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_1].ec2_private_ip_address }}"
-    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_slave_1].ec2_ip_address }}"
-    tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_2] }}"
-    tmpl_var_replication_policy:  "<slave/>"
-  run_once: true  
-  delegate_to: "{{ item }}"
-  with_items:
-    - "{{ artemis_broker_slave_1 }}"
-
-- name: Copy broker.xml.j2 to slave 1
-  run_once: true  
-  delegate_to: "{{ item }}"
-  template: 
-    src=broker.xml.j2
-    dest=/opt/{{ artemis_name }}-broker/etc/broker.xml
-  with_items:
-    - "{{ artemis_broker_slave_1 }}"
-
-- name: Copy bootstrap.xml.j2 to slave 1
-  run_once: true  
-  delegate_to: "{{ item }}"
-  template: 
-    src=bootstrap.xml.j2
-    dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
-  with_items:
-    - "{{ artemis_broker_slave_1 }}"
-
-- name: Copy jolokia-access.xml to slave 1
-  run_once: true
-  delegate_to: "{{ item }}"
-  template:
-    src=jolokia-access.xml.j2
-    dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
-  with_items:
-    - "{{ artemis_broker_slave_1 }}"
+    - "{{ artemis_broker_master_1 }}"
+    - "{{ artemis_broker_master_2 }}"
+    - "{{ artemis_broker_master_3 }}"
 
 - set_fact:
-    tmpl_var_private_ip:          "{{ hostvars[artemis_broker_slave_2].ec2_private_ip_address }}"
-    tmpl_var_public_ip:           "{{ hostvars[artemis_broker_slave_2].ec2_ip_address }}"
-    tmpl_var_connectors:          "{{ [artemis_broker_master, artemis_broker_slave_1] }}"
     tmpl_var_replication_policy:  "<slave/>"
   run_once: true
   delegate_to: "{{ item }}"
   with_items:
+    - "{{ artemis_broker_slave_1 }}"
     - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_slave_3 }}"
 
-- name: Copy broker.xml.j2 to slave 2
-  run_once: true  
+- name: Copy broker.xml.j2 to slave 1,2,3
+  run_once: true
   delegate_to: "{{ item }}"
-  template: 
+  template:
     src=broker.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/broker.xml
   with_items:
+    - "{{ artemis_broker_slave_1 }}"
     - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_slave_3 }}"
 
-- name: Copy bootstrap.xml.j2 to slave 2
-  run_once: true  
+- name: Copy bootstrap.xml.j2 to slave 1,2,3
+  run_once: true
   delegate_to: "{{ item }}"
-  template: 
+  template:
     src=bootstrap.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/bootstrap.xml
   with_items:
+    - "{{ artemis_broker_slave_1 }}"
     - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_slave_3 }}"
 
-- name: Copy jolokia-access.xml to slave 2
+- name: Copy jolokia-access.xml to slave 1,2,3
   run_once: true
   delegate_to: "{{ item }}"
   template:
     src=jolokia-access.xml.j2
     dest=/opt/{{ artemis_name }}-broker/etc/jolokia-access.xml
   with_items:
+    - "{{ artemis_broker_slave_1 }}"
     - "{{ artemis_broker_slave_2 }}"
+    - "{{ artemis_broker_slave_3 }}"
 
 - name: Copy systemd artemis.service to all nodes
   template:
