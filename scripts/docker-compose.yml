@@ -1,0 +1,96 @@
+version: '3.4'
+
+services:
+  eventstore.db:
+    image: eventstore/eventstore:release-5.0.8
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=3
+      - EVENTSTORE_INT_HTTP_PORT=2112
+      - EVENTSTORE_INT_IP=172.42.238.3
+      - EVENTSTORE_EXT_IP=172.42.238.3
+      - EVENTSTORE_DEV=true
+      - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
+      - EVENTSTORE_GOSSIP_SEED=172.42.238.4:2112,172.42.238.5:2112
+      - EVENTSTORE_DISCOVER_VIA_DNS=false
+      # - EVENTSTORE_DISCOVER_VIA_DNS=true
+      # - EVENTSTORE_CLUSTER_DNS=eventstore.local
+      # - EVENTSTORE_CLUSTER_GOSSIP_PORT=2112
+    ports:
+      - "1112:1112"
+      - "1113:1113"
+      - "2112:2112"
+      - "2113:2113"
+      - "30777"
+    networks:
+      app_net:
+        aliases:
+          - eventstore.local
+        ipv4_address: 172.42.238.3
+
+  eventstore.db2:
+    image: eventstore/eventstore:release-5.0.8
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=3
+      - EVENTSTORE_INT_HTTP_PORT=2112
+      - EVENTSTORE_INT_IP=172.42.238.4
+      - EVENTSTORE_EXT_IP=172.42.238.4
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
+      - EVENTSTORE_GOSSIP_SEED=172.42.238.3:2112,172.42.238.5:2112
+      - EVENTSTORE_DISCOVER_VIA_DNS=false
+      # - EVENTSTORE_DISCOVER_VIA_DNS=true
+      # - EVENTSTORE_CLUSTER_DNS=eventstore.local
+      # - EVENTSTORE_CLUSTER_GOSSIP_PORT=2112
+    expose:
+      - "1112"
+      - "1113"
+      - "2112"
+      - "2113"
+      - "30777"
+    networks:
+      app_net:
+        aliases:
+          - eventstore.local
+        ipv4_address: 172.42.238.4
+
+  eventstore.db3:
+    image: eventstore/eventstore:release-5.0.8
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=3
+      - EVENTSTORE_INT_HTTP_PORT=2112
+      - EVENTSTORE_INT_IP=172.42.238.5
+      - EVENTSTORE_EXT_IP=172.42.238.5
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
+      - EVENTSTORE_GOSSIP_SEED=172.42.238.3:2112,172.42.238.4:2112
+      - EVENTSTORE_DISCOVER_VIA_DNS=false
+      # - EVENTSTORE_DISCOVER_VIA_DNS=true
+      # - EVENTSTORE_CLUSTER_DNS=eventstore.local
+      # - EVENTSTORE_CLUSTER_GOSSIP_PORT=2112
+    expose:
+      - "1112"
+      - "1113"
+      - "2112"
+      - "2113"
+      - "30777"
+    networks:
+      app_net:
+        aliases:
+          - eventstore.local
+        ipv4_address: 172.42.238.5
+  sender:
+    image: softwaremill/mq-sender
+    networks:
+      app_net:
+        ipv4_address: 172.42.238.10
+  receiver:
+    image: softwaremill/mq-receiver
+    networks:
+      app_net:
+        ipv4_address: 172.42.238.2
+networks:
+  app_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.42.238.0/24"

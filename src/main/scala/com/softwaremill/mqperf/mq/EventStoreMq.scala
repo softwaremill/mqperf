@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import com.softwaremill.mqperf.config.TestConfig
-import eventstore.akka.MyPersistentSubscriptionActor.ManualAck
 import eventstore.akka.tcp.ConnectionActor
 import eventstore.akka.{LiveProcessingStarted, MyPersistentSubscriptionActor, Settings}
 import eventstore.cluster.{ClusterSettings, GossipSeedsOrDns}
 import eventstore._
+import eventstore.akka.MyPersistentSubscriptionActor.ManualAck
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -49,16 +49,14 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
 
   private lazy val receiveActor = system.actorOf(Props(new AddToBufferActor))
   private lazy val subscriptionActor = system.actorOf(
-    Props(
-      new MyPersistentSubscriptionActor(
-        connection,
-        receiveActor,
-        EventStream.Id(StreamId),
-        GroupName,
-        None,
-        settings,
-        false
-      )
+    MyPersistentSubscriptionActor.props(
+      connection,
+      receiveActor,
+      EventStream.Id(StreamId),
+      GroupName,
+      None,
+      settings,
+      false
     )
   )
   private val msgBuffer = new ConcurrentLinkedQueue[(UUID, String)]()
@@ -127,4 +125,35 @@ class EventStoreMq(testConfig: TestConfig) extends Mq {
   override def close(): Unit = {
     system.terminate()
   }
+}
+
+object ESSender extends App {
+  println("iteration 3")
+  val mq = new EventStoreMq(
+    TestConfig("", "", 0, 0, 0, 0, 0, 0, List("172.42.238.3", "172.42.238.4", "172.42.238.5"), "", null)
+  )
+  (0 until 100).foreach { i =>
+    mq.createSender().send(List("a", "b", "c", "d"))
+    Thread.sleep(100)
+  }
+
+  println("SENT")
+  mq.close()
+}
+
+object ESReceiver extends App {
+  println("iteration 3")
+  val mq = new EventStoreMq(
+    TestConfig("", "", 0, 0, 0, 0, 0, 0, List("172.42.238.3", "172.42.238.4", "172.42.238.5"), "", null)
+  )
+  val rcv = mq.createReceiver()
+  for (i <- 1 to 100) {
+    val r = rcv.receive(10)
+    println("GOT " + r)
+    if (r.nonEmpty) {
+      rcv.ack(r.map(_._1))
+    }
+    Thread.sleep(1000)
+  }
+  mq.close()
 }

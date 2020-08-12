@@ -31,6 +31,16 @@ resolvers += Resolver.mavenLocal
 val prometheusVersion = "0.9.0"
 val doobieVersion = "0.9.0"
 
+dockerExposedPorts := Seq(8080)
+dockerBaseImage := "openjdk:11-jdk-slim"
+dockerUsername := Some("softwaremill")
+packageName in Docker := "mq-sender"
+mainClass in Compile := Some("com.softwaremill.mqperf.mq.ESSender")
+dockerUpdateLatest := true
+
+enablePlugins(DockerPlugin)
+enablePlugins(JavaAppPackaging)
+
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk" % "1.11.797" exclude ("commons-logging", "commons-logging"),
   "org.json4s" %% "json4s-native" % "3.6.8",

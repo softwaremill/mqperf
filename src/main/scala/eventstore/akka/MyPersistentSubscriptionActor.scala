@@ -1,10 +1,12 @@
-package eventstore.akka
+package eventstore
+package akka
 
-import akka.actor.Status.Failure
-import akka.actor.{ActorRef, FSM, Props, Terminated}
-import eventstore.{Event, EventNumber, EventStream, ResolvedEvent, UserCredentials, Uuid}
-import eventstore.core.PersistentSubscription.Nak.Action.Retry
+import _root_.akka.actor.Status.Failure
+import _root_.akka.actor.{ActorRef, FSM, Props, Terminated}
 import eventstore.{PersistentSubscription => PS}
+import eventstore.PersistentSubscription.Nak.Action.Retry
+import eventstore.PersistentSubscription.{Ack, Nak}
+import eventstore.akka.{MyPersistentSubscriptionActor => PSA}
 
 object MyPersistentSubscriptionActor {
 
@@ -64,7 +66,7 @@ class MyPersistentSubscriptionActor(
     val settings: Settings,
     val autoAck: Boolean
 ) extends AbstractPersistentSubscriptionActor[Event]
-    with FSM[MyPersistentSubscriptionActor.State, MyPersistentSubscriptionActor.Data] {
+    with FSM[PSA.State, PSA.Data] {
 
   context watch client
   context watch connection
@@ -72,16 +74,13 @@ class MyPersistentSubscriptionActor(
   type Next = EventNumber.Exact
   type Last = Option[EventNumber.Exact]
 
-  private def connectionDetails = MyPersistentSubscriptionActor.ConnectionDetails
+  private def connectionDetails = PSA.ConnectionDetails
 
   override def subscribeToPersistentStream(): Unit =
     toConnection(PS.Connect(EventStream.Id(streamId.streamId), groupName, 1000))
 
-  private def subscriptionDetails(
-      subId: String,
-      lastEventNum: Last
-  ): MyPersistentSubscriptionActor.SubscriptionDetails =
-    MyPersistentSubscriptionActor.SubscriptionDetails(subId, lastEventNum)
+  private def subscriptionDetails(subId: String, lastEventNum: Last): PSA.SubscriptionDetails =
+    PSA.SubscriptionDetails(subId, lastEventNum)
 
   def getEventId(e: eventstore.Event): Uuid =
     e match {
@@ -89,69 +88,56 @@ class MyPersistentSubscriptionActor(
       case x                => x.data.eventId
     }
 
-  startWith(MyPersistentSubscriptionActor.Unsubscribed, connectionDetails)
+  startWith(PSA.Unsubscribed, connectionDetails)
 
   onTransition {
-    case _ -> MyPersistentSubscriptionActor.Unsubscribed   => subscribeToPersistentStream() // try to (re-)connect.
-    case _ -> MyPersistentSubscriptionActor.LiveProcessing => client ! LiveProcessingStarted
+    case _ -> PSA.Unsubscribed   => subscribeToPersistentStream() // try to (re-)connect.
+    case _ -> PSA.LiveProcessing => client ! LiveProcessingStarted
   }
 
-  when(MyPersistentSubscriptionActor.Unsubscribed) {
+  when(PSA.Unsubscribed) {
     case Event(PS.Connected(subId, _, eventNum), _) =>
       val subDetails = subscriptionDetails(subId, eventNum)
       eventNum match {
-        case None => goto(MyPersistentSubscriptionActor.LiveProcessing) using subDetails
-        case _    => goto(MyPersistentSubscriptionActor.CatchingUp) using subDetails
+        case None => goto(PSA.LiveProcessing) using subDetails
+        case _    => goto(PSA.CatchingUp) using subDetails
       }
     // Ignore events sent while unsubscribed
     case Event(PS.EventAppeared(_), _) =>
-      stay
+      stay()
   }
 
-  when(MyPersistentSubscriptionActor.LiveProcessing) {
-    case Event(PS.EventAppeared(event), details: MyPersistentSubscriptionActor.SubscriptionDetails) =>
-      if (autoAck) toConnection(PS.Ack(details.subscriptionId, getEventId(event) :: Nil))
+  when(PSA.LiveProcessing) {
+    case Event(PS.EventAppeared(event), details: PSA.SubscriptionDetails) =>
+      if (autoAck) toConnection(Ack(details.subscriptionId, getEventId(event) :: Nil))
       client ! event
-      stay
-    case Event(
-          MyPersistentSubscriptionActor.ManualAck(eventId),
-          details: MyPersistentSubscriptionActor.SubscriptionDetails
-        ) =>
-      toConnection(PS.Ack(details.subscriptionId, eventId))
-      stay
-    case Event(
-          MyPersistentSubscriptionActor.ManualNak(eventId),
-          details: MyPersistentSubscriptionActor.SubscriptionDetails
-        ) =>
-      toConnection(PS.Nak(details.subscriptionId, List(eventId), Retry, None))
-      stay
+      stay()
+    case Event(PSA.ManualAck(eventId), details: PSA.SubscriptionDetails) =>
+      toConnection(Ack(details.subscriptionId, eventId))
+      stay()
+    case Event(PSA.ManualNak(eventId), details: PSA.SubscriptionDetails) =>
+      toConnection(Nak(details.subscriptionId, List(eventId), Retry, None))
+      stay()
   }
 
-  when(MyPersistentSubscriptionActor.CatchingUp) {
-    case Event(PS.EventAppeared(event), details: MyPersistentSubscriptionActor.SubscriptionDetails) =>
-      if (autoAck) toConnection(PS.Ack(details.subscriptionId, getEventId(event) :: Nil))
+  when(PSA.CatchingUp) {
+    case Event(PS.EventAppeared(event), details: PSA.SubscriptionDetails) =>
+      if (autoAck) toConnection(Ack(details.subscriptionId, getEventId(event) :: Nil))
       client ! event
-      if (details.lastEventNum.exists(_ <= event.number))
-        goto(MyPersistentSubscriptionActor.LiveProcessing) using details
-      else stay
-    case Event(
-          MyPersistentSubscriptionActor.ManualAck(eventId),
-          details: MyPersistentSubscriptionActor.SubscriptionDetails
-        ) =>
-      toConnection(PS.Ack(details.subscriptionId, eventId))
-      stay
-    case Event(
-          MyPersistentSubscriptionActor.ManualNak(eventId),
-          details: MyPersistentSubscriptionActor.SubscriptionDetails
-        ) =>
-      toConnection(PS.Nak(details.subscriptionId, List(eventId), Retry, None))
-      stay
+      if (details.lastEventNum.exists(_ <= event.number)) goto(PSA.LiveProcessing) using details
+      else stay()
+    case Event(PSA.ManualAck(eventId), details: PSA.SubscriptionDetails) =>
+      toConnection(Ack(details.subscriptionId, eventId))
+      stay()
+    case Event(PSA.ManualNak(eventId), details: PSA.SubscriptionDetails) =>
+      toConnection(Nak(details.subscriptionId, List(eventId), Retry, None))
+      stay()
   }
 
   whenUnhandled {
     // If a reconnect is launched in LiveProcessing or CatchingUp, then renew subId
     case Event(PS.Connected(subId, _, eventNum), _) =>
-      stay using subscriptionDetails(subId, eventNum)
+      stay() using subscriptionDetails(subId, eventNum)
     // Error conditions
     // This handles when the client or connection is terminated (unrecoverable)
     case Event(Terminated(_), _) =>
@@ -162,11 +148,11 @@ class MyPersistentSubscriptionActor(
       client ! failure
       stop()
     // This is when the subscription is dropped.
-    case Event(MyPersistentSubscriptionActor.Unsubscribed, _) =>
+    case Event(PSA.Unsubscribed, _) =>
       stop()
     case Event(e, s) =>
       log.warning(s"Received unhandled $e in state $stateName with state $s")
-      stay
+      stay()
   }
 
   initialize()

@@ -1,69 +1,35 @@
 ---
-# https://github.com/EventStore/EventStore#building-eventstoredb
-- name: Install a .deb package from the internet.
-  become: true
-  apt:
-    deb: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-    update_cache: yes
-
-- name: Install apt-transport-https
-  apt:
-    name: apt-transport-https
-    update_cache: yes
-
-- name: Install dotnet-sdk
-  apt:
-    name: dotnet-sdk-3.1
-    update_cache: yes
-
-- git:
-    repo: 'https://github.com/EventStore/EventStore.git'
-    dest: /opt/eventstore
-    version: 88363a1a00e022f87133e7da9c07a81c80453022
-    depth: 1
-
-- name: Build eventstore
-  command: dotnet build -c Release src/EventStore.sln -f netcoreapp3.1 -r linux-x64
-  args:
-    chdir: /opt/eventstore
-    creates: /opt/eventstore/bin/Release/EventStore.ClusterNode/netcoreapp3.1/linux-x64/EventStore.ClusterNode.dll
-
-- name: Create eventstore user
-  user:
-    name: "eventstore"
-    shell: /bin/bash
-
-- name: Create systemd directory
-  file:
-    path: /usr/lib/systemd/system
-    state: directory
-  become: true
-
-- name: Create eventstore data directory
-  file:
-    path: /etc/eventstore
-    state: directory
-    owner: eventstore
-    group: eventstore
-
-- name: Copy eventstore.service to systemd
+- name: Copy package-cloud repository setup script
+  # https://packagecloud.io/EventStore/EventStore-OSS/install/
   copy:
-    src: eventstore.service
-    dest: /usr/lib/systemd/system/eventstore.service
+    src: templates/packagecloud.sh
+    dest: "{{ ansible_env.HOME}}"
+    owner: root
+    group: root
+    mode: "u+rwx,g+rwx,o-rwx"
+
+- name: Run package-cloud repository setup script
+  command: "{{ ansible_env.HOME}}/packagecloud.sh"
+  become: true
+
+- name: Install eventstore-oss
+  package:
+    name: eventstore-oss
+    state: latest
   become: true
 
 - set_fact: es_node_0="{{ groups['eventstore'][0] }}"
 - set_fact: es_node_1="{{ groups['eventstore'][1] }}"
 - set_fact: es_node_2="{{ groups['eventstore'][2] }}"
 
-- set_fact: 
-    tmpl_var_private_ip:  "{{ hostvars[es_node_0].ec2_private_ip_address }}" 
+- set_fact:
+    tmpl_var_private_ip:  "{{ hostvars[es_node_0].ec2_private_ip_address }}"
     tmpl_var_gossip_seed: "{{hostvars[es_node_1].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
   with_items:
     - "{{ es_node_0 }}"
-        
+
 - name: Copy eventstore.conf to es_node_0
   run_once: true
   delegate_to: "{{ item }}"
@@ -71,16 +37,16 @@
     src: templates/eventstore.conf
     dest: /etc/eventstore/eventstore.conf
   with_items:
-      - "{{ es_node_0 }}"
-    
-- set_fact: 
-    tmpl_var_private_ip:  "{{ hostvars[es_node_1].ec2_private_ip_address }}" 
+    - "{{ es_node_0 }}"
+
+- set_fact:
+    tmpl_var_private_ip:  "{{ hostvars[es_node_1].ec2_private_ip_address }}"
     tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
   with_items:
     - "{{ es_node_1 }}"
-        
+
 - name: Copy eventstore.conf to es_node_1
   run_once: true
   delegate_to: "{{ item }}"
@@ -88,16 +54,16 @@
     src: templates/eventstore.conf
     dest: /etc/eventstore/eventstore.conf
   with_items:
-      - "{{ es_node_1 }}"
+    - "{{ es_node_1 }}"
 
-- set_fact: 
-    tmpl_var_private_ip:  "{{ hostvars[es_node_2].ec2_private_ip_address }}" 
+- set_fact:
+    tmpl_var_private_ip:  "{{ hostvars[es_node_2].ec2_private_ip_address }}"
     tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_1].ec2_private_ip_address}}:2112"
-  run_once: true  
+  run_once: true
   delegate_to: "{{ item }}"
   with_items:
     - "{{ es_node_2 }}"
-        
+
 - name: Copy eventstore.conf to es_node_2
   run_once: true
   delegate_to: "{{ item }}"
@@ -105,8 +71,8 @@
     src: templates/eventstore.conf
     dest: /etc/eventstore/eventstore.conf
   with_items:
-      - "{{ es_node_2 }}"
-    
+    - "{{ es_node_2 }}"
+
 - name: Start eventstore
   service:
     name: eventstore
