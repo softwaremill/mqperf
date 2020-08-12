@@ -13,9 +13,8 @@
   become: true
 
 - name: Install eventstore-oss
-  package:
-    name: eventstore-oss
-    state: latest
+  apt:
+    name: eventstore-oss=5.0.8-1
   become: true
 
 - set_fact: es_node_0="{{ groups['eventstore'][0] }}"
