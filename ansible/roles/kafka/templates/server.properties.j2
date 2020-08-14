@@ -37,11 +37,9 @@ host.name={{kafka_listen_address}}
 
 # Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details
 #listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
-
-# The number of threads handling network requests
+# The number of threads that the server uses for receiving requests from the network and sending responses to the network
 num.network.threads=3
-
-# The number of threads doing disk I/O
+# The number of threads that the server uses for processing requests, which may include disk I/O
 num.io.threads=8
 
 # The send buffer (SO_SNDBUF) used by the socket server
@@ -79,7 +77,7 @@ min.insync.replicas=2
 # There are a few important trade-offs here:
 #    1. Durability: Unflushed data may be lost if you are not using replication.
 #    2. Latency: Very large flush intervals may lead to latency spikes when the flush does occur as there will be a lot of data to flush.
-#    3. Throughput: The flush is generally the most expensive operation, and a small flush interval may lead to exceessive seeks.
+#    3. Throughput: The flush is generally the most expensive operation, and a small flush interval may lead to excessive seeks.
 # The settings below allow one to configure the flush policy to flush data after a period of time or
 # every N messages (or both). This can be done globally and overridden on a per-topic basis.
 
@@ -98,9 +96,8 @@ min.insync.replicas=2
 
 # The minimum age of a log file to be eligible for deletion due to age
 log.retention.hours=168
-
-# A size-based retention policy for logs. Segments are pruned from the log as long as the remaining
-# segments don't drop below log.retention.bytes. Functions independently of log.retention.hours.
+# A size-based retention policy for logs. Segments are pruned from the log unless the remaining
+# segments drop below log.retention.bytes. Functions independently of log.retention.hours.
 #log.retention.bytes=1073741824
 
 # The maximum size of a log segment file. When this size is reached a new log segment will be created.
@@ -120,6 +117,4 @@ log.retention.check.interval.ms=300000
 zookeeper.connect={{zookeeper_hosts}}
 
 # Timeout in ms for connecting to zookeeper
-zookeeper.connection.timeout.ms=6000
-
-
+zookeeper.connection.timeout.ms=18000
