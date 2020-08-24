@@ -85,6 +85,7 @@ class SenderRunnable(
       sendDone.inc()
     } finally {
       mqSender.close()
+      logger.info(s"Sending done.")
     }
   }
 }

@@ -41,6 +41,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "jcl-over-slf4j" % "1.7.30",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.30",
   "org.apache.kafka" % "kafka-clients" % "2.6.0",
+  "org.apache.pulsar" % "pulsar-client" % "2.6.0",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
   "com.geteventstore" %% "eventstore-client" % "7.1.0",
   "org.apache.activemq" % "activemq-client" % "5.15.12" exclude ("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),

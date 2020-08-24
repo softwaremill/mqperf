@@ -1,0 +1,14 @@
+{
+    "name": "pulsar-1thread",
+    "mq_type": "Pulsar",
+    "sender_threads": 1,
+    "msg_count_per_thread": 1000000,
+    "msg_size": 100,
+    "max_send_msg_batch_size": 10,
+    "receiver_threads": 1,
+    "receive_msg_batch_size": 1,
+    "broker_hosts": {{ groups['pulsar']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
+    "mq": {
+        "acks": -1,
+    }
+}

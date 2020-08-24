@@ -82,3 +82,13 @@ See `ansible/roles/zookeeper/tasks/main.yml`. This should be removed in the futu
 # FAQ
 
 - I'm getting: *skipping: no hosts matched*, why? Probably you are runing ansible from project root. Instead cd to `ansible/` (where `ansible.cfg` is located) and try to run playbook from this location. 
+
+# Local test
+To run locally execute the Sender and Receiver classes with following:
+- parameters:
+
+`-Dconfig.file=/tmp/test-config.json`
+
+- environment variables:
+
+`RUN_ID=1;HOST_ID=1`
