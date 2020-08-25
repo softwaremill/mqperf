@@ -30,12 +30,6 @@ class PulsarMq(testConfig: TestConfig) extends Mq with StrictLogging {
         .topic(Topic)
         .create
 
-      /* Ack level is set on Bookkeeper level via CLI or REST or startup parameter
-      https://pulsar.apache.org/docs/en/administration-zk-bk/
-      Set persistence policies
-      You can set persistence policies for BookKeeper at the namespace level
-       */
-
       override def send(msgs: List[String]): Unit = {
         msgs
           .map(msg => producer.sendAsync(msg.getBytes()))

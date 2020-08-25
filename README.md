@@ -30,6 +30,12 @@ to scrape the new servers for metrics
 
 Before running the tests, create the kafka topics by running `ansible-playbook kafka_create_topic.yml`
 
+## Pulsar
+
+The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
+[Got to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.
+Currently this is not implemented, hence the `mq.ack` attribute is ignored.
+
 ## RabbitMQ
 
 * when installing rabbit mq, you need to specify the erlang cookie, e.g.: 
