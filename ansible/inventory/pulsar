@@ -1,0 +1,5 @@
+[pulsar:children]
+tag_group_PulsarZoo
+tag_group_PulsarBookie
+tag_group_PulsarBroker
+tag_group_PulsarProxy

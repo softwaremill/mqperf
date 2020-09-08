@@ -22,6 +22,12 @@
     - set_fact: vpc_id="{{ (vpc_facts.vpcs | first).id }}"
       when: vpc_facts.vpcs|length > 0
 
+    - name: Delete the ELB
+      ec2_elb_lb:
+        name: pulsar-elb
+        state: absent
+        region: "{{ aws_region }}"
+
     - name: Terminate mqperf instances
       ec2:
         instance_ids: "{{ ec2_facts.instances|map(attribute='instance_id')|list }}"
