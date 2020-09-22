@@ -2,7 +2,7 @@
 aws_region: eu-west-1
 aws_zone: "{{ aws_region }}a"
 vpc_cidr_block: "172.22.0.0/16"
-key_name: "mqperf-key"
+key_name: "pulsar-test"
 vpc_name: "mqperf-vpc"
 subnet_cidr: "172.22.1.0/24"
 
@@ -23,3 +23,5 @@ rocketmq_name_server_port: 9876
 rocketmq_broker_port_main: 10909
 rocketmq_broker_port_bkp_1: 10911
 rocketmq_broker_port_bkp_2: 10912
+
+create_nats_elb: false

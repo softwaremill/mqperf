@@ -40,6 +40,18 @@
   with_items: "{{ ec2.instances }}"
   when: volume_size is defined and ec2.changed
 
+- name: Add each NATS instance to the ELB
+  ec2_elb:
+    state: present
+    wait: no
+    ec2_elbs: 
+      - "nats-elb"
+    region: "{{ item.region }}"
+    instance_id: "{{ item.id }}"
+  with_items: "{{ ec2.instances }}"
+  when: 
+    - item.tags.group == "Nats"
+    - create_nats_elb
 
 - name: Refresh inventory
   meta: refresh_inventory

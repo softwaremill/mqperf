@@ -1,0 +1,31 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'],aws_ami_id: ami-081662dc6e59f68db, aws_instance_type: t3.small, ec2_tag_group: Nats,create_nats_elb: true, volume_size: 10 }
+
+- name: Set up NATS cluster
+  hosts: tag_group_Nats
+  connection: ssh
+  become: true
+  vars:
+  - ansible_ssh_user: "bitnami"
+    nats_cluster: "{{ groups['tag_group_Nats'][0] }}"
+  tasks:
+    - name: Add NATS configuration file
+      template:
+        src: "roles/nats/templates/nats-server.conf"
+        dest: "/opt/bitnami/nats/conf/nats-server.conf"
+    - name: Restart NATS
+      shell: /opt/bitnami/ctlscript.sh restart
+
+- name:  Hosts addresses
+  hosts: localhost
+  become: false
+  ignore_errors: yes
+  tasks:
+    - debug:
+        msg: "NATS Servers {{ item }}"
+      with_items: "{{ groups['tag_group_Nats'] }}"
+    - debug:
+        msg: "NATS cluster url: nats://{{ hostvars['localhost']['nats_route'] }}:4222"

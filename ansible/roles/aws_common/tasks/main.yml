@@ -162,3 +162,30 @@
     dest: "./{{ key_name }}.pem" 
     mode: 0600
   when: ec2_key.changed
+
+- name: Create the NATS ELB
+  run_once: true
+  ec2_elb_lb:
+    name: nats-elb
+    state: present
+    wait: no
+    region: "{{ aws_region }}"
+    subnets:
+      - "{{ subnet_external }}"
+    listeners:
+      - protocol: tcp 
+        load_balancer_port: 4222
+        instance_port: 4222
+  register: elb
+  when: create_nats_elb 
+
+- name: Get ELB DNS name
+  ec2_elb_info:
+    region: "{{ aws_region }}"
+    names: 
+      - "nats-elb"
+  register: elb_info
+  when: create_nats_elb 
+
+- set_fact: nats_route="{{ elb_info.elbs.0.dns_name }}"
+  when: create_nats_elb 
