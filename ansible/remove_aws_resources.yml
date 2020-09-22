@@ -29,6 +29,12 @@
         wait: true
       when: ec2_facts.instances|length > 0
 
+    - name: Delete NATS ELB
+      ec2_elb_lb:
+        name: nats-elb
+        state: absent
+        region: "{{ aws_region }}"
+
     - name: Delete security groups
       ec2_group: 
         name: "{{item}}"
