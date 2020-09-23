@@ -2,7 +2,7 @@
 aws_region: eu-west-1
 aws_zone: "{{ aws_region }}a"
 vpc_cidr_block: "172.22.0.0/16"
-key_name: "pulsar-test"
+key_name: "mqperf-key"
 vpc_name: "mqperf-vpc"
 subnet_cidr: "172.22.1.0/24"
 
