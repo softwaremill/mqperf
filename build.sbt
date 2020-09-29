@@ -52,7 +52,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "log4j-over-slf4j" % "1.7.30",
   "org.apache.kafka" % "kafka-clients" % "2.5.0",
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
-  "com.geteventstore" %% "eventstore-client" % "7.2.1-SNAPSHOT",
+  "com.geteventstore" %% "eventstore-client" % "7.3.0",
   "org.apache.activemq" % "activemq-client" % "5.15.12" exclude ("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe" % "config" % "1.4.0",
   "org.apache.activemq" % "artemis-jms-client" % "2.13.0" exclude ("commons-logging", "commons-logging"),
@@ -69,6 +69,8 @@ assemblyOption in assembly ~= {
 }
 
 assemblyMergeStrategy in assembly := {
+  case PathList("reference.conf") => MergeStrategy.concat
   case PathList(ps @ _*) if ps.last == "io.netty.versions.properties" => MergeStrategy.first
-  case x                                                              => (assemblyMergeStrategy in assembly).value(x)
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
 }
