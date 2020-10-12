@@ -1,0 +1,11 @@
+[Unit]
+Description=NATS Streaming
+
+[Service]
+User=root
+WorkingDirectory=/opt/nats/
+ExecStart=/opt/nats/bin/nats-streaming-server -c /opt/nats/conf/nats-server.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
