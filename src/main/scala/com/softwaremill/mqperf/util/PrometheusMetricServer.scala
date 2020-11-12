@@ -17,8 +17,7 @@ import scala.util.Failure
 
 object PrometheusMetricServer extends StrictLogging {
   def start(registry: CollectorRegistry, interface: String, port: Int): Future[() => Future[Terminated]] = {
-    implicit val system = ActorSystem("prometheus")
-    implicit val materializer = ActorMaterializer()
+    implicit val system: ActorSystem = ActorSystem("prometheus")
     import system.dispatcher
 
     val contentType = MediaTypes.`text/plain`.withParams(Map("version" -> "0.0.4")).withCharset(HttpCharsets.`UTF-8`)
@@ -59,7 +58,9 @@ object PrometheusMetricServer extends StrictLogging {
 
     try thunk
     finally {
-      Thread.sleep(10000) // wait for the last metrics export
+      logger.info("Waiting for the last metrics export")
+      Thread.sleep(10000)
+      logger.info("Terminating prometheus http server")
       metricsExporter.foreach(_()) //terminate http server
     }
   }

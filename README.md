@@ -16,7 +16,7 @@ Here are the steps needed to test Kafka (other queues are similar). Open the `an
 instance to the desired one.
 * provision a number of sender and receiver nodes using `ansible-playbook provision_mqperf_nodes.yml`. Adjust the
 number and size of nodes depending on the test you want to run. Keep in mind that after each code change, you'll need
-to remove the fat-jars from the `target/scala-2.11` directory and re-run `provision_mqperf_nodes.yml`.
+to remove the fat-jars from the `target/scala-2.12` directory and re-run `provision_mqperf_nodes.yml`.
 * provision the prometheus/grafana server by running `ansible-playbook install_and_setup_prometheus.yml`. This must be
 done each time after provisioning new sender/receiver nodes (previous step) so that prometheus is properly configured
 to scrape the new servers for metrics
@@ -34,7 +34,7 @@ Before running the tests, create the kafka topics by running `ansible-playbook k
 
 The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
 [Got to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.
-Currently this is not implemented, hence the `mq.ack` attribute is ignored.
+Currently, this is not implemented, hence the `mq.ack` attribute is ignored.
 
 ## RabbitMQ
 

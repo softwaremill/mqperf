@@ -103,27 +103,14 @@ under the License.
 
 
         <connectors>
-            <!-- Connector used to be announced through cluster connections and notifications -->
+            <!-- https://github.com/sigreen/amq7-replicated-cluster-ec2 -->
             <connector name="netty-connector">tcp://{{ hostvars[item].ec2_private_ip_address }}:61616</connector>
+            {% for address in groups['artemis']|map('extract', hostvars, 'ec2_private_ip_address') %}
+              {% if address != hostvars[item].ec2_private_ip_address %}
+                <connector name="{{ address|replace(".", "_") }}">tcp://{{ address }}:61616</connector>
+              {% endif %}
+            {% endfor %}
         </connectors>
-
-           <!-- Clustering configuration -->
-          <broadcast-groups>
-             <broadcast-group name="my-broadcast-group">
-                <group-address>231.7.7.7</group-address>
-                <group-port>9876</group-port>
-                <broadcast-period>100</broadcast-period>
-                <connector-ref>netty-connector</connector-ref>
-             </broadcast-group>
-          </broadcast-groups>
-
-          <discovery-groups>
-             <discovery-group name="my-discovery-group">
-                <group-address>231.7.7.7</group-address>
-                <group-port>9876</group-port>
-                <refresh-timeout>10000</refresh-timeout>
-             </discovery-group>
-          </discovery-groups>
 
           <cluster-connections>
              <cluster-connection name="my-cluster">
@@ -132,7 +119,13 @@ under the License.
                 <use-duplicate-detection>true</use-duplicate-detection>
                 <message-load-balancing>ON_DEMAND</message-load-balancing>
                 <max-hops>1</max-hops>
-                <discovery-group-ref discovery-group-name="my-discovery-group"/>
+                <static-connectors>
+                   {% for address in groups['artemis']|map('extract', hostvars, 'ec2_private_ip_address') %}
+                     {% if address != hostvars[item].ec2_private_ip_address %}
+                       <connector-ref>{{ address|replace(".", "_") }}</connector-ref>
+                     {% endif %}
+                   {% endfor %}
+                </static-connectors>
              </cluster-connection>
           </cluster-connections>
 
@@ -269,8 +262,11 @@ under the License.
                <queue name="ExpiryQueue" />
             </anycast>
          </address>
-
+         <address name="mq">
+            <anycast>
+               <queue name="mq" />
+            </anycast>
+         </address>
       </addresses>
-
    </core>
 </configuration>

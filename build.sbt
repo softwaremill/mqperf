@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
   "com.geteventstore" %% "eventstore-client" % "7.1.0",
   "org.apache.activemq" % "activemq-client" % "5.15.12" exclude ("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe" % "config" % "1.4.0",
-  "org.apache.activemq" % "artemis-jms-client" % "2.13.0" exclude ("commons-logging", "commons-logging"),
+  "org.apache.activemq" % "artemis-jms-client" % "2.15.0" exclude ("commons-logging", "commons-logging"),
   "org.apache.rocketmq" % "rocketmq-client" % "4.7.0" exclude ("io.netty", "netty-all") exclude ("commons-logging", "commons-logging"),
   "com.softwaremill.kmq" %% "core" % "0.2.3",
   "io.prometheus" % "simpleclient" % prometheusVersion,
@@ -61,5 +61,6 @@ assemblyOption in assembly ~= {
 
 assemblyMergeStrategy in assembly := {
   case PathList(ps @ _*) if ps.last == "io.netty.versions.properties" => MergeStrategy.first
+  case PathList(ps @ _*) if ps.last == "public-suffix-list.txt"       => MergeStrategy.first
   case x                                                              => (assemblyMergeStrategy in assembly).value(x)
 }
