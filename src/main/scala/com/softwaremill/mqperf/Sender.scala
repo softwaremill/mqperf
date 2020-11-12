@@ -8,11 +8,12 @@ import io.prometheus.client.{CollectorRegistry, Counter, Gauge, Histogram}
 
 import scala.util.Random
 
-object Sender {
+object Sender extends StrictLogging {
   def main(args: Array[String]): Unit = {
+    Thread.setDefaultUncaughtExceptionHandler((t, e) => { println("Uncaught exception in thread: " + t); e.printStackTrace() })
     import PrometheusMetricServer._
     withMetricsServerSync(CollectorRegistry.defaultRegistry) {
-      println("Starting sender...")
+      logger.info("Starting sender...")
       val testConfig = TestConfig.load()
 
       val mq = Mq.instantiate(testConfig)
@@ -48,6 +49,7 @@ object Sender {
 
       threads.foreach(_.join())
 
+      logger.info("Closing mq")
       mq.close()
     }
   }

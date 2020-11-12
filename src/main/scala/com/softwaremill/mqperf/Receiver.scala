@@ -9,11 +9,12 @@ import org.joda.time.DateTime
 
 import scala.concurrent.duration._
 
-object Receiver {
+object Receiver extends StrictLogging {
   def main(args: Array[String]): Unit = {
+    Thread.setDefaultUncaughtExceptionHandler((t, e) => { println("Uncaught exception in thread: " + t); e.printStackTrace() })
     import PrometheusMetricServer._
     withMetricsServerSync(CollectorRegistry.defaultRegistry) {
-      println("Starting receiver...")
+      logger.info("Starting receiver...")
       val testConfig = TestConfig.load()
 
       val mq = Mq.instantiate(testConfig)
@@ -99,6 +100,7 @@ class ReceiverRunnable(
       )
       receiveDone.inc()
     } finally {
+      logger.info("Closing mq")
       mqReceiver.close()
     }
   }
