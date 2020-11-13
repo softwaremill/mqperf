@@ -162,3 +162,31 @@
     dest: "./{{ key_name }}.pem" 
     mode: 0600
   when: ec2_key.changed
+
+- name: Create the ELB
+  run_once: true
+  ec2_elb_lb:
+    name: pulsar-elb
+    state: present
+    wait: no
+    region: "{{ aws_region }}"
+    subnets:
+      - "{{ subnet_external }}"
+    listeners:
+      - protocol: http
+        load_balancer_port: 8080
+        instance_port: 8080
+      - protocol: tcp 
+        load_balancer_port: 6650
+        instance_port: 6650
+  register: elb
+
+- name: Get ELB DNS name
+  ec2_elb_info:
+    region: "{{ aws_region }}"
+    names: 
+      - "pulsar-elb"
+  register: elb_info
+
+- set_fact: pulsar_svc="pulsar://{{ elb_info.elbs.0.dns_name }}:6650"
+- set_fact: pulsar_web="http://{{ elb_info.elbs.0.dns_name }}:8080"

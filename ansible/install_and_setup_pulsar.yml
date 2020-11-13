@@ -1,0 +1,183 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t2.small, ec2_tag_group: PulsarZoo, volume_size: 100 }
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: i3.xlarge, ec2_tag_group: PulsarBookie, volume_size: 100 }
+  - { role: ec2_instance, count: 2, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: c5.2xlarge, ec2_tag_group: PulsarBroker, volume_size: 100 }
+  - { role: ec2_instance, count: 1, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: c5.2xlarge, ec2_tag_group: PulsarProxy, volume_size: 100 }
+
+- name: Pulsar setup
+  hosts: tag_group_PulsarZoo, tag_group_PulsarBookie, tag_group_PulsarBroker, tag_group_PulsarProxy
+  connection: ssh
+  become: true
+  tasks:
+    - name: Create necessary directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items: ["/opt/pulsar"]
+    - name: Install RPM packages
+      yum:
+        state: latest
+        name:
+          - wget
+          - java
+          - sysstat
+          - vim
+    - set_fact:
+        zookeeper_servers: "{{ groups['tag_group_PulsarZoo']|map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$', '\\1:2181') | join(',') }}"
+        service_url: "{{ hostvars['localhost']['pulsar_svc'] }}"
+        http_url: "{{ hostvars['localhost']['pulsar_web'] }}"
+        pulsar_version: "2.6.0"
+    - name: Download Pulsar binary package
+      unarchive:
+        src: https://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=pulsar/pulsar-{{ pulsar_version }}/apache-pulsar-{{ pulsar_version }}-bin.tar.gz
+        remote_src: yes
+        dest: /opt/pulsar
+        extra_opts: ["--strip-components=1"]
+    - set_fact:
+        max_heap_memory: "12g"
+        max_direct_memory: "12g"
+        cluster_name: "local"
+    - name: Add pulsar_env.sh configuration file
+      template:
+        src: "roles/pulsar/templates/pulsar_env.sh"
+        dest: "/opt/pulsar/conf/pulsar_env.sh"
+
+- name: Set up ZooKeeper
+  hosts: tag_group_PulsarZoo
+  connection: ssh
+  become: true
+  tasks:
+    - set_fact:
+        zid: "{{ groups['tag_group_PulsarZoo'].index(inventory_hostname) }}"
+        max_heap_memory: "512m"
+        max_direct_memory: "1g"
+    - name: Create ZooKeeper data directory
+      file:
+        path: "/opt/pulsar/{{ item }}"
+        state: directory
+      with_items:
+        - data/zookeeper
+    - name: Add pulsar_env.sh configuration file
+      template:
+        src: "roles/pulsar/templates/pulsar_env.sh"
+        dest: "/opt/pulsar/conf/pulsar_env.sh"
+    - name: Add zookeeper.conf file
+      template:
+        src: "roles/pulsar/templates/zoo.cfg"
+        dest: "/opt/pulsar/conf/zookeeper.conf"
+    - name: Add myid file for ZooKeeper
+      template:
+        src: "roles/pulsar/templates/myid"
+        dest: "/opt/pulsar/data/zookeeper/myid"
+    - name: Add zookeeper.service systemd file
+      template:
+        src: "roles/pulsar/templates/zookeeper.service"
+        dest: "/etc/systemd/system/zookeeper.service"
+    - name: systemd ZooKeeper start
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "zookeeper"
+    - name: Initialize cluster metadata
+      shell: |
+        bin/pulsar initialize-cluster-metadata \
+          --cluster {{ cluster_name }} \
+          --zookeeper localhost:2181 \
+          --configuration-store localhost:2181 \
+          --web-service-url {{ http_url }} \
+          --broker-service-url {{ service_url }}
+      args:
+        chdir: /opt/pulsar
+      when: groups['tag_group_PulsarZoo'][0] == inventory_hostname
+
+- name: Set up bookies
+  hosts: tag_group_PulsarBookie
+  connection: ssh
+  become: true
+  tasks:
+    - template:
+        src: "roles/pulsar/templates/bookkeeper.conf"
+        dest: "/opt/pulsar/conf/bookkeeper.conf"
+    - template:
+        src: "roles/pulsar/templates/bookkeeper.service"
+        dest: "/etc/systemd/system/bookkeeper.service"
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "bookkeeper"
+
+- name: Set up brokers
+  hosts: tag_group_PulsarBroker
+  connection: ssh
+  become: true
+  tasks:
+    - name: Create connectors directory
+      file:
+        path: "/opt/pulsar/{{ item }}"
+        state: directory
+      loop:
+        - connectors
+    - name: Download Pulsar IO packages
+      get_url:
+        url: https://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=pulsar/pulsar-{{ pulsar_version }}/connectors/pulsar-io-{{ item }}-{{ pulsar_version }}.nar
+        dest: /opt/pulsar/connectors/pulsar-io-{{ item }}-{{ pulsar_version }}.nar
+      loop:
+        - kafka
+    - name: Set up broker
+      template:
+        src: "roles/pulsar/templates/broker.conf"
+        dest: "/opt/pulsar/conf/broker.conf"
+    - name: Set up function worker
+      template:
+        src: "roles/pulsar/templates/functions_worker.yml"
+        dest: "/opt/pulsar/conf/functions_worker.yml"
+    - template:
+        src: "roles/pulsar/templates/pulsar.broker.service"
+        dest: "/etc/systemd/system/pulsar.broker.service"
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "pulsar.broker"
+
+- name: Set up Pulsar Proxy
+  hosts: tag_group_PulsarProxy
+  connection: ssh
+  become: true
+  tasks:
+    - name: Set up proxy
+      template:
+        src: "roles/pulsar/templates/proxy.conf"
+        dest: "/opt/pulsar/conf/proxy.conf"
+    - template:
+        src: "roles/pulsar/templates/pulsar.proxy.service"
+        dest: "/etc/systemd/system/pulsar.proxy.service"
+    - systemd:
+        state: restarted
+        daemon_reload: yes
+        name: "pulsar.proxy"
+
+- name:  Hosts addresses
+  hosts: localhost
+  become: false
+  ignore_errors: yes
+  tasks:
+    - debug:
+        msg: "Zookeeper Server {{ item }}"
+      with_items: "{{ groups['tag_group_PulsarZoo'] }}"
+    - debug:
+        msg: "Bookie {{ item }}"
+      with_items: "{{ groups['tag_group_PulsarBookie'] }}"
+    - debug:
+        msg: "Broker {{ item }}"
+      with_items: "{{ groups['tag_group_PulsarBroker'] }}"
+    - debug:
+        msg: "Proxy {{ item }}"
+      with_items: "{{ groups['tag_group_PulsarProxy'] }}"
+    - debug:
+        msg: "Pulsar Service url: {{ hostvars['localhost']['pulsar_svc'] }}"
+    - debug:
+        msg: "Pulsar HTTP url: {{ hostvars['localhost']['pulsar_web'] }}"
+
