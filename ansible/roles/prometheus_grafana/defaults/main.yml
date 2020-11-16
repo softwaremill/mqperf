@@ -1,4 +1,3 @@
-storage_fs_type: ext4
 storage_path: /opt/prometheus
 receivers: "{{ groups['receiver'] }}"
 senders: "{{ groups['sender'] }}"

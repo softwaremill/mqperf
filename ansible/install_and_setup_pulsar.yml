@@ -12,6 +12,20 @@
   connection: ssh
   become: true
   tasks:
+    - name: Ensure fs exists on data device (if provided)
+      filesystem:
+        fstype: "{{ storage_fs_type }}"
+        dev: "{{ storage_device }}"
+    - name: Ensure mount point exists
+      file:
+        state: directory
+        path: "/opt/pulsar/data"
+    - name: Ensure data directory is mounted
+      mount:
+        path: "/opt/pulsar/data"
+        src: "{{ storage_device }}"
+        fstype: "{{ storage_fs_type }}"
+        state: mounted
     - name: Create necessary directories
       file:
         path: "{{ item }}"

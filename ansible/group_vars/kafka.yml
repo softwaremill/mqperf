@@ -1,2 +1,1 @@
 kafka_hosts: "{{ groups['kafka']|join(':9092,') }}:9092"
-storage_device: /dev/nvme1n1

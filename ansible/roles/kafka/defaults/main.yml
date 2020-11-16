@@ -1,5 +1,4 @@
 ---
-storage_fs_type: ext4
 storage_path: "{{ kafka_data_dir }}"
 
 apache_mirror: http://apache.mirrors.tds.net
