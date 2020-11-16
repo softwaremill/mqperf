@@ -56,7 +56,8 @@ async function main() {
   hostsFor("tag_group_Sender");
   hostsFor("tag_group_Receiver");
   hostsFor("tag_group_Prometheus");
-  hostsFor("tag_group_Artemis")
+  hostsFor("tag_group_PulsarBookie");
+  hostsFor("tag_group_PulsarBroker");
 }
 
 main();
