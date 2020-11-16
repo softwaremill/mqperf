@@ -41,9 +41,7 @@
           - vim
     - set_fact:
         zookeeper_servers: "{{ groups['tag_group_PulsarZoo']|map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$', '\\1:2181') | join(',') }}"
-        service_url: "{{ hostvars['localhost']['pulsar_svc'] }}"
-        http_url: "{{ hostvars['localhost']['pulsar_web'] }}"
-        pulsar_version: "2.6.0"
+        pulsar_version: "2.6.2"
     - name: Download Pulsar binary package
       unarchive:
         src: https://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=pulsar/pulsar-{{ pulsar_version }}/apache-pulsar-{{ pulsar_version }}-bin.tar.gz
