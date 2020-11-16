@@ -2,10 +2,9 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t2.small, ec2_tag_group: PulsarZoo, volume_size: 100 }
-  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: i3.xlarge, ec2_tag_group: PulsarBookie, volume_size: 100 }
-  - { role: ec2_instance, count: 2, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: c5.2xlarge, ec2_tag_group: PulsarBroker, volume_size: 100 }
-  - { role: ec2_instance, count: 1, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: c5.2xlarge, ec2_tag_group: PulsarProxy, volume_size: 100 }
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: r5.2xlarge, ec2_tag_group: PulsarZoo, volume_size: 10 }
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: r5.2xlarge, ec2_tag_group: PulsarBookie, volume_size: 100 }
+  - { role: ec2_instance, count: 2, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: r5.2xlarge, ec2_tag_group: PulsarBroker, volume_size: 10 }
 
 - name: Pulsar setup
   hosts: tag_group_PulsarZoo, tag_group_PulsarBookie, tag_group_PulsarBroker, tag_group_PulsarProxy
