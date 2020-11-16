@@ -87,8 +87,8 @@
           --cluster {{ cluster_name }} \
           --zookeeper localhost:2181 \
           --configuration-store localhost:2181 \
-          --web-service-url {{ http_url }} \
-          --broker-service-url {{ service_url }}
+          --web-service-url http://broker.default.svc.cluster.local:8080/ \
+          --broker-service-url pulsar://broker.default.svc.cluster.local:6650/
       args:
         chdir: /opt/pulsar
       when: groups['tag_group_PulsarZoo'][0] == inventory_hostname
@@ -142,23 +142,6 @@
         daemon_reload: yes
         name: "pulsar.broker"
 
-- name: Set up Pulsar Proxy
-  hosts: tag_group_PulsarProxy
-  connection: ssh
-  become: true
-  tasks:
-    - name: Set up proxy
-      template:
-        src: "roles/pulsar/templates/proxy.conf"
-        dest: "/opt/pulsar/conf/proxy.conf"
-    - template:
-        src: "roles/pulsar/templates/pulsar.proxy.service"
-        dest: "/etc/systemd/system/pulsar.proxy.service"
-    - systemd:
-        state: restarted
-        daemon_reload: yes
-        name: "pulsar.proxy"
-
 - name:  Hosts addresses
   hosts: localhost
   become: false
@@ -173,11 +156,4 @@
     - debug:
         msg: "Broker {{ item }}"
       with_items: "{{ groups['tag_group_PulsarBroker'] }}"
-    - debug:
-        msg: "Proxy {{ item }}"
-      with_items: "{{ groups['tag_group_PulsarProxy'] }}"
-    - debug:
-        msg: "Pulsar Service url: {{ hostvars['localhost']['pulsar_svc'] }}"
-    - debug:
-        msg: "Pulsar HTTP url: {{ hostvars['localhost']['pulsar_web'] }}"
 
