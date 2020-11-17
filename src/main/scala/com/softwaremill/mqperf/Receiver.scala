@@ -56,6 +56,7 @@ object Receiver extends StrictLogging {
 
       threads.foreach(_.join())
 
+      logger.info("Closing mq")
       mq.close()
     }
   }
@@ -100,7 +101,7 @@ class ReceiverRunnable(
       )
       receiveDone.inc()
     } finally {
-      logger.info("Closing mq")
+      logger.info("Closing receiver")
       mqReceiver.close()
     }
   }

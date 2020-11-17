@@ -17,15 +17,14 @@ class PulsarMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
   private def pulsarHosts = testConfig.brokerHosts.map(_ + ":6650").mkString(",")
 
+  val pulsarClient = PulsarClient.builder()
+    .serviceUrl(s"pulsar://$pulsarHosts")
+    .build()
+
   override type MsgId = Message[Array[Byte]]
 
   override def createSender() =
     new MqSender {
-
-      val pulsarClient = PulsarClient.builder()
-        .serviceUrl(s"pulsar://$pulsarHosts")
-        .build()
-
       val producer: Producer[Array[Byte]] = pulsarClient.newProducer
         .topic(Topic)
         .create
@@ -35,20 +34,21 @@ class PulsarMq(testConfig: TestConfig) extends Mq with StrictLogging {
           .map(msg => producer.sendAsync(msg.getBytes()))
           .foreach(_.get())
       }
+
+      override def close(): Unit = {
+        producer.close()
+        super.close()
+      }
     }
 
   override def createReceiver() =
     new MqReceiver {
-
-      val pulsarClient = PulsarClient.builder()
-        .serviceUrl(s"pulsar://$pulsarHosts")
-        .build()
-
       private lazy val consumer = {
         val consumer = pulsarClient.newConsumer()
           .topic(Topic)
           .subscriptionName(PulsarSubscriptionId)
           .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
+          .subscriptionType(SubscriptionType.Shared)
           .batchReceivePolicy(BatchReceivePolicy.builder()
             .maxNumMessages(testConfig.receiveMsgBatchSize)
             .timeout(100, TimeUnit.MILLISECONDS)
@@ -75,4 +75,9 @@ class PulsarMq(testConfig: TestConfig) extends Mq with StrictLogging {
         super.close()
       }
     }
+
+  override def close(): Unit = {
+    pulsarClient.close()
+    super.close()
+  }
 }
