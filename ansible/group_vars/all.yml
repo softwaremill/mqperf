@@ -24,4 +24,5 @@ rocketmq_broker_port_main: 10909
 rocketmq_broker_port_bkp_1: 10911
 rocketmq_broker_port_bkp_2: 10912
 
-create_nats_elb: false
+storage_fs_type: ext4
+storage_device: /dev/nvme1n1
