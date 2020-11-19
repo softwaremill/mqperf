@@ -2,7 +2,7 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t3.small, ec2_tag_group: Nats, volume_size: 10 }
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t3.small, ec2_tag_group: Nats, volume_size: 100 }
 
 - name: Set up NATS cluster
   hosts: tag_group_Nats
@@ -19,6 +19,22 @@
         state: directory
       with_items:
       - ["/opt/nats/","/opt/nats/bin","/opt/nats/conf","/opt/nats/logs","/opt/nats/store"]
+
+    - name: Ensure fs exists on data device (if provided)
+      filesystem:
+        fstype: "{{ storage_fs_type }}"
+        dev: "{{ storage_device }}"
+    - name: Ensure mount point exists
+      file:
+        state: directory
+        path: "/opt/nats/store"
+    - name: Ensure data directory is mounted
+      mount:
+        path: "/opt/nats/store"
+        src: "{{ storage_device }}"
+        fstype: "{{ storage_fs_type }}"
+        state: mounted
+
     - name: Setup NATS Streaming
       unarchive:
         src: https://github.com/nats-io/nats-streaming-server/releases/download/v0.14.2/nats-streaming-server-v0.14.2-linux-amd64.zip
