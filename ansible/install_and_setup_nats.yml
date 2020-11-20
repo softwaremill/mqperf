@@ -37,7 +37,7 @@
 
     - name: Setup NATS Streaming
       unarchive:
-        src: https://github.com/nats-io/nats-streaming-server/releases/download/v0.14.2/nats-streaming-server-v0.14.2-linux-amd64.zip
+        src: https://github.com/nats-io/nats-streaming-server/releases/download/{{ nats_version }}/nats-streaming-server-{{ nats_version }}-linux-amd64.zip
         dest: /opt/nats/bin
         extra_opts:
           - "-j"
