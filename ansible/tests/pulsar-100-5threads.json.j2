@@ -1,11 +1,11 @@
 {
-    "name": "pulsar-25threads",
+    "name": "pulsar-100-5threads",
     "mq_type": "Pulsar",
-    "sender_threads": 25,
-    "msg_count_per_thread": 500000,
+    "sender_threads": 100,
+    "msg_count_per_thread": 200000,
     "msg_size": 100,
     "max_send_msg_batch_size": 10,
-    "receiver_threads": 25,
+    "receiver_threads": 5,
     "receive_msg_batch_size": 10,
     "broker_hosts": {{ groups['tag_group_PulsarBroker']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
     "mq": {}
