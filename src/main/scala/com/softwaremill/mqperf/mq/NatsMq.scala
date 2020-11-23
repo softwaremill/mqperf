@@ -5,16 +5,17 @@ import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch}
 
 import com.amazonaws.util.EC2MetadataUtils
 import com.softwaremill.mqperf.config.TestConfig
+import com.typesafe.scalalogging.StrictLogging
 import io.nats.client.Nats
 import io.nats.streaming.{Message, NatsStreaming, SubscriptionOptions}
 
 import scala.annotation.tailrec
 import scala.util.Random
 
-class NatsMq(testConfig: TestConfig) extends Mq {
+class NatsMq(testConfig: TestConfig) extends Mq with StrictLogging {
 
   private val subject = "mqperf"
-  private val clusterId = "test-cluster" //"mqperfCluster"
+  private val clusterId = "mqperf-cluster"
   private val durableName = "mqperf-durable"
   private val queueName = "mqper-queue"
 
@@ -27,10 +28,11 @@ class NatsMq(testConfig: TestConfig) extends Mq {
 
   private val natsStreamingOptions = new io.nats.streaming.Options.Builder().natsConn(natsConnection).build()
 
-  val r = new Random()
-  private val clientIdBase = s"x${r.nextInt()}" //EC2MetadataUtils.getInstanceId
+  private val r = new Random()
+  private val clientIdBase = EC2MetadataUtils.getInstanceId // s"x${r.nextInt()}" //
   private def newNatsStreamingConnection = {
     val clientId = clientIdBase + NatsMq.clientCounter.incrementAndGet()
+    logger.info("Using client id: " + clientId)
     NatsStreaming.connect(clusterId, clientId, natsStreamingOptions)
   }
 
@@ -67,7 +69,6 @@ class NatsMq(testConfig: TestConfig) extends Mq {
         new SubscriptionOptions.Builder()
           .durableName(durableName)
           .manualAcks()
-          .maxInFlight(testConfig.receiveMsgBatchSize * 2)
           .build()
       )
 
