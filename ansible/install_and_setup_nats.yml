@@ -1,0 +1,70 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+  - { role: ec2_instance, count: 3, ec2_groups: [ 'ssh_access', 'default'], aws_instance_type: t3.small, ec2_tag_group: Nats, volume_size: 100 }
+
+- name: Set up NATS cluster
+  hosts: tag_group_Nats
+  connection: ssh
+  become: true
+  vars:
+  - nats_host1: "{{ groups['tag_group_Nats'][0] }}"
+    nats_host2: "{{ groups['tag_group_Nats'][1] }}"
+    nats_host3: "{{ groups['tag_group_Nats'][2] }}"
+  tasks:
+    - name: Setup NATS directory
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+      - ["/opt/nats/","/opt/nats/bin","/opt/nats/conf","/opt/nats/logs","/opt/nats/store"]
+
+    - name: Ensure fs exists on data device (if provided)
+      filesystem:
+        fstype: "{{ storage_fs_type }}"
+        dev: "{{ storage_device }}"
+    - name: Ensure mount point exists
+      file:
+        state: directory
+        path: "/opt/nats/store"
+    - name: Ensure data directory is mounted
+      mount:
+        path: "/opt/nats/store"
+        src: "{{ storage_device }}"
+        fstype: "{{ storage_fs_type }}"
+        state: mounted
+
+    - name: Setup NATS Streaming
+      unarchive:
+        src: https://github.com/nats-io/nats-streaming-server/releases/download/{{ nats_version }}/nats-streaming-server-{{ nats_version }}-linux-amd64.zip
+        dest: /opt/nats/bin
+        extra_opts:
+          - "-j"
+          - "-o"
+        remote_src: yes
+    - name: Add NATS configuration file 
+      template:
+        src: "roles/nats/templates/{{ groups['tag_group_Nats'].index(inventory_hostname) }}nats-server.conf"
+        dest: "/opt/nats/conf/nats-server.conf"
+        mode: '0644'
+    - name: Add NATS systemd file 
+      template:
+        src: "roles/nats/templates/systemd"
+        dest: "/etc/systemd/system/nats.service"
+        mode: '0644'
+    - name: Restart service 
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: nats
+    
+- name:  Hosts addresses
+  hosts: localhost
+  become: false
+  ignore_errors: yes
+  tasks:
+    - debug:
+        msg: "NATS Server: {{ item }}"
+      with_items: "{{ groups['tag_group_Nats'] }}"
+    
