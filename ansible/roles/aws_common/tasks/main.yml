@@ -105,14 +105,6 @@
         from_port: "{{ rocketmq_broker_port_main }}"
         to_port: "{{ rocketmq_broker_port_main }}"
         cidr_ip: "{{ all_cidr }}"
-      - proto: tcp
-        from_port: "{{ rocketmq_broker_port_bkp_1 }}"
-        to_port: "{{ rocketmq_broker_port_bkp_1 }}"
-        cidr_ip: "{{ all_cidr }}"
-      - proto: tcp
-        from_port: "{{ rocketmq_broker_port_bkp_2 }}"
-        to_port: "{{ rocketmq_broker_port_bkp_2 }}"
-        cidr_ip: "{{ all_cidr }}"
 
 - name: Network setup - ActiveMQ Security Group
   ec2_group:

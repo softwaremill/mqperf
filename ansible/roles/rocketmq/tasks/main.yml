@@ -1,8 +1,12 @@
 ---
 - set_fact: rocketmq_name_server="{{ groups['rocketmq'][0] }}"
-- set_fact: rocketmq_broker_master="{{ groups['rocketmq'][1] }}"
+- set_fact: rocketmq_broker_master_1="{{ groups['rocketmq'][1] }}"
 - set_fact: rocketmq_broker_slave_1="{{ groups['rocketmq'][2] }}"
-- set_fact: rocketmq_broker_slave_2="{{ groups['rocketmq'][3] }}"
+- set_fact: rocketmq_broker_master_2="{{ groups['rocketmq'][3] }}"
+- set_fact: rocketmq_broker_slave_2="{{ groups['rocketmq'][4] }}"
+- set_fact: rocketmq_broker_master_3="{{ groups['rocketmq'][5] }}"
+- set_fact: rocketmq_broker_slave_3="{{ groups['rocketmq'][6] }}"
+
 - set_fact: rocketmq_name_server_private_ip="{{ hostvars[rocketmq_name_server].ec2_private_ip_address }}"
 
 - name: Remove Java 7
@@ -30,73 +34,22 @@
     src: /usr/lib/jvm/java-1.8.0-openjdk
     dest: /usr/java
 
-- name: Set name server hostname 
-  run_once: true
-  delegate_to: "{{ item }}"
-  hostname:
-    name: "rocketmq_name_server"
-  with_items:
-    - "{{ rocketmq_name_server }}"
+- name: Ensure fs exists on data device (if provided)
+  filesystem:
+    fstype: "{{ storage_fs_type }}"
+    dev: "{{ storage_device }}"
 
-- name: Update /etc/hosts 
-  run_once: true
-  delegate_to: "{{ item }}"
-  lineinfile:
-    path: /etc/hosts
-    line: "127.0.0.1 rocketmq_name_server"
-  with_items:
-    - "{{ rocketmq_name_server }}"
+- name: Ensure mount point exists
+  file:
+    state: directory
+    path: "/opt/rocketmq"
 
-- name: Set broker master hostname 
-  run_once: true
-  delegate_to: "{{ item }}"
-  hostname:
-    name: "rocketmq_broker_master"
-  with_items:
-    - "{{ rocketmq_broker_master }}"
-
-- name: Update /etc/hosts 
-  run_once: true
-  delegate_to: "{{ item }}"
-  lineinfile:
-    path: /etc/hosts
-    line: "127.0.0.1 rocketmq_broker_master"
-  with_items:
-    - "{{ rocketmq_broker_master }}"
-
-- name: Set slave 1 hostname 
-  run_once: true
-  delegate_to: "{{ item }}"
-  hostname:
-    name: "rocketmq_broker_slave_1"
-  with_items:
-    - "{{ rocketmq_broker_slave_1 }}"
-
-- name: Update /etc/hosts 
-  run_once: true
-  delegate_to: "{{ item }}"
-  lineinfile:
-    path: /etc/hosts
-    line: "127.0.0.1 rocketmq_broker_slave_1"
-  with_items:
-    - "{{ rocketmq_broker_slave_1 }}"
-
-- name: Set slave 2 hostname 
-  run_once: true
-  delegate_to: "{{ item }}"
-  hostname:
-    name: "rocketmq_broker_slave_2"
-  with_items:
-    - "{{ rocketmq_broker_slave_2 }}"
-
-- name: Update /etc/hosts 
-  run_once: true
-  delegate_to: "{{ item }}"
-  lineinfile:
-    path: /etc/hosts
-    line: "127.0.0.1 rocketmq_broker_slave_2"
-  with_items:
-    - "{{ rocketmq_broker_slave_2 }}"
+- name: Ensure data direcory is mounted
+  mount:
+    path: "/opt/rocketmq"
+    src: "{{ storage_device }}"
+    fstype: "{{ storage_fs_type }}"
+    state: mounted
 
 - name: Download RocketMQ
   unarchive:
@@ -105,10 +58,39 @@
     remote_src: yes
 
 - name: Create convenient link
+  copy:
+    src: /opt/rocketmq-all-{{ rocketmq_version }}-bin-release/
+    dest: /opt/rocketmq/
+    remote_src: yes
+    directory_mode: yes
+
+# it's easier to create symlinks than to configure different log/store directories
+- name: Create logs directory
+  file:
+    path: /opt/rocketmq/logs
+    state: directory
+
+- name: Create logs directory
+  file:
+    path: /opt/rocketmq/store
+    state: directory
+
+- name: Create root logs directory
+  file:
+    path: /root/logs
+    state: directory
+
+- name: Link logs
   file:
     state: link
-    src: /opt/rocketmq-all-{{ rocketmq_version }}-bin-release
-    dest: /opt/rocketmq
+    src: /opt/rocketmq/logs
+    dest: /root/logs/rocketmqlogs
+
+- name: Link store
+  file:
+    state: link
+    src: /opt/rocketmq/store
+    dest: /root/store
 
 - name: Setting Environment
   shell: |
@@ -151,14 +133,32 @@
   with_items: 
     - "{{ rocketmq_name_server }}"
     
-- name: Copy master.properties to master
+- name: Copy master_1.properties to master
   run_once: true
   delegate_to: "{{ item }}"
   copy:
-    src: master.properties
+    src: master_1.properties
     dest: /opt/rocketmq/master.properties
   with_items:
-    - "{{ rocketmq_broker_master }}"
+    - "{{ rocketmq_broker_master_1 }}"
+
+- name: Copy master_2.properties to master
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: master_2.properties
+    dest: /opt/rocketmq/master.properties
+  with_items:
+    - "{{ rocketmq_broker_master_2 }}"
+
+- name: Copy master_3.properties to master
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: master_3.properties
+    dest: /opt/rocketmq/master.properties
+  with_items:
+    - "{{ rocketmq_broker_master_3 }}"
 
 - name: Configuration master RocketMQ Broker Server
   run_once: true
@@ -167,14 +167,18 @@
     src: mqbroker-master.service.j2
     dest: /lib/systemd/system/mqbroker.service
   with_items:
-    - "{{ rocketmq_broker_master }}"
+    - "{{ rocketmq_broker_master_1 }}"
+    - "{{ rocketmq_broker_master_2 }}"
+    - "{{ rocketmq_broker_master_3 }}"
 
 - name: Reload daemon service on master
   run_once: true
   delegate_to: "{{ item }}"
   shell: systemctl daemon-reload
   with_items:
-    - "{{ rocketmq_broker_master }}"
+    - "{{ rocketmq_broker_master_1 }}"
+    - "{{ rocketmq_broker_master_2 }}"
+    - "{{ rocketmq_broker_master_3 }}"
 
 - name: Start master RocketMQ Broker Server
   run_once: true
@@ -184,7 +188,9 @@
     state: started
     enabled: yes
   with_items:
-    - "{{ rocketmq_broker_master }}"
+    - "{{ rocketmq_broker_master_1 }}"
+    - "{{ rocketmq_broker_master_2 }}"
+    - "{{ rocketmq_broker_master_3 }}"
 
 - name: Wait for master mqbroker to start
   wait_for:
@@ -194,7 +200,9 @@
     timeout: 640
     state: started
   with_items:
-    - "{{ rocketmq_broker_master }}"
+    - "{{ rocketmq_broker_master_1 }}"
+    - "{{ rocketmq_broker_master_2 }}"
+    - "{{ rocketmq_broker_master_3 }}"
 
 - name: Copy slave.properties to slave 1
   run_once: true
@@ -205,7 +213,7 @@
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
 
-- name: Copy slave.properties to slaves 2
+- name: Copy slave.properties to slave 2
   run_once: true
   delegate_to: "{{ item }}"
   copy:
@@ -213,6 +221,15 @@
     dest: /opt/rocketmq/slave.properties
   with_items:
     - "{{ rocketmq_broker_slave_2 }}"
+
+- name: Copy slave.properties to slave 3
+  run_once: true
+  delegate_to: "{{ item }}"
+  copy:
+    src: slave_3.properties
+    dest: /opt/rocketmq/slave.properties
+  with_items:
+    - "{{ rocketmq_broker_slave_3 }}"
 
 - name: Configuration slaves RocketMQ Broker Server
   run_once: true
@@ -223,6 +240,7 @@
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
+    - "{{ rocketmq_broker_slave_3 }}"
 
 - name: Reload daemon service on slaves
   run_once: true
@@ -231,8 +249,9 @@
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
     - "{{ rocketmq_broker_slave_2 }}"
+    - "{{ rocketmq_broker_slave_3 }}"
 
-- name: Start slave 1
+- name: Start slaves
   run_once: true
   delegate_to: "{{ item }}"
   service:
@@ -241,8 +260,10 @@
     enabled: yes
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
+    - "{{ rocketmq_broker_slave_2 }}"
+    - "{{ rocketmq_broker_slave_3 }}"
 
-- name: Wait for slave 1 broker to start
+- name: Wait for slaves broker to start
   wait_for:
     host: "{{ item }}"
     port: "{{ rocketmq_broker_port_main }}"
@@ -251,23 +272,5 @@
     state: started
   with_items:
     - "{{ rocketmq_broker_slave_1 }}"
-
-- name: Start slave 2
-  run_once: true
-  delegate_to: "{{ item }}"
-  service:
-    name: mqbroker
-    state: started
-    enabled: yes
-  with_items:
     - "{{ rocketmq_broker_slave_2 }}"
-
-- name: Wait for slave 2 broker to start
-  wait_for:
-    host: "{{ item }}"
-    port: "{{ rocketmq_broker_port_main }}"
-    delay: 10
-    timeout: 640
-    state: started
-  with_items:
-    - "{{ rocketmq_broker_slave_2 }}"
+    - "{{ rocketmq_broker_slave_3 }}"
