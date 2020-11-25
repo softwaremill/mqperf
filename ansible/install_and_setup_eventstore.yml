@@ -2,7 +2,7 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, aws_ami_id: ami-6d48500b, count: 3, ec2_groups: ['ssh_access', 'default', 'eventstore_access'], aws_instance_type: t2.small, ec2_tag_group: Eventstore}
+  - { role: ec2_instance, aws_ami_id: ami-6d48500b, count: 3, ec2_groups: ['ssh_access', 'default', 'eventstore_access'], aws_instance_type: r5.2xlarge, ec2_tag_group: Eventstore, volume_size: 100}
   
 - hosts: eventstore
   become: true

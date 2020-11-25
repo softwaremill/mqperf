@@ -1,6 +1,6 @@
 ---
 - name: Copy package-cloud repository setup script
-# https://packagecloud.io/EventStore/EventStore-OSS/install/
+  # https://packagecloud.io/EventStore/EventStore-OSS/install/
   copy:
     src: templates/packagecloud.sh
     dest: "{{ ansible_env.HOME}}"
@@ -11,12 +11,29 @@
 - name: Run package-cloud repository setup script
   command: "{{ ansible_env.HOME}}/packagecloud.sh"
   become: true
-  
+
 - name: Install eventstore-oss
   package:
     name: eventstore-oss
     state: latest
   become: true
+
+- name: Ensure fs exists on data device (if provided)
+  filesystem:
+    fstype: "{{ storage_fs_type }}"
+    dev: "{{ storage_device }}"
+- name: Ensure mount point exists
+  file:
+    state: directory
+    path: "/opt/eventstore"
+    owner: eventstore
+    group: eventstore
+- name: Ensure data directory is mounted
+  mount:
+    path: "/opt/eventstore"
+    src: "{{ storage_device }}"
+    fstype: "{{ storage_fs_type }}"
+    state: mounted
     
 - set_fact: es_node_0="{{ groups['eventstore'][0] }}"
 - set_fact: es_node_1="{{ groups['eventstore'][1] }}"
@@ -24,7 +41,7 @@
 
 - set_fact: 
     tmpl_var_private_ip:  "{{ hostvars[es_node_0].ec2_private_ip_address }}" 
-    tmpl_var_gossip_seed: "{{hostvars[es_node_1].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
+    tmpl_var_gossip_seed: "{{hostvars[es_node_1].ec2_private_ip_address}}:2113,{{hostvars[es_node_2].ec2_private_ip_address}}:2113"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
@@ -41,7 +58,7 @@
     
 - set_fact: 
     tmpl_var_private_ip:  "{{ hostvars[es_node_1].ec2_private_ip_address }}" 
-    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_2].ec2_private_ip_address}}:2112"
+    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2113,{{hostvars[es_node_2].ec2_private_ip_address}}:2113"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:
@@ -58,7 +75,7 @@
 
 - set_fact: 
     tmpl_var_private_ip:  "{{ hostvars[es_node_2].ec2_private_ip_address }}" 
-    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2112,{{hostvars[es_node_1].ec2_private_ip_address}}:2112"
+    tmpl_var_gossip_seed: "{{hostvars[es_node_0].ec2_private_ip_address}}:2113,{{hostvars[es_node_1].ec2_private_ip_address}}:2113"
   run_once: true  
   delegate_to: "{{ item }}"
   with_items:

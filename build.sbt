@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "org.apache.kafka" % "kafka-clients" % "2.6.0",
   "org.apache.pulsar" % "pulsar-client" % "2.6.2" exclude ("org.apache.pulsar", "bouncy-castle-bc-shaded"),
   "org.scalatest" %% "scalatest" % "3.1.2" % Test,
-  "com.geteventstore" %% "eventstore-client" % "7.1.0",
+  "com.geteventstore" %% "eventstore-client" % "7.3.0",
   "org.apache.activemq" % "activemq-client" % "5.15.12" exclude ("org.apache.geronimo.specs", "geronimo-jms_1.1_spec"),
   "com.typesafe" % "config" % "1.4.0",
   "org.apache.activemq" % "artemis-jms-client" % "2.15.0" exclude ("commons-logging", "commons-logging"),
@@ -63,5 +63,7 @@ assemblyOption in assembly ~= {
 assemblyMergeStrategy in assembly := {
   case PathList(ps @ _*) if ps.last == "io.netty.versions.properties" => MergeStrategy.first
   case PathList(ps @ _*) if ps.last == "public-suffix-list.txt"       => MergeStrategy.first
+  case PathList(ps @ _*) if ps.last == "duration.proto"               => MergeStrategy.last
+  case PathList(ps @ _*) if ps.last == "field_mask.proto"             => MergeStrategy.last
   case x                                                              => (assemblyMergeStrategy in assembly).value(x)
 }
