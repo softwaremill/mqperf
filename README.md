@@ -4,6 +4,11 @@ A benchmark of message queues with data replication and at-least-once delivery g
 
 # Setting up the environment
 
+Prerequisites with tested versions:
+- python 3.7.2 (`via pyenv`)
+- ansible 2.9.15 (`pip install ansible==2.9.5`)
+- boto3 1.16.32 (`pip install boto3`)
+
 Message queues and test servers are automatically provisioned using Ansible on AWS. You will need to have the
 `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` present in the environment for things to work properly, as well
 as Ansible and Boto installed.
