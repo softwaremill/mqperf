@@ -1,15 +1,15 @@
 package com.softwaremill.mqperf.mq
 
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.concurrent.{Executors, TimeoutException}
-
 import cats.data.NonEmptyList
 import com.softwaremill.mqperf.config.TestConfig
+import com.zaxxer.hikari.HikariConfig
 import doobie._
 import doobie.implicits._
 import doobie.postgres.implicits._
-import doobie.implicits.legacy.instant._
+import doobie.implicits.javatime._
 import cats.implicits._
 import cats.effect._
 import doobie.hikari.HikariTransactor
@@ -20,6 +20,7 @@ import doobie.util.log.{ExecFailure, ProcessingFailure, Success}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 class PostgresMq(testConfig: TestConfig) extends Mq {
+  private val clock = java.time.Clock.systemUTC()
   override type MsgId = UUID
   private val supportEC: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
@@ -42,17 +43,17 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
       connectEC <- doobie.util.ExecutionContexts.fixedThreadPool[IO](testConfig.receiverThreads)
       transactEC <- doobie.util.ExecutionContexts.cachedThreadPool[IO]
       _ <- Resource.liftF(Async[IO].delay(Class.forName("org.postgresql.Driver")))
-      xa <- HikariTransactor.initial[IO](connectEC, Blocker.liftExecutionContext(transactEC))
-      _ <- Resource.liftF {
-        xa.configure { ds =>
-          Async[IO].delay {
-            ds.setJdbcUrl(s"jdbc:postgresql://${testConfig.brokerHosts.head}:5432/mq")
-            ds.setUsername("mq")
-            ds.setPassword("pass")
-            ds.setMaxLifetime(5 * 60 * 1000)
-          }
-        }
-      }
+      xa <- HikariTransactor.fromHikariConfig[IO]( {
+        val hc = new HikariConfig()
+        hc.setAutoCommit(false)
+        hc.setConnectionInitSql("set time zone 'UTC'")
+        hc.setJdbcUrl(s"jdbc:postgresql://${testConfig.brokerHosts.head}:5432/mq")
+        hc.setUsername("mq")
+        hc.setPassword("pass")
+        hc.setMaxLifetime(5 * 60 * 1000)
+        hc.setMaximumPoolSize(testConfig.receiverThreads)
+        hc
+      } ,connectEC, Blocker.liftExecutionContext(transactEC))
     } yield xa
   }
 
@@ -64,7 +65,8 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
   }
 
   private def createJobTable(): Unit = {
-    sql"""CREATE TABLE IF NOT EXISTS jobs(ID UUID PRIMARY KEY, CONTENT TEXT NOT NULL, NEXT_DELIVERY TIMESTAMPTZ NOT NULL)""".update.run
+    (sql"""CREATE TABLE IF NOT EXISTS jobs(ID UUID PRIMARY KEY, CONTENT TEXT NOT NULL, NEXT_DELIVERY TIMESTAMPTZ NOT NULL)""".update.run >>
+    Update0("CREATE INDEX IF NOT EXISTS next_delivery_idx ON jobs USING BTREE(NEXT_DELIVERY);",None).run)
       .transact(transactor)
       .unsafeRunTimed(10 seconds)
       .getOrElse(throw new TimeoutException())
@@ -75,7 +77,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
     new MqSender {
       def insertMany(ps: List[String]): ConnectionIO[Int] = {
         val sql = "insert into jobs(id, content, next_delivery) values (?, ?, ?)"
-        Update[(UUID, String, Instant)](sql).updateMany(ps.map(c => (UUID.randomUUID(), c, Instant.now())))
+        Update[(UUID, String, OffsetDateTime)](sql).updateMany(ps.map(c => (UUID.randomUUID(), c, OffsetDateTime.now(clock))))
       }
 
       /**
@@ -102,7 +104,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
     createJobTable()
     new MqReceiver {
       override def receive(maxMsgCount: Int): List[(MsgId, String)] = {
-        val now = Instant.now()
+        val now = OffsetDateTime.now(clock)
         val nextDelivery = now.plusSeconds(100)
         val nextJobs =
           (sql"SELECT id, content FROM jobs WHERE next_delivery <= $now FOR UPDATE SKIP LOCKED LIMIT " ++ Fragment
