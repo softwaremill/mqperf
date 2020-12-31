@@ -45,6 +45,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
       _ <- Resource.liftF(Async[IO].delay(Class.forName("org.postgresql.Driver")))
       xa <- HikariTransactor.fromHikariConfig[IO]( {
         val hc = new HikariConfig()
+        hc.setAutoCommit(false)
         hc.setConnectionInitSql("set time zone 'UTC'")
         hc.setJdbcUrl(s"jdbc:postgresql://${testConfig.brokerHosts.head}:5432/mq")
         hc.setUsername("mq")
