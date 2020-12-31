@@ -51,6 +51,7 @@ class PostgresMq(testConfig: TestConfig) extends Mq {
         hc.setUsername("mq")
         hc.setPassword("pass")
         hc.setMaxLifetime(5 * 60 * 1000)
+        hc.setMaximumPoolSize(testConfig.receiverThreads)
         hc
       } ,connectEC, Blocker.liftExecutionContext(transactEC))
     } yield xa
