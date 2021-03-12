@@ -117,7 +117,7 @@ under the License.
                 <connector-ref>netty-connector</connector-ref>
                 <retry-interval>500</retry-interval>
                 <use-duplicate-detection>true</use-duplicate-detection>
-                <message-load-balancing>ON_DEMAND</message-load-balancing>
+                <message-load-balancing>OFF</message-load-balancing>
                 <max-hops>1</max-hops>
                 <static-connectors>
                    {% for address in groups['artemis']|map('extract', hostvars, 'ec2_private_ip_address') %}
@@ -219,7 +219,6 @@ under the License.
 
       <address-settings>
          <address-setting match="#">
-            <redistribution-delay>0</redistribution-delay>
          </address-setting>
          <!-- if you define auto-create on certain queues, management has to be auto-create -->
          <address-setting match="activemq.management#">
