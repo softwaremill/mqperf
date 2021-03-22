@@ -10,6 +10,7 @@ class ArtemisMq(val testConfig: TestConfig) extends JmsMq {
   override lazy val connectionFactory: ConnectionFactory = {
     val hosts = "(" + testConfig.brokerHosts.map(h => s"tcp://$h:61616").mkString(",") + ")?ha=true"
     val cf = new ActiveMQConnectionFactory(hosts)
+    cf.setUseTopologyForLoadBalancing(false)
     cf
   }
 }

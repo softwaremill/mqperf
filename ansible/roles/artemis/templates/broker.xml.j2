@@ -104,17 +104,17 @@ under the License.
 
         <connectors>
             <!-- https://github.com/sigreen/amq7-replicated-cluster-ec2 -->
-            <connector name="netty-connector">tcp://{{ hostvars[item].ec2_private_ip_address }}:61616</connector>
+            <connector name="netty-replication-connector">tcp://{{ hostvars[item].ec2_private_ip_address }}:61716</connector>
             {% for address in groups['artemis']|map('extract', hostvars, 'ec2_private_ip_address') %}
               {% if address != hostvars[item].ec2_private_ip_address %}
-                <connector name="{{ address|replace(".", "_") }}">tcp://{{ address }}:61616</connector>
+                <connector name="{{ address|replace(".", "_") }}">tcp://{{ address }}:61716</connector>
               {% endif %}
             {% endfor %}
         </connectors>
 
           <cluster-connections>
              <cluster-connection name="my-cluster">
-                <connector-ref>netty-connector</connector-ref>
+                <connector-ref>netty-replication-connector</connector-ref>
                 <retry-interval>500</retry-interval>
                 <use-duplicate-detection>true</use-duplicate-detection>
                 <message-load-balancing>OFF</message-load-balancing>
@@ -174,20 +174,12 @@ under the License.
                     See https://issues.apache.org/jira/browse/ARTEMIS-1644 for more information. -->
 
 
-            <!-- Acceptor for every supported protocol -->
-            <acceptor name="netty-acceptor">tcp://{{hostvars[item].ec2_private_ip_address}}:61616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+        <!-- Acceptor for every supported protocol -->
+        <acceptor name="netty-acceptor">tcp://{{hostvars[item].ec2_private_ip_address}}:61616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
 
-         <!-- AMQP Acceptor.  Listens on default AMQP port for AMQP traffic.-->
-         <acceptor name="amqp">tcp://{{hostvars[item].ec2_private_ip_address}}:5672?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=AMQP;useEpoll=true;amqpCredits=1000;amqpLowCredits=300;amqpMinLargeMessageSize=102400;amqpDuplicateDetection=false</acceptor>
+        <!-- Acceptor used for replication -->
+        <acceptor name="netty-replication-acceptor">tcp://{{hostvars[item].ec2_private_ip_address}}:61716?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE;useEpoll=true;remotingThreads=1</acceptor>
 
-            <!-- STOMP Acceptor. -->
-            <acceptor name="stomp">tcp://{{hostvars[item].ec2_private_ip_address}}:61613?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=STOMP;useEpoll=true</acceptor>
-
-         <!-- HornetQ Compatibility Acceptor.  Enables HornetQ Core and STOMP for legacy HornetQ clients. -->
-         <acceptor name="hornetq">tcp://{{hostvars[item].ec2_private_ip_address}}:5445?anycastPrefix=jms.queue.;multicastPrefix=jms.topic.;protocols=HORNETQ,STOMP;useEpoll=true</acceptor>
-
-            <!-- MQTT Acceptor -->
-            <acceptor name="mqtt">tcp://{{hostvars[item].ec2_private_ip_address}}:1883?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=MQTT;useEpoll=true</acceptor>
 
         </acceptors>
 
