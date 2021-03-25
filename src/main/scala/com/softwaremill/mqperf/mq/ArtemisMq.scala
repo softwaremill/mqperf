@@ -11,6 +11,7 @@ class ArtemisMq(val testConfig: TestConfig) extends JmsMq {
     val hosts = "(" + testConfig.brokerHosts.map(h => s"tcp://$h:61616").mkString(",") + ")?ha=true"
     val cf = new ActiveMQConnectionFactory(hosts)
     cf.setUseTopologyForLoadBalancing(false)
+    cf.setConnectionLoadBalancingPolicyClassName("org.apache.activemq.artemis.api.core.client.loadbalance.RoundRobinConnectionLoadBalancingPolicy");
     cf
   }
 }
