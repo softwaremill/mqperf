@@ -223,7 +223,7 @@
   replace:
     path: /opt/{{ artemis_name }}-broker/etc/artemis.profile
     regexp: 'Xmx2G'
-    replace: 'Xmx48G'
+    replace: 'Xm16G -XX:+AlwaysPreTouch'
     backup: yes
 
 - name: Start artemis
