@@ -17,5 +17,10 @@ object Msg {
 
   def addTimestamp(prefix: String): String = prefix + System.currentTimeMillis().toString
 
+  def addIndex(i: Int, msg: String): String = {
+    val indexStr = i.toString
+    indexStr + "_" + msg.drop(indexStr.length+1)
+  }
+
   def extractTimestamp(msg: String): Long = msg.takeRight(TimestampLength).toLong
 }

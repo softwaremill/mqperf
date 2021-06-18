@@ -76,7 +76,7 @@ class SenderRunnable(
       while (leftToSend > 0) {
         val batchSize = math.min(leftToSend, Random.nextInt(maxSendMsgBatchSize) + 1)
         val fullMsg = Msg.addTimestamp(msgPrefix)
-        val batch = List.fill(batchSize)(fullMsg)
+        val batch = (1 to batchSize).map(i => Msg.addIndex(i, fullMsg)).toList
         logger.debug("Sending batch")
         val start = clock.currentTimeMillis()
         mqSender.send(batch)

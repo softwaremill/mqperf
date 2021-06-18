@@ -7,7 +7,7 @@ class MsgTest extends FlatSpec with Matchers {
   it should "add and extract timestamp" in {
     val prefix = Msg.prefix(TestConfig("", "", 0, 0, 100, 0, 0, 0, Nil, "", null))
     val now = System.currentTimeMillis()
-    val extracted = Msg.extractTimestamp(Msg.addTimestamp(prefix))
+    val extracted = Msg.extractTimestamp(Msg.addIndex(28, Msg.addTimestamp(prefix)))
     now should be <= extracted
     extracted shouldBe <= (now + 10) // tolerance
   }
