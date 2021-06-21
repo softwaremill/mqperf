@@ -23,6 +23,6 @@ rocketmq_name_server_port: 9876
 rocketmq_broker_port_main: 10911
 
 storage_fs_type: ext4
-storage_device: /dev/nvme1n1
+storage_device: /dev/sdf
 
 nats_version: v0.19.0

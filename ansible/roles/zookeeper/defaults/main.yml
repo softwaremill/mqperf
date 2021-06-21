@@ -1,1 +1,6 @@
+zookeeper_version: "3.6.0"
+zookeeper_tar_name: "apache-zookeeper-{{zookeeper_version}}-bin.tar.gz"
+zookeeper_download_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{zookeeper_version}}/{{zookeeper_tar_name}}"
+zookeeper_installation_dir: "/usr/share/apache-zookeeper-{{zookeeper_version}}"
 zookeeper_hosts: "{{ groups['kafka'] }}"
+temp_dir: "/tmp"

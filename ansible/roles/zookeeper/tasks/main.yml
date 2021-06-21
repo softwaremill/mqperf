@@ -6,8 +6,6 @@
   group:
     name: "zookeeper_group"
     state: present
-  tags:
-    - zookeeper_group
 
 - name: Create zookeeper user
   user:
@@ -15,8 +13,6 @@
     group: "zookeeper_group"
     state: present
     createhome: no
-  tags:
-    - zookeeper_user
 
 - name: Check if ZooKeeper has already been downloaded and unpacked
   stat:
@@ -25,13 +21,13 @@
 
 - name: Download zookeeper tar
   get_url:
-    dest: "/tmp"
-    url: "http://archive.apache.org/dist/zookeeper/zookeeper-3.6.0/apache-zookeeper-3.6.0-bin.tar.gz"
+    dest: "{{temp_dir}}"
+    url: "{{zookeeper_download_url}}"
   when: not zookeeper_dir.stat.exists
 
 - name: Create ZooKeeper installation dir
   file:
-    path: /usr/share/apache-zookeeper
+    path: "{{zookeeper_installation_dir}}"
     state: directory
     group: "zookeeper_group"
     owner: "zookeeper_user"
@@ -40,25 +36,21 @@
 
 - name: Unpack Apache ZooKeeper
   unarchive:
-    src: /tmp/apache-zookeeper-3.6.0-bin.tar.gz
-    dest: /usr/share/apache-zookeeper
+    src: "/{{temp_dir}}/{{zookeeper_tar_name}}"
+    dest: "{{zookeeper_installation_dir}}"
     copy: no
     extra_opts: [--strip-components=1]
     group: "zookeeper_group"
     owner: "zookeeper_user"
   when: not zookeeper_dir.stat.exists
-  tags:
-    - zookeeper_unpack
 
 - name: Create symlink to ZooKeeper installation
   file:
-    src: /usr/share/apache-zookeeper
+    src: "{{zookeeper_installation_dir}}"
     dest: /etc/zookeeper
     state: link
     group: "zookeeper_group"
     owner: "zookeeper_user"
-  tags:
-    - zookeeper_dirs
 
 - name: Template /etc/default
   template:
@@ -69,8 +61,6 @@
     mode: 0644
   notify:
     - restart zookeeper
-  tags:
-    - zookeeper_config
 
 - name: Template ZooKeeper systemd service file
   template:
@@ -79,8 +69,6 @@
     group: "zookeeper_group"
     owner: "zookeeper_user"
     mode: 0644
-  tags:
-    - zookeeper_service
 
 - name: Create directory for snapshot files and myid file
   file:
