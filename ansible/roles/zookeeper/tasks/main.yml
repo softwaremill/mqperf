@@ -2,35 +2,83 @@
   debug:
     msg: "{{ansible_all_ipv4_addresses}}"
 
-- name: Install Cloudera 1-Click repository
-  yum:
-    name: https://archive.cloudera.com/cdh5/one-click-install/redhat/7/x86_64/cloudera-cdh-5-0.x86_64.rpm
-    state: installed
+- name: Create zookeeper group
+  group:
+    name: "zookeeper_group"
+    state: present
 
-# Remove when the bug is fixed
-- name: Upload Cloudera "Package does not match intended download" bug fix
+- name: Create zookeeper user
+  user:
+    name: "zookeeper_user"
+    group: "zookeeper_group"
+    state: present
+    createhome: no
+
+- name: Check if ZooKeeper has already been downloaded and unpacked
+  stat:
+    path: /etc/zookeeper
+  register: zookeeper_dir
+
+- name: Download zookeeper tar
+  get_url:
+    dest: "{{temp_dir}}"
+    url: "{{zookeeper_download_url}}"
+  when: not zookeeper_dir.stat.exists
+
+- name: Create ZooKeeper installation dir
+  file:
+    path: "{{zookeeper_installation_dir}}"
+    state: directory
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+    mode: 0755
+  when: not zookeeper_dir.stat.exists
+
+- name: Unpack Apache ZooKeeper
+  unarchive:
+    src: "/{{temp_dir}}/{{zookeeper_tar_name}}"
+    dest: "{{zookeeper_installation_dir}}"
+    copy: no
+    extra_opts: [--strip-components=1]
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+  when: not zookeeper_dir.stat.exists
+
+- name: Create symlink to ZooKeeper installation
+  file:
+    src: "{{zookeeper_installation_dir}}"
+    dest: /etc/zookeeper
+    state: link
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+
+- name: Template /etc/default
   template:
-    src: cloudera-cdh5.repo
-    dest: /etc/yum.repos.d/cloudera-cdh5.repo
+    src: default.j2
+    dest: "/etc/default/zookeeper"
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+    mode: 0644
+  notify:
+    - restart zookeeper
 
-- name: After changing Cloudera repo settings, clean yum's cache
-  command: yum clean all
+- name: Template ZooKeeper systemd service file
+  template:
+    src: zookeeper.service.j2
+    dest: /usr/lib/systemd/system/zookeeper.service
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+    mode: 0644
 
-- name: Install zookeeper package
-  package:
-    name: zookeeper-server
-    state: installed
-
-- name: Check if zookeeper has been initialized
-  find:
+- name: Create directory for snapshot files and myid file
+  file:
     path: /var/lib/zookeeper
-    file_type: directory
-    patterns: "*"
-  register: zookeeper_data
-
-- name: Initialize server
-  command: service zookeeper-server init
-  when: zookeeper_data.matched|int == 0
+    state: directory
+    group: "zookeeper_group"
+    owner: "zookeeper_user"
+    mode: 0755
+  tags:
+    - zookeeper_dirs
 
 - name: Set zookeeper server id
   template:
@@ -46,6 +94,6 @@
 
 - name: Start zookeeper
   service:
-    name: zookeeper-server
+    name: zookeeper.service
     state: started
 
