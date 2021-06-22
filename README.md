@@ -4,30 +4,97 @@ A benchmark of message queues with data replication and at-least-once delivery g
 
 # Setting up the environment
 
-Prerequisites with tested versions:
-- python 3.7.2 (`via pyenv`)
-- ansible 2.9.15 (`pip install ansible==2.9.5`)
-- boto3 1.16.32 (`pip install boto3`)
+### Tools
+Tests have been run with the following prerequisites:
+- python 3.9.5 (`via pyenv`)
+- ansible 2.9.5 (`pip install 'ansible==2.9.5'`)
+- boto3 1.17.96 (`pip install boto3`)
 
-Message queues and test servers are automatically provisioned using Ansible on AWS. You will need to have the
+### AWS Credentials
+Message queues and test servers are automatically provisioned using **Ansible** on **AWS**. You will need to have the
 `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` present in the environment for things to work properly, as well
 as Ansible and Boto installed.
 
-Metrics are gathered using Prometheus and visualized using Grafana.
+See [Creating AWS access key](https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/) for details.
 
-Here are the steps needed to test Kafka (other queues are similar). Open the `ansible` directory in the console and:
+### Metrics
+Metrics are gathered using **Prometheus** and visualized using **Grafana**. See next section for details on how to configure them.
 
-* provision a kafka cluster by running `ansible-playbook install_and_setup_kafka.yml`. Note to change the size of the
-instance to the desired one.
-* provision a number of sender and receiver nodes using `ansible-playbook provision_mqperf_nodes.yml`. Adjust the
-number and size of nodes depending on the test you want to run. Keep in mind that after each code change, you'll need
-to remove the fat-jars from the `target/scala-2.12` directory and re-run `provision_mqperf_nodes.yml`.
-* provision the prometheus/grafana server by running `ansible-playbook install_and_setup_prometheus.yml`. This must be
-done each time after provisioning new sender/receiver nodes (previous step) so that prometheus is properly configured
-to scrape the new servers for metrics
-* setup grafana: open the grafana panel on the `:3000` port (`admin`/`pass`), create a new prometheus data source 
-(`local-instance-ip:3000`), and import the dashboard from json (`prometheus/dashboard.json`)
-* modify `run-tests.yml` with the correct test name, run the test, observe results!
+# Running tests
+### Provision broker nodes with relevant script
+Enter the `ansible` directory
+```shell
+ansible-playbook install_and_setup_YourQueueName.yml
+```
+*Note: since **AWS SQS** is a serverless offering, you don't need to setup anything for it. For SQS, you can skip this step.*
+
+*Note: you can select EC2 instance type for your tests by setting `ec2_instance_type` in the `group_vars/all.yml` file*
+ 
+### Provision sender and receiver nodes
+```shell
+ansible-playbook provision_mqperf_nodes.yml
+```
+*Note: you can adjust the number of these **EC2** instances for your own tests.*
+
+**WARNING: after each code change, you'll need to remove the fat-jars from the `target/scala-2.12` directory and re-run 
+`provision_mqperf_nodes.yml`.**
+
+### Provision Prometheus and Grafana nodes
+```shell
+ansible-playbook install_and_setup_prometheus.yml
+```
+**WARNING: this must be done each time after provisioning new sender / receiver nodes (previous step) so that Prometheus 
+is properly configured to scrape the new servers for metrics**
+
+### Configure Grafana
+* Lookup the *public* IP address of the EC2 node where metric tools where deployed.
+* Open `IP:3000` in your browser
+* Login with `admin/pass` credentials
+* Create new **Prometheus** Data Source
+* Configure the data source with *private* IP address of the same EC2 node and port 9090 
+* Import the `prometheus/dashboard.json` dashboard into Grafana instance
+
+### Execute test
+* Choose your test configuration from the `tests` directory
+* Use the file name as the `test_name` in the `run_tests.yml` file
+* Run the command
+```shell
+ansible-playbook run_tests.yml
+```
+
+# Cleaning up
+There are few commands dedicated to cleaning up the cloud resources after the tests execution.
+
+* Stopping sender and receiver processing
+```shell
+ansible-playbook stop.yml
+```
+
+* Terminating EC2 instances
+```shell
+ansible-playbook shutdown_ec2_instances.yml
+```
+
+* Removing all MQPerf-related resources on AWS
+```shell
+ansible-playbook remove_aws_resources.yml
+```
+
+# Utilities
+* Checking receiver/sender status
+```shell
+ansible-playbook check_status.yml
+```
+
+* Running sender nodes only
+```shell
+ansible-playbook sender_only.yml
+```
+
+* Running receiver nodes only
+```shell
+ansible-playbook receiver_only.yml
+```
 
 # Implementation-specific notes
 
