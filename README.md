@@ -21,8 +21,9 @@ See [Creating AWS access key](https://aws.amazon.com/premiumsupport/knowledge-ce
 Metrics are gathered using **Prometheus** and visualized using **Grafana**. See next section for details on how to configure them.
 
 # Running tests
+*Note: all commands should be run in the `ansible` directory*
+
 ### Provision broker nodes with relevant script
-Enter the `ansible` directory
 ```shell
 ansible-playbook install_and_setup_YourQueueName.yml
 ```
@@ -99,30 +100,25 @@ ansible-playbook receiver_only.yml
 # Implementation-specific notes
 
 ## Kafka
-
-Before running the tests, create the kafka topics by running `ansible-playbook kafka_create_topic.yml`
+Before running the tests, create the Kafka topics by running `ansible-playbook kafka_create_topic.yml`
 
 ## Pulsar
-
 The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
-[Got to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.
+[Go to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.
 Currently, this is not implemented, hence the `mq.ack` attribute is ignored.
 
 ## RabbitMQ
-
-* when installing rabbit mq, you need to specify the erlang cookie, e.g.: 
+* when installing Rabbit MQ, you need to specify the Erlang cookie, e.g.: 
 `ansible-playbook install_and_setup_rabbitmq.yml -e erlang_cookie=1234`
-* the management console is available on port 15672 (`guest`/`guest`)     
-* if you'd like to ssh to the broker servers the user is `centos`
+* management console is available on port 15672 (`guest`/`guest`)     
+* if you'd like to SSH to the broker servers the user is `centos`
 * queues starting with `ha.` will be mirrored
 
 ## ActiveMQ
-
-* the management console is available on port 8161 (`admin`/`admin`)
+* management console is available on port 8161 (`admin`/`admin`)
 
 ## ActiveMQ Artemis
-
-* note that for the client code, we are using the same one as for ActivqMQ (`ActiveMq.scala`)
+* note that for the client code, we are using the same one as for ActiveMQ (`ActiveMq.scala`)
 * there is no dedicated management console for ActiveMQ Artemis, however monitoring is possible via exposed [Jolokia](https://jolokia.org/) web app. Jolokia web application is deployed along ActiveMQ Artemis by default. To view broker's data:
     * Navigate to: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/list` - plain JSON content should be visible - to verify if it works.
     * To view instance's state navigate to e.g.: `http://<AWS_EC2_PUBLIC_IP>:8161/jolokia/read/org.apache.activemq.artemis:address="mq",broker="<BROKER_NAME>",component=addresses`, where: `org.apache.activemq.artemis:address="mq",broker="<BROKER_NAME>",component=addresses` is the key (`"` signs are obligatory). To know other keys refer to the previous step. 
@@ -130,11 +126,9 @@ Currently, this is not implemented, hence the `mq.ack` attribute is ignored.
 * configuration changes: bumped Xmx, bumped global-max-size    
     
 ## EventStore
-    
-* configuration changes: see the mq implementation
-    
-## Oracle AQ support
+* configuration changes: see the `EventStoreMq` implementation
 
+## Oracle AQ support
 * to build the oracleaq module, first install the required dependencies available in your Oracle DB installation
     * aqapi.jar (oracle/product/11.2.0/dbhome_1/rdbms/jlib/aqapi.jar)
     * ojdbc6.jar (oracle/product/11.2.0/dbhome_1/jdbc/lib/ojdbc6.jar)
@@ -153,13 +147,13 @@ $ sbt publishLocal
 ```
 
 # Ansible notes
-
-Zookeeper installation contains an ugly workaround for a bug in Cloudera's RPM repositories (http://community.cloudera.com/t5/Cloudera-Manager-Installation/cloudera-manager-installer-fails-on-centos-7-3-vanilla/td-p/55086/highlight/true).
+Zookeeper installation contains an ugly workaround for a bug in Cloudera's RPM repositories 
+(http://community.cloudera.com/t5/Cloudera-Manager-Installation/cloudera-manager-installer-fails-on-centos-7-3-vanilla/td-p/55086/highlight/true).
 See `ansible/roles/zookeeper/tasks/main.yml`. This should be removed in the future when the bug is fixed by Cloudera.
 
 # FAQ
-
-- I'm getting: *skipping: no hosts matched*, why? Probably you are runing ansible from project root. Instead cd to `ansible/` (where `ansible.cfg` is located) and try to run playbook from this location. 
+- I'm getting: *skipping: no hosts matched*, why? Probably you are running ansible from project root.
+  Instead `cd` to `ansible/` (where `ansible.cfg` is located) and try to run playbook from this location.
 
 # Local test
 To run locally execute the Sender and Receiver classes with following:
