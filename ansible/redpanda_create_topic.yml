@@ -1,0 +1,6 @@
+---
+- hosts: redpanda
+  run_once: true
+  tasks:
+  - name: Create topic
+    shell: rpk topic create mqperf --replicas 3 --partitions 64

@@ -105,8 +105,7 @@ ansible-playbook receiver_only.yml
 Before running the tests, create the Kafka topics by running `ansible-playbook kafka_create_topic.yml`
 
 ## Redpanda [vectorized.io]
-Redpanda requires xfs filesystem, to configure it update above value in `all.yml` file:
-`storage_fs_type: xfs`
+Redpanda requires xfs filesystem, to configure it update `storage_fs_type: xfs` in `all.yml` file
 Before running the tests, create the Kafka topics by running `ansible-playbook redpanda_create_topic.yml`
 
 ## Pulsar
