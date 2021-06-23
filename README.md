@@ -104,6 +104,11 @@ ansible-playbook receiver_only.yml
 ## Kafka
 Before running the tests, create the Kafka topics by running `ansible-playbook kafka_create_topic.yml`
 
+## Redpanda [vectorized.io]
+Redpanda requires xfs filesystem, to configure it update above value in `all.yml` file:
+`storage_fs_type: xfs`
+Before running the tests, create the Kafka topics by running `ansible-playbook redpanda_create_topic.yml`
+
 ## Pulsar
 The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
 [Go to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.

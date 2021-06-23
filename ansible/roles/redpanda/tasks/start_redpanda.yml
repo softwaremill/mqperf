@@ -1,0 +1,38 @@
+---
+- name: ensure /etc/redpanda exists
+  file:
+    path: /etc/redpanda
+    state: directory
+
+- name: configure redpanda
+  notify:
+    - restart redpanda-tuner
+    - restart redpanda
+  vars:
+    use_public_ips: "{{ advertise_public_ips | default(false, true) }}"
+  shell: |
+    rpk config set cluster_id 'redpanda'
+    rpk config set organization 'redpanda-test'
+    rpk config set redpanda.advertised_kafka_api '{
+    address: {{ hostvars[inventory_hostname].ec2_private_ip_address }},
+    port: 9092
+    }' --format yaml
+    rpk config set redpanda.kafka_api_tls '{
+    enabled: false
+    }' --format yaml
+    rpk config set redpanda.advertised_rpc_api '{
+    address: {{ hostvars[inventory_hostname].ec2_private_ip_address }},
+    port: 33145
+    }' --format yaml
+    sudo rpk redpanda mode production
+    {% if hostvars[groups['redpanda'][0]].ec2_id == hostvars[inventory_hostname].ec2_id %}
+    sudo rpk config bootstrap \
+      --id {{ groups['redpanda'].index(inventory_hostname) }} \
+      --self {{ hostvars[inventory_hostname].ec2_private_ip_address }}
+    {% else %}
+    sudo rpk config bootstrap \
+      --id {{ groups['redpanda'].index(inventory_hostname) }} \
+      --self {{ hostvars[inventory_hostname].ec2_private_ip_address }} \
+      --ips {{ groups["redpanda"] | map('extract', hostvars) | map(attribute='ec2_private_ip_address') | join(',') }}
+    {% endif %}
+    sudo systemctl start redpanda-tuner redpanda
