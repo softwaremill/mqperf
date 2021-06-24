@@ -1,0 +1,19 @@
+---
+- name: add the redpanda repo
+  shell: |
+    curl -1sLf https://packages.vectorized.io/sMIXnoa7DK12JW4A/redpanda/cfg/setup/bash.rpm.sh | sudo -E bash
+  args:
+    warn: no
+
+- name: install redpanda from repository
+  package:
+    name:
+      - redpanda
+    state: present
+    update_cache: yes
+
+- name: set data dir file perms
+  file:
+    path: /var/lib/redpanda/data
+    owner: redpanda
+    group: redpanda
