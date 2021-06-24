@@ -9,7 +9,6 @@
     state: directory
     path: "{{ storage_path }}"
 
-
 - name: Ensure data direcory is mounted
   mount:
     path: "{{ storage_path }}"
