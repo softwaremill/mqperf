@@ -8,8 +8,6 @@
   notify:
     - restart redpanda-tuner
     - restart redpanda
-  vars:
-    use_public_ips: "{{ advertise_public_ips | default(false, true) }}"
   shell: |
     rpk config set cluster_id 'redpanda'
     rpk config set organization 'redpanda-test'
