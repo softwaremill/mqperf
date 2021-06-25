@@ -22,16 +22,17 @@ object Sender extends StrictLogging {
 
       val mq: Mq = Mq.instantiate(testConfig)
       val (messagesCounter: Counter.Child, threadsDoneCounter: Gauge.Child, sendLatency: Histogram.Child) = createMetrics(testConfig)
+      val messagesPool: MessagesPool = MessagesPool.generatePoolOfRandomMessageOfLengthN(testConfig.msgSize, MessagesPool.DEFAULT_MESSAGES_POOL_SIZE)
 
       val sr = new SenderRunnable(
         mq,
         testConfig.mqType,
-        Msg.prefix(testConfig),
         testConfig.msgCountPerThread,
         testConfig.maxSendMsgBatchSize,
         messagesCounter,
         threadsDoneCounter,
-        sendLatency
+        sendLatency,
+        messagesPool
       )
 
       val threads = (1 to testConfig.senderThreads).map { _ =>
@@ -74,12 +75,12 @@ object Sender extends StrictLogging {
 class SenderRunnable(
                       mq: Mq,
                       mqType: String,
-                      msgPrefix: String,
                       msgCount: Int,
                       maxSendMsgBatchSize: Int,
                       sendCounter: Counter.Child,
                       sendDone: Gauge.Child,
                       sendLatency: Histogram.Child,
+                      messagesPool: MessagesPool,
                       clock: Clock = RealClock
                     ) extends Runnable
   with StrictLogging {
@@ -112,7 +113,9 @@ class SenderRunnable(
   }
 
   private def createMessagesBatch(batchSize: Integer): List[String] = {
-    val fullMsg = Msg.addTimestamp(msgPrefix)
-    (1 to batchSize).map(i => Msg.addIndex(i, fullMsg)).toList
+    (1 to batchSize)
+      .map(_ => messagesPool.nextMessage())
+      .map(Msg.addTimestamp)
+      .toList
   }
 }

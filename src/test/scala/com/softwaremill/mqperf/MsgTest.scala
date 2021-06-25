@@ -1,13 +1,19 @@
 package com.softwaremill.mqperf
 
-import com.softwaremill.mqperf.config.TestConfig
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MsgTest extends FlatSpec with Matchers {
+class MsgTest extends AnyFlatSpec with Matchers {
   it should "add and extract timestamp" in {
-    val prefix = Msg.prefix(TestConfig("", "", 0, 0, 100, 0, 0, 0, Nil, "", null))
+    // given
+    val message = "AG%R$WG%$##T%%#TG"
     val now = System.currentTimeMillis()
-    val extracted = Msg.extractTimestamp(Msg.addIndex(28, Msg.addTimestamp(prefix)))
+    
+    // when
+    val messageWithTimestamp = Msg.addTimestamp(message)
+    val extracted = Msg.extractTimestamp(messageWithTimestamp)
+    
+    // then
     now should be <= extracted
     extracted shouldBe <= (now + 10) // tolerance
   }
