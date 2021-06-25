@@ -7,6 +7,7 @@ import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 class MessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with Matchers {
   val invalidParameters: TableFor2[Int, Int] = Table(
     ("messageLength", "poolSize"),
+    (-2, -3),
     (-1, 2),
     (1, -2),
     (0, 0),
@@ -20,7 +21,7 @@ class MessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with M
         MessagesPool.generatePoolOfRandomMessageOfLengthN(messageLength, poolSize)
       }
 
-      caught.getMessage.startsWith("Invalid message pool parameters")
+      caught.getMessage should startWith("Invalid message pool parameters")
     }
   }
 
