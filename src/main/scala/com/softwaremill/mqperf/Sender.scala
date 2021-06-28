@@ -12,7 +12,8 @@ import scala.util.Random
 object Sender extends StrictLogging {
   def main(args: Array[String]): Unit = {
     Thread.setDefaultUncaughtExceptionHandler((t, e) => {
-      println("Uncaught exception in thread: " + t); e.printStackTrace()
+      println("Uncaught exception in thread: " + t)
+      e.printStackTrace()
     })
 
     import PrometheusMetricServer._
@@ -22,7 +23,7 @@ object Sender extends StrictLogging {
 
       val mq: Mq = Mq.instantiate(testConfig)
       val (messagesCounter: Counter.Child, threadsDoneCounter: Gauge.Child, sendLatency: Histogram.Child) = createMetrics(testConfig)
-      val messagesPool: MessagesPool = MessagesPool.generatePoolOfRandomMessageOfLengthN(testConfig.msgSize, MessagesPool.DEFAULT_MESSAGES_POOL_SIZE)
+      val messagesPool: RandomMessagesPool = RandomMessagesPool(testConfig.msgSize, RandomMessagesPool.DefaultMessagesPoolSize)
 
       val sr = new SenderRunnable(
         mq,
@@ -80,7 +81,7 @@ class SenderRunnable(
                       sendCounter: Counter.Child,
                       sendDone: Gauge.Child,
                       sendLatency: Histogram.Child,
-                      messagesPool: MessagesPool,
+                      messagesPool: RandomMessagesPool,
                       clock: Clock = RealClock
                     ) extends Runnable
   with StrictLogging {

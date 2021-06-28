@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 
-class MessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with Matchers {
+class RandomMessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with Matchers {
   val invalidParameters: TableFor2[Int, Int] = Table(
     ("messageLength", "poolSize"),
     (-2, -3),
@@ -18,7 +18,7 @@ class MessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with M
   forAll(invalidParameters) { (messageLength: Int, poolSize: Int) =>
     it should s"report an error on invalid parameters $messageLength/$poolSize" in {
       val caught = intercept[IllegalArgumentException] {
-        MessagesPool.generatePoolOfRandomMessageOfLengthN(messageLength, poolSize)
+        RandomMessagesPool(messageLength, poolSize)
       }
 
       caught.getMessage should startWith("Invalid message pool parameters")
@@ -37,7 +37,7 @@ class MessagesPoolTest extends AnyFlatSpec with TableDrivenPropertyChecks with M
 
   forAll(validParameters) { (messageLength: Int, poolSize: Int) =>
     it should s"provide circular iteration messages of length $messageLength over a pool of size $poolSize" in {
-      val messagesPool = MessagesPool.generatePoolOfRandomMessageOfLengthN(messageLength, poolSize)
+      val messagesPool = RandomMessagesPool(messageLength, poolSize)
       val messages = (1 to poolSize).map(_ => messagesPool.nextMessage())
       val messages2 = (1 to poolSize).map(_ => messagesPool.nextMessage())
       
