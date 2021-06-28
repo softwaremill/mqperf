@@ -116,7 +116,7 @@ class SenderRunnable(
   private def createMessagesBatch(batchSize: Integer): List[String] = {
     (1 to batchSize)
       .map(_ => messagesPool.nextMessage())
-      .map(Msg.addTimestamp)
+      .map(Msg.addTimestamp(_, RealClock))
       .toList
   }
 }
