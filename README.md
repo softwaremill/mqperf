@@ -22,6 +22,21 @@ See [Creating AWS access key](https://aws.amazon.com/premiumsupport/knowledge-ce
 ### Metrics
 Metrics are gathered using **Prometheus** and visualized using **Grafana**. See next section for details on how to configure them.
 
+# Message generation notes
+* By default, each message has length of 100 characters (this is configurable)
+* For each test, we generate a pool of 10000 random messages
+* Each batch of messages is constructed using messages from that pool
+* Each message in the batch is modified: 13 characters from the end are replaced with stringified timestamp
+  (TS value is used for measurement on the receiver end)
+
+Please consider the above when configuring message size parameter in test configuration: ```"msg_size": 100```.
+If message is too short, then majority of its content will be the TS information. For that reason, we suggest
+configuring message length at 50+ characters.
+
+# Configuring tests
+Test configurations are located under `ansible/tests`. Each configuration has a number of parameters 
+that may influence the test execution and its results.
+
 # Running tests
 *Note: all commands should be run in the `ansible` directory*
 
