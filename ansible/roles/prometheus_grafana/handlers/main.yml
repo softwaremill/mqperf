@@ -1,4 +1,9 @@
-- name: Restart prometheus container
+- name: Restart Prometheus container
   docker_container:
     restart: yes
     name: prometheus
+    
+- name: Restart Grafana container
+  docker_container:
+    restart: yes
+    name: grafana

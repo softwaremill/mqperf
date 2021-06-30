@@ -1,24 +1,35 @@
 - include: prepare_storage.yml
   when: storage_device is defined
 
-- name: Upload prometheus configuraion file
+- name: Upload Prometheus configuration file
   template:
     src: prometheus.yml
     dest: /etc/prometheus.yml
-  notify: Restart prometheus container
+  notify: Restart Prometheus container
 
-- name: Upload prometheus rules file
+- name: Upload Prometheus rules file
   template:
     src: prometheus.rules
     dest: /etc/prometheus.rules
-  notify: Restart prometheus container
+  notify: Restart Prometheus container
 
-- name: Ensure docker python lib is installed
+- name: Ensure Grafana directory exists
+  file:
+    path: /etc/grafana
+    state: directory
+
+- name: Upload Grafana datasource configuration file
+  template:
+    src: grafana-datasource.yaml
+    dest: /etc/grafana/grafana-datasource.yaml
+  notify: Restart Grafana container
+
+- name: Ensure Docker python lib is installed
   pip:
     name: docker-py
     state: present
-
-- name: Ensure prometheus in docker container is running
+  
+- name: Ensure Prometheus in Docker container is running
   docker_container:
     command:
       - '--config.file=/etc/prometheus.yml'
@@ -26,17 +37,20 @@
     volumes:
       - /etc/prometheus.yml:/etc/prometheus.yml
       - /etc/prometheus.rules:/etc/prometheus.rules
-      - "{{ storage_path}}:/prometheus"
+      - "{{ storage_path }}:/prometheus"
     image: prom/prometheus:{{ prometheus_image_tag }}
     published_ports:
       - "{{ prometheus_port }}:9090"
     name: prometheus
 
-- name: Ensure grafana in docker container is running
+- name: Ensure Grafana in Docker container is running
   docker_container:
       image: grafana/grafana:{{ grafana_image_tag }}
       env:
-        GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password}}"
+        GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"
+        GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      volumes:
+        - /etc/grafana/grafana-datasource.yaml:/etc/grafana/provisioning/datasources/grafana-datasource.yaml
       published_ports:
         - "{{ grafana_port }}:3000"
       name: grafana
