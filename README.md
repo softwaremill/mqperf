@@ -19,9 +19,6 @@ as Ansible and Boto installed.
 
 See [Creating AWS access key](https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/) for details.
 
-### Metrics
-Metrics are gathered using **Prometheus** and visualized using **Grafana**. See next section for details on how to configure them.
-
 # Message generation notes
 * By default, each message has length of 100 characters (this is configurable)
 * For each test, we generate a pool of 10000 random messages
@@ -64,13 +61,14 @@ ansible-playbook install_and_setup_prometheus.yml
 **WARNING: this must be done each time after provisioning new sender / receiver nodes (previous step) so that Prometheus 
 is properly configured to scrape the new servers for metrics**
 
-### Configure Grafana
-* Lookup the *public* IP address of the EC2 node where metric tools where deployed.
-* Open `IP:3000` in your browser
+### Monitoring tests
+Metrics are gathered using **Prometheus** and visualized using **Grafana**.
+
+Accessing monitoring dashboard:
+* Lookup the *public* IP address of the EC2 node where metric tools have been deployed.
+* Open `IP:3000/dashboards` in your browser
 * Login with `admin/pass` credentials
-* Create new **Prometheus** Data Source
-* Configure the data source with *private* IP address of the same EC2 node and port 9090 
-* Import the `prometheus/dashboard.json` dashboard into Grafana instance
+* Select `MQPerf Dashboard`
 
 ### Execute test
 * Choose your test configuration from the `tests` directory
