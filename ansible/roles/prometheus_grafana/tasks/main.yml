@@ -24,6 +24,18 @@
     dest: /etc/grafana/grafana-datasource.yaml
   notify: Restart Grafana container
 
+- name: Upload Grafana dashboard providers configuration file
+  template:
+    src: grafana-provider.yaml
+    dest: /etc/grafana/grafana-provider.yaml
+  notify: Restart Grafana container
+
+- name: Upload Grafana dashboard file
+  template:
+    src: grafana-dashboard.json
+    dest: /etc/grafana/grafana-dashboard.json
+  notify: Restart Grafana container
+
 - name: Ensure Docker python lib is installed
   pip:
     name: docker-py
@@ -51,6 +63,8 @@
         GF_PATHS_PROVISIONING: /etc/grafana/provisioning
       volumes:
         - /etc/grafana/grafana-datasource.yaml:/etc/grafana/provisioning/datasources/grafana-datasource.yaml
+        - /etc/grafana/grafana-provider.yaml:/etc/grafana/provisioning/dashboards/grafana-provider.yaml
+        - /etc/grafana/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/grafana-dashboard.json
       published_ports:
         - "{{ grafana_port }}:3000"
       name: grafana
