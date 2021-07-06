@@ -121,6 +121,10 @@ Before running the tests, create the Kafka topics by running `ansible-playbook k
 Redpanda requires xfs filesystem, to configure it update `storage_fs_type: xfs` in `all.yml` file.
 Before running the tests, create the Redpanda topics by running `ansible-playbook redpanda_create_topic.yml`.
 Default partition number in a topic creation script is 64, if you need to adjust it update `--partitions 64` param in `redpanda_create_topic.yml` script.
+
+##Redis Streams
+Before running the tests, create the required consumer groups by running `ansible-playbook redistreams_create_consumer_group.yml`.
+
 ## Pulsar
 The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
 [Go to the docs](https://pulsar.apache.org/docs/en/administration-zk-bk/#bookkeeper-persistence-policies) for more details.
