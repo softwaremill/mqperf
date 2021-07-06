@@ -1,0 +1,6 @@
+---
+- hosts: redistreams
+  run_once: true
+  tasks:
+    - name: Create consumer group
+      shell: /etc/redistreams/src/redis-cli -p 6380 XGROUP CREATE mystream mygroup 0

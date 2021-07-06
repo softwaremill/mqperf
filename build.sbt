@@ -53,7 +53,8 @@ libraryDependencies ++= Seq(
   "io.prometheus" % "simpleclient_common" % prometheusVersion,
   "org.tpolecat" %% "doobie-postgres" % doobieVersion,
   "org.tpolecat" %% "doobie-hikari" % doobieVersion,
-  "io.nats" % "java-nats-streaming" % "2.2.3"
+  "io.nats" % "java-nats-streaming" % "2.2.3",
+  "redis.clients" % "jedis" % "3.6.1"
 )
 
 assemblyOption in assembly ~= {

@@ -1,0 +1,15 @@
+---
+- name: ensure /etc/redistreams exists
+  file:
+    path: /etc/redistreams
+    state: directory
+
+- name: configure redistreams
+  shell: |
+    cd {{ redis_installation_dir }}/src
+    sudo sysctl vm.overcommit_memory=1
+    {% if hostvars[groups['redistreams'][0]].ec2_id == hostvars[inventory_hostname].ec2_id %}
+    ./redis-server --port {{ redistreams_port }} --protected-mode no --logfile /var/log/redis.log --dir {{storage_path}}&
+    {% else %}
+    ./redis-server --port {{ redistreams_port }} --logfile /var/log/redis --slaveof {{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }} {{ redistreams_port }} --dir {{storage_path}}&
+    {% endif %}
