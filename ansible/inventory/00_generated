@@ -16,6 +16,8 @@
 
 [tag_group_Eventstore]
 
+[tag_group_Redistreams]
+
 [tag_group_Redpanda]
 
 [tag_group_Rocketmq]
