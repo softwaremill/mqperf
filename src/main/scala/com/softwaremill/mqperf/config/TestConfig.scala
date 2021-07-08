@@ -16,6 +16,7 @@ case class TestConfig(
     receiveMsgBatchSize: Int,
     brokerHosts: List[String],
     runId: String,
+    streamsCount: Int,
     mqConfig: Config
 ) {
 
@@ -43,6 +44,7 @@ object TestConfig extends StrictLogging {
       receiveMsgBatchSize = config.getInt("receive_msg_batch_size"),
       brokerHosts = config.getStringList("broker_hosts").asScala.toList,
       runId = runId,
+      streamsCount = config.getIntOpt("streamsCount").getOrElse(1),
       mqConfig = config.getConfigOpt("mq").getOrElse(ConfigFactory.empty())
     )
 

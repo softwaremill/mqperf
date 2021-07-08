@@ -135,14 +135,14 @@ class RocketMq(testConfig: TestConfig) extends Mq with StrictLogging {
 }
 
 object RMSender extends App {
-  val mq = new RocketMq(TestConfig("", "", 0, 0, 0, 0, 0, 0, List("localhost"), "", null))
+  val mq = new RocketMq(TestConfig("", "", 0, 0, 0, 0, 0, 0, List("localhost"), "", 1, null))
   mq.createSender().send(List("a", "b", "c", "d"))
   println("SENT")
   mq.close()
 }
 
 object RMReceiver extends App {
-  val mq = new RocketMq(TestConfig("", "", 0, 0, 0, 0, 0, 0, List("localhost"), "", null))
+  val mq = new RocketMq(TestConfig("", "", 0, 0, 0, 0, 0, 0, List("localhost"), "", 1, null))
   val rcv = mq.createReceiver()
   for (i <- 1 to 100) {
     val r = rcv.receive(10)

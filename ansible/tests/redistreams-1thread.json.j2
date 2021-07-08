@@ -1,12 +1,13 @@
 {
     "name": "redistreams-1thread",
     "mq_type": "RedisStreams",
-    "sender_threads": 10,
+    "sender_threads": 1,
     "msg_count_per_thread": 10000000,
     "msg_size": 100,
     "max_send_msg_batch_size": 10,
-    "receiver_threads": 10,
+    "receiver_threads": 1,
     "receive_msg_batch_size": 10,
-    "broker_hosts": [ "{{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }}:{{ redistreams_port }}" ],
+    "broker_hosts": [ "{{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }}:{{ redistreams_master_port }}", "{{ hostvars[groups['redistreams'][1]].ec2_private_ip_address }}:{{ redistreams_master_port }}", "{{ hostvars[groups['redistreams'][2]].ec2_private_ip_address }}:{{ redistreams_master_port }}" ],
+    "streamsCount": 1,
     "mq": {}
 }

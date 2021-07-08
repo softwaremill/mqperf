@@ -1,0 +1,6 @@
+- hosts: redistreams
+  run_once: true
+  tasks:
+    - name: Create consumer groups
+      shell: /etc/redistreams/src/redis-cli -c -p 6380 XTRIM stream{{ item }} maxlen 0
+      with_sequence: start=0 end=100
