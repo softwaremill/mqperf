@@ -124,7 +124,7 @@ object NatsMq {
 }
 
 object Test extends App {
-  val mq = new NatsMq(new TestConfig("", "", 1, 100, 100, 10, 1, 10, List("127.0.0.1"), "", 1, null))
+  val mq = new NatsMq(new TestConfig("", "", 1, 100, 100, 10, 1, 10, List("127.0.0.1"), "", null))
 
   val sender1 = mq.createSender()
   val sender2 = mq.createSender()
@@ -137,7 +137,7 @@ object Test extends App {
 }
 
 object Test2 extends App {
-  val mq = new NatsMq(new TestConfig("", "", 1, 100, 100, 10, 1, 10, List("127.0.0.1"), "", 1, null))
+  val mq = new NatsMq(new TestConfig("", "", 1, 100, 100, 10, 1, 10, List("127.0.0.1"), "",  null))
 
   val receiver1 = mq.createReceiver()
   while (true) {
