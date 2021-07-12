@@ -162,8 +162,8 @@
     region: "{{ aws_region }}"
     rules:
       - proto: tcp
-        from_port: "{{ redistreams_port }}"
-        to_port: "{{ redistreams_port }}"
+        from_port: "{{ redistreams_master_port }}"
+        to_port: "{{ redistreams_slave2_port }}"
         cidr_ip: "{{ all_cidr }}"
 
 - name: Create an EC2 key

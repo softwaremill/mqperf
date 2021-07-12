@@ -123,7 +123,12 @@ Before running the tests, create the Redpanda topics by running `ansible-playboo
 Default partition number in a topic creation script is 64, if you need to adjust it update `--partitions 64` param in `redpanda_create_topic.yml` script.
 
 ##Redis Streams
-Before running the tests, create the required consumer groups by running `ansible-playbook redistreams_create_consumer_group.yml`.
+Before running the tests, create the required streams and consumer groups by running `ansible-playbook redistreams_create_streams.yml`.
+This script creates streams named stream0, stream1... stream100. If you need more streams please edit the loop counter.
+
+If you'd like to rerun tests without cluster redeployment use `ansible-playbook redistreams_trim_streams.yml` to flush the streams.
+To manipulate streams count use streamCount property in test JSON.
+Notes. Cluster create command (last step) sometimes fails randomly. It's sometimes easier to run it directly from ec2.
 
 ## Pulsar
 The ack property is set on the Bookkeeper level via the CLI or REST or a startup parameter. 
