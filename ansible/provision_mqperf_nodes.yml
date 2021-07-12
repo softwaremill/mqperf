@@ -3,7 +3,7 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, count: 1, ec2_groups: [ 'ssh_access', 'default' ], aws_instance_type: t3.micro, ec2_tag_group: Receiver }
+  - { role: ec2_instance, count: 4, ec2_groups: [ 'ssh_access', 'default' ], aws_instance_type: "{{ ec2_instance_type }}", ec2_tag_group: Receiver }
 
 - hosts: receiver
   roles:
@@ -14,7 +14,7 @@
 - hosts: 127.0.0.1
   connection: local
   roles:
-  - { role: ec2_instance, count: 1, ec2_groups: [ 'ssh_access', 'default' ], aws_instance_type: t3.micro, ec2_tag_group: Sender }
+  - { role: ec2_instance, count: 2, ec2_groups: [ 'ssh_access', 'default' ], aws_instance_type: "{{ ec2_instance_type }}", ec2_tag_group: Sender }
 
 - hosts: sender
   roles:

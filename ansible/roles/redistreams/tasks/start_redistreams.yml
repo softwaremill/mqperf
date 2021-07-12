@@ -1,0 +1,23 @@
+---
+- name: ensure /etc/redistreams exists
+  file:
+    path: /etc/redistreams
+    state: directory
+
+- name: configure redistreams
+  shell: |
+    cd {{ redis_installation_dir }}/src
+    sudo sysctl vm.overcommit_memory=1
+    sudo touch nodes.conf
+    mkdir {{storage_path}}/master
+    mkdir {{storage_path}}/slave1
+    mkdir {{storage_path}}/slave2
+    sudo chmod 777 nodes.conf
+    ./redis-server --port {{ redistreams_master_port }} --cluster-enabled yes --protected-mode no --logfile /var/log/redis_master.log --dir {{storage_path}}/master&
+    ./redis-server --port {{ redistreams_slave1_port }} --cluster-enabled yes --protected-mode no --logfile /var/log/redis_slave1.log --dir {{storage_path}}/slave1&
+    ./redis-server --port {{ redistreams_slave2_port }} --cluster-enabled yes --protected-mode no --logfile /var/log/redis_slave2.log --dir {{storage_path}}/slave2&
+
+
+- name: configure cluster master nodes
+  run_once: true
+  shell: yes | {{ redis_installation_dir }}/src/redis-cli -p 6380 --cluster create {{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }}:{{ redistreams_master_port }} {{ hostvars[groups['redistreams'][1]].ec2_private_ip_address }}:{{ redistreams_master_port }} {{ hostvars[groups['redistreams'][2]].ec2_private_ip_address }}:{{ redistreams_master_port }} {{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }}:{{ redistreams_slave1_port }} {{ hostvars[groups['redistreams'][1]].ec2_private_ip_address }}:{{ redistreams_slave1_port }} {{ hostvars[groups['redistreams'][2]].ec2_private_ip_address }}:{{ redistreams_slave1_port }} {{ hostvars[groups['redistreams'][0]].ec2_private_ip_address }}:{{ redistreams_slave2_port }} {{ hostvars[groups['redistreams'][1]].ec2_private_ip_address }}:{{ redistreams_slave2_port }} {{ hostvars[groups['redistreams'][2]].ec2_private_ip_address }}:{{ redistreams_slave2_port }} --cluster-replicas 2

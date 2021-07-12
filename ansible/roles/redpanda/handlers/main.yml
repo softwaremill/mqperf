@@ -1,0 +1,9 @@
+---
+- name: restart redpanda-tuner
+  systemd:
+    name: redpanda-tuner
+    state: restarted
+- name: restart redpanda
+  systemd:
+    name: redpanda
+    state: restarted

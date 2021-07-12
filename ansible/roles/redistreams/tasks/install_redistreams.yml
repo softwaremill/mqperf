@@ -1,0 +1,12 @@
+---
+- name: Install redis from sources
+  shell: |
+    cd /tmp
+    wget https://download.redis.io/releases/{{ redis_artifact }}.tar.gz
+    sudo yum -y install gcc
+    tar xzf {{ redis_artifact }}.tar.gz
+    sudo mv {{ redis_artifact }} {{ redis_installation_dir }}
+    cd {{ redis_installation_dir }}
+    make
+  args:
+    warn: no

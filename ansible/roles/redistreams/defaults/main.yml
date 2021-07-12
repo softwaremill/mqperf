@@ -1,0 +1,5 @@
+---
+storage_path: /mnt/redistreams
+tmp_dir: /tmp
+redis_artifact: redis-6.2.4
+redis_installation_dir: /etc/redistreams

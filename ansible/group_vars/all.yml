@@ -6,7 +6,7 @@ key_name: "mqperf-key"
 vpc_name: "mqperf-vpc"
 subnet_cidr: "172.22.1.0/24"
 
-s3_bucket: sml-mqperf-2020
+s3_bucket: sml-mqperf-2021
 
 aws_access: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
@@ -21,6 +21,10 @@ eventstore_port: 2113
 activemq_artemis_jolokia_port: 8161
 rocketmq_name_server_port: 9876
 rocketmq_broker_port_main: 10911
+redpanda_port: 9092
+redistreams_master_port: 6380
+redistreams_slave1_port: 6381
+redistreams_slave2_port: 6382
 
 storage_fs_type: ext4
 storage_device: /dev/nvme1n1

@@ -1,0 +1,6 @@
+---
+- include: prepare_storage.yml
+
+- include: install_redpanda.yml
+
+- include: start_redpanda.yml

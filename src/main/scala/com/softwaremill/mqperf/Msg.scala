@@ -1,25 +1,13 @@
 package com.softwaremill.mqperf
 
-import com.softwaremill.mqperf.config.TestConfig
-
-import scala.util.Random
+import com.softwaremill.mqperf.util.{Clock, RealClock}
 
 object Msg {
-  private val TimestampLength = 13
+  private[mqperf] val TimestampLength = 13
 
-  def prefix(testConfig: TestConfig): String = {
-    val prefixLength = testConfig.msgSize - TimestampLength
-    if (prefixLength <= 0)
-      ""
-    else
-      List.fill(prefixLength)(Random.nextPrintableChar()).mkString
-  }
-
-  def addTimestamp(prefix: String): String = prefix + System.currentTimeMillis().toString
-
-  def addIndex(i: Int, msg: String): String = {
-    val indexStr = i.toString
-    indexStr + "_" + msg.drop(indexStr.length+1)
+  def addTimestamp(message: String, clock: Clock = RealClock): String = {
+    val messagePrefix = message.dropRight(Msg.TimestampLength)
+    messagePrefix + clock.currentTimeMillis().toString
   }
 
   def extractTimestamp(msg: String): Long = msg.takeRight(TimestampLength).toLong

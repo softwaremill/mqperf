@@ -142,6 +142,30 @@
         to_port: "{{ eventstore_port }}"
         cidr_ip: "{{ all_cidr }}"
 
+- name: Network setup - Redpanda Security Group
+  ec2_group:
+    name: "redpanda_access"
+    description: "redpanda_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ redpanda_port }}"
+        to_port: "{{ redpanda_port }}"
+        cidr_ip: "{{ all_cidr }}"
+
+- name: Network setup - Redistreams Security Group
+  ec2_group:
+    name: "redistreams_access"
+    description: "redistreams_access"
+    vpc_id: "{{ vpc_net }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ redistreams_master_port }}"
+        to_port: "{{ redistreams_slave2_port }}"
+        cidr_ip: "{{ all_cidr }}"
+
 - name: Create an EC2 key
   ec2_key:
     name: "{{ key_name }}"

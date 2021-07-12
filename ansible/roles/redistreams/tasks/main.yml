@@ -1,0 +1,6 @@
+---
+- include: prepare_storage.yml
+
+- include: install_redistreams.yml
+
+- include: start_redistreams.yml

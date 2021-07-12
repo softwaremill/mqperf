@@ -2,7 +2,7 @@
 
 - hosts: receiver:sender
   vars:
-    test_name: "postgres-1thread.json.j2"
+    test_name: "redistreams-1thread.json.j2"
   tasks:
   - name: Set facts for env variables
     set_fact:
