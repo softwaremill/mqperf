@@ -1,7 +1,6 @@
 package com.softwaremill.mqperf.mq
 
 import com.softwaremill.mqperf.config.TestConfig
-import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import redis.clients.jedis.StreamEntryID.UNRECEIVED_ENTRY
 import redis.clients.jedis.params.XReadGroupParams
@@ -16,7 +15,7 @@ import scala.util.Random
 class RedisStreamsMq(testConfig: TestConfig) extends Mq with StrictLogging {
   override type MsgId = RedisMessageId
 
-  val StreamsCount: Int = ConfigFactory.load().getInt("streamsCount")
+  val StreamsCount: Int = testConfig.mqConfig.getInt("streamsCount")
   val Streams: Seq[String] = List.range(0, StreamsCount).map("stream" + _)
   val ConsumerGroup = "mygroup"
   val ConsumerId: String = randomUUID().toString
