@@ -2,7 +2,7 @@
 
 A benchmark of message queues with data replication and at-least-once delivery guarantees.
 
-This repository is related to the SoftwareMill blog post [Evaluating persistent, replicated message queues](https://softwaremill.com/mqperf)
+Source code for the mqperf article at SoftwareMill's blog: [Evaluating persistent, replicated message queues](https://softwaremill.com/mqperf)
 
 # Setting up the environment
 
