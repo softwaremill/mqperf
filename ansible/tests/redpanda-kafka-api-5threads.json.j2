@@ -1,0 +1,15 @@
+{
+    "name": "redpanda-25threads",
+    "mq_type": "Kafka",
+    "sender_threads": 5,
+    "msg_count_per_thread": 500000,
+    "msg_size": 100,
+    "max_send_msg_batch_size": 10,
+    "receiver_threads": 5,
+    "receive_msg_batch_size": 1,
+    "broker_hosts": {{ groups['redpanda']|map('extract', hostvars, 'ec2_private_ip_address')|list|to_json }},
+    "mq": {
+        "acks": -1,
+        "commitMs": 10000
+    }
+}

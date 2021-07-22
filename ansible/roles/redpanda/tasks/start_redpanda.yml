@@ -23,6 +23,7 @@
     port: 33145
     }' --format yaml
     sudo rpk redpanda mode production
+    sudo rpk redpanda tune all
     {% if hostvars[groups['redpanda'][0]].ec2_id == hostvars[inventory_hostname].ec2_id %}
     sudo rpk config bootstrap \
       --id {{ groups['redpanda'].index(inventory_hostname) }} \
