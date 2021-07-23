@@ -1200,6 +1200,142 @@ Here’s a summary of the test runs:
   </tbody>
 </table>
 
+# Redis Streams
+
+<table>
+  <tbody>
+    <tr>
+      <td><em>Version</em></td>
+      <td>6.2.4, jedis client 3.6.1</td>
+    </tr>
+    <tr>
+      <td><em>Replication</em></td>
+      <td>active-passive</td>
+    </tr>
+    <tr>
+      <td><em>Replication type</em></td>
+      <td>asynchronous</td>
+    </tr>
+  </tbody>
+</table>
+
+[Redis](https://redis.io) is probably best known as a really fast, and really useful key-value cache/database. It might be less known, that Redis supports both [persistence](https://redis.io/topics/persistence) and [replication](https://redis.io/topics/replication), as well as fail-over and sharding using [cluster](https://redis.io/topics/cluster-tutorial).
+
+However, Redis also offers a streaming component. The logical design borrows some concepts from Kafka (such as consumer groups), however the internal implementation in entirely different. The documentation includes a [comprehensive tutorial](https://redis.io/topics/streams-intro), providing usage guidelines and detailing the design, along with its limitations.
+
+Using streams with Redis is implemented using the `XADD`, `XRANGE`, `XREAD`, `XREADGROUP` and `XACK` commands. In addition to the basic operation of adding an element to a stream, it offers three basic modes of accessing data:
+
+* range scans, to read an arbitrary stream element or elements
+* fan-out reads, where every consumer reads every message (topic semantics)
+* consumer group reads, where every consumer reads a dedicated set of messages (queue semantics)
+
+We'll be using the consumer group functionality. Each consumer group and each consumer within a group is identified by a unique identifier. To receive a message, a consumer needs to issue the `XREADGROUP` command with the stream name, consumer group id and consumer id. When a message is processed, it needs to be acknowledged using `XACK`.
+
+For each stream and consumer group, Redis maintains server-side state which determines which consumer received which messages, which messages are not yet received by any consumer, and which have been acknowledged. What's important, is that consumer ids have to be managed by the application. This means that if a consumer with a given id goes offline permanently, it's possible that some messages will get stuck in a received, but not acknowledged state. To remedy the situation, other consumers should periodically issue a `XAUTOCLAIM` command, which reassigns messages, if they haven't been processed for the given amount of time. This is a mechanism similar to SQS's visibility timeouts, however initiated by the client, not the server.
+
+Moreover, after a consumer restarts, it should first check if there are some unacknowledged messages which are assigned to its id. If so, they should be reprocessed. Combined with auto-claiming, we get an implementation of at-least-once delivery. Unlike in Kafka or other messaging systems, the clients need to take care and implement this correctly to make sure no messages are lost.  
+
+Replication is Redis is asynchronous, unless we use the `WAIT` command after each operation to make sure it's propagated across the cluster. We won't be using this option in our tests, as it goes against the way Redis should be used and even the documentation states that it will make the system very slow. Hence, upon failure some data loss is possible. Note that it is recommended to have persistence enabled when using replication, as otherwise it's possible to have the entire state truncated upon a node restart.
+
+Persistence, by default flushes data to disk asynchronously (every second), but this can be configured to flush after each command - however again, causing a huge performance penalty.
+
+Additional features of Redis Streams include message delivery counters (allowing implementing a dead letter queue), observability commands and specifying a maximum number of elements in a stream, truncating the stream if that limit is exceeded. What's worth noting is a dedicated section in the documentation, explicitly stating the features and limitations of the persistence & replication system, clearly stating when data loss might occur. This leaves no doubt when choosing the right tradeoffs in a system's design.
+
+Finally, let's focus on scaling Redis Streams. All of the streaming operations above operate on a single Redis key, residing on a single Redis master server (operations are then replicated to slaves). What if we'd like to scale our system above that? One solution is to use Redis Cluster and multiple stream keys. When sending data, we then have to choose a stream key, either randomly or in some deterministic fashion. This resembles Kafka's partitions and partition keys. On the consumer side, we might consume from all keys at once; we could also have dedicated consumers for keys, but then we'd need some way to maintain a cluster-wide view of the consumer <-> key association, to ensure that each key is consumer by some consumer, which isn't an easy task. The number of keys also needs to be large enough to ensure that they are evenly distributed across the shards (distribution is based on key hash values). 
+
+Let's look at the performance test results. A 3-node active-passive setup achieved up to **41 600 msgs/s**:
+
+<a href="https://snapshot.raintank.io/dashboard/snapshot/WnfdD4OMvylP7DD03p5E26U28Yq4qtqv" target="_blank">
+    ![Redis streams grafana](redis%20streams%20grafana.png)
+</a>
+
+However, when we employ a sharded cluster of 9 nodes, that is 3x(master + 2 replicas), and with 100 stream keys, we can get up to **84 000 msgs/s**, however with quite high latencies:
+
+<a href="https://snapshot.raintank.io/dashboard/snapshot/tVU9M1swJh3RsYH0fQGHr0JUW1JcR7eS " target="_blank">
+    ![Redis streams 9 grafana](redis%20streams%209%20grafana.png)
+</a>
+
+Here are the test results in full:
+
+<table>
+  <thead>
+    <tr>
+      <th>Threads</th>
+      <th>Sender nodes</th>
+      <th>Receiver nodes</th>
+      <th>Send msgs/s</th>
+      <th>Receive msgs/s</th>
+      <th>Processing latency</th>
+      <th>Send latency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>4</td>
+      <td>20 114</td>
+      <td>20 116</td>
+      <td>45</td>
+      <td>45</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>2</td>
+      <td>4</td>
+      <td>32 879</td>
+      <td>32 878</td>
+      <td>47</td>
+      <td>47</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>6</td>
+      <td>6</td>
+      <td>39 792</td>
+      <td>38 796</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>10/15</td>
+      <td>8</td>
+      <td>12</td>
+      <td>39 744</td>
+      <td>39 743</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>20/15</td>
+      <td>8</td>
+      <td>12</td>
+      <td>39 387</td>
+      <td>39 391</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>60/15</td>
+      <td>8</td>
+      <td>12</td>
+      <td>42 750</td>
+      <td>42 748</td>
+      <td>108</td>
+      <td>137</td>
+    </tr>
+    <tr>
+      <td>80/15</td>
+      <td>8</td>
+      <td>12</td>
+      <td>41 592</td>
+      <td>41 628</td>
+      <td>144</td>
+      <td>178</td>
+    </tr>
+  </tbody>
+</table>
+
 # Pulsar
 
 <table>
