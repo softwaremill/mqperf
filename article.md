@@ -2205,6 +2205,8 @@ As always, which message queue to choose depends on specific project requirement
 * if you are already using Mongo, PostgreSQL or EventStore, you can either use it as a message queue or easily build a message queue on top of the database, without the need to create and maintain a separate messaging cluster
 * if you want to have high persistence guarantees, RabbitMQ ensures replication across the cluster and on disk on message send. It's a very popular choice used in many projects, with full AMQP implementation and support for many messaging topologies
 * ActiveMQ Artemis is a popular, battle-tested and widely used messaging broker with wide protocol support and good performance
+* NATS Streaming support many useful communication patterns, and is especially popular in IoT deployments  
+* Redis Streams offers good performance on top of a popular and familiar key-value store
 * RocketMQ offers a JMS-compatible interface, with great performance
 * Pulsar builds provides a wide feature set, with many messaging schemes available. It’s gaining popularity, due to it’s flexible nature, accommodating for a wide range of use-cases, and great performance
 * Kafka offers the best performance and scalability, at the cost of feature set. It is the de-facto standard for processing event streams across enterprises.
