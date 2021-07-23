@@ -1951,15 +1951,15 @@ Finally, here are our Kafka test results in full:
   </tbody>
 </table>
 
-The [RedPanda](https://vectorized.io) system targets mission-critical workloads, and exposes a Kafka-compatible API. Hence, the way messaging works in RedPanda carries over from Kafka - we've got topics, partitions, consumer groups etc. However, the devil lies in the details! 
+The [RedPanda](https://vectorized.io) system targets mission-critical workloads, and exposes a Kafka-compatible API. Hence, the way messaging works in RedPanda carries over from Kafka - we've got topics, partitions, consumer groups etc. In fact, we're using exactly the same client code to test both RedPanda and Kafka. However, the devil lies in the details! 
 
-Let's start with data safety. As RedPanda focuses on mission-critical systems, that's especially important. By default, RedPanda's configuration for a 3-node cluster [corresponds](https://vectorized.io/blog/kafka-redpanda-availability/) to the following Kafka properties: 
+Let's start with data safety. RedPanda's motto, "Zero data loss", indicates its focus on mission-critical systems. By default, RedPanda's configuration for a 3-node cluster [corresponds](https://vectorized.io/blog/kafka-redpanda-availability/) to the following Kafka properties: 
 
 * `acks=-1`
 * `min.insync.replicas=2` (quorum)
 * `log.flush.interval.messages=1`
 
-The last one is especially interesting, as that's where RedPanda differs from what you'd often use in a synchronously-replicated Kafka setup, and also from what we've used in our tests. In Kafka, setting `log.flush.interval.messages` to `1` ensures that the disk cache is flushed on every message, and that's what happens in RedPanda as well. In other words, once a message is accepted by the quorum, it is guaranteed that it will be persistently stored on disk. The default in Kafka, and in our tests, is an unbounded number of messages. That's similar to what we've seen in RabbitMQ. Keep this in mind while reading the results.
+The last one is especially interesting, as that's where RedPanda differs from what you'd often use in a synchronously-replicated Kafka setup, and also from what we've used in our tests. In Kafka, setting `log.flush.interval.messages` to `1` ensures that the disk cache is flushed on every message, and that's what happens in RedPanda as well. In other words, once a message is accepted by the quorum, it is guaranteed that it will be persistently stored on disk (the default in Kafka, and in our tests, is an unbounded number of messages, hence disk flushes happen asynchronously). This approach to disk safety is similar to what we've seen in RabbitMQ. Keep this in mind while reading the results.
 
 On the inside, RedPanda uses a mixture of C++ and Go, while Kafka is JVM-based. Moreover, one of the main selling points of RedPanda is that it eliminates the dependency on ZooKeeper. Instead, it uses the Raft consensus protocol. This has very practical consequences: RedPanda will accept a write once a majority of nodes (the quorum) accepts it; Kafka, on the other hand, will wait for a confirmation from all in-sync-replicas, which might take a longer time (if the ISR set is larger than the quorum). This also means that any disturbance in the cluster will have larger implications on latencies in Kafka, than in RedPanda. It's worth noting that Kafka goes in the same direction with its [KRaft](https://www.confluent.io/blog/kafka-without-zookeeper-a-sneak-peek/) implementation.
 
@@ -1967,13 +1967,89 @@ RedPanda comes with other interesting features, such as an [auto-tuner](https://
 
 Let's take a look at the performance results. Our test environment goes against RedPanda's guidelines not to use networked block devices (we're using EBS's `gp2` drives), however we wanted to keep the test environment the same for all queues.
 
-RedPanda achieved up to **16 000 msgs/s** using 64 partitions, 8 sender nodes, 16 receiver nodes with 25 threads each:
+RedPanda achieved up to about **15 300 msgs/s** using 200 partitions, 8 sender nodes, 8 receiver nodes each running 25 threads:
 
-<a href="https://snapshot.raintank.io/dashboard/snapshot/wya8hCjrVGe2FCVZUggbnSlkdi2dY1T1" target="_blank">
-    ![RedPanda grafana](kafka%20grafana.png)
+<a href="https://snapshot.raintank.io/dashboard/snapshot/OYGvKERHlE8ToC5lPmfyQeTen2CElzR0" target="_blank">
+    ![RedPanda grafana](redpanda%20grafana.png)
 </a>
 
-Again, that's quite similar to what RabbitMQ achieves. Maybe that's the limit of queues which fsync each received message (or in our test scenario - a batch of up to 10 messages)? It would be interesting to see how Kafka behaves with `log.flush.interval.messages=1` - we'll try to cover this in the next testing round.
+Again, that's quite similar to what RabbitMQ achieves. Maybe that's the limit of queues which fsync each received message (or in our test scenario - a batch of up to 10 messages)? How does Kafka behave when we set `log.flush.interval.messages=1`? Turns out, it's a bit faster. We've managed to get to **20 800 msgs/s** using 64 partitions, 8 sender nodes (running 200 threads each) and 8 receiver nodes (running 5 threads each). However, the latencies went up to about 800ms:
+
+<a href="https://snapshot.raintank.io/dashboard/snapshot/aIl4vxmc6Vs0xCg0RQPYwvR9REJNMb3R" target="_blank">
+    ![Kafka flush grafana](kafka%20flush%20grafana.png)
+</a>
+
+Finally, here are RedPanda's test results in full. Similarly to Kafka, both send and processing latencies oscillate around 47ms, though they do get slightly higher as we increase the number of senders to get the most performance:
+
+<table>
+  <thead>
+    <tr>
+      <th>Threads</th>
+      <th>Sender nodes</th>
+      <th>Receiver nodes</th>
+      <th>Send msgs/s</th>
+      <th>Receive msgs/s</th>
+      <th>Processing latency</th>
+      <th>Send latency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>25</td>
+      <td>1</td>
+      <td>2</td>
+      <td>4 889</td>
+      <td>4 846</td>
+      <td>47</td>
+      <td>47</td>
+    </tr>
+    <tr>
+      <td>25</td>
+      <td>1</td>
+      <td>1</td>
+      <td>8 057</td>
+      <td>8 057</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>25</td>
+      <td>2</td>
+      <td>4</td>
+      <td>14 453</td>
+      <td>14 454</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>25</td>
+      <td>2</td>
+      <td>4</td>
+      <td>14 638</td>
+      <td>14 637</td>
+      <td>48</td>
+      <td>48</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>8</td>
+      <td>8</td>
+      <td>14 730</td>
+      <td>14 738</td>
+      <td>47</td>
+      <td>47</td>
+    </tr>
+    <tr>
+      <td>25</td>
+      <td>8</td>
+      <td>8</td>
+      <td>15 369</td>
+      <td>15 369</td>
+      <td>141</td>
+      <td>137</td>
+    </tr>
+  </tbody>
+</table>
 
 # Summary of features
 
@@ -1996,6 +2072,7 @@ As always, which message queue to choose depends on specific project requirement
 * RocketMQ offers a JMS-compatible interface, with great performance
 * Pulsar builds provides a wide feature set, with many messaging schemes available. It’s gaining popularity, due to it’s flexible nature, accommodating for a wide range of use-cases, and great performance
 * Kafka offers the best performance and scalability, at the cost of feature set. It is the de-facto standard for processing event streams across enterprises.
+* RedPanda exposes a Kafka-compatible interface, focusing on zero data loss, and providing additional data processing and observability features
 
 Here’s a summary of the performance tests. First, zooming in on our database-based queues, Rabbit, NATS Streaming and Artemis, with SQS for comparison:
 

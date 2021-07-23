@@ -3,10 +3,10 @@
   run_once: true
   tasks:
   - name: Create topic
-    shell: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --replication-factor 3 --partitions 128 --create --topic mqperf
+    shell: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --replication-factor 3 --partitions 64 --create --topic mqperf
 
 - hosts: kafka
   run_once: true
   tasks:
   - name: Create topic
-    shell: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --replication-factor 3 --partitions 128 --create --topic mqperf-markers --config message.timestamp.type=LogAppendTime
+    shell: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --replication-factor 3 --partitions 64 --create --topic mqperf-markers --config message.timestamp.type=LogAppendTime
