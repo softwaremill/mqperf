@@ -919,6 +919,8 @@ In that last case, the 95th percentile of send latency is a stable **48 ms** and
   ![Artemis grafana](artemis%20grafana.png) 
 </a>
 
+However, as the Artemis team [noted](https://github.com/softwaremill/mqperf/pull/58), the addressing model currently implemented in Artemis isn't the best fit for the mqperf benchmark. Consuming messages from a single queue on a single broker is basically a single-thread process - which on one hand ensures that messages are consumed in-order, but on the other prevents scaling as more consumers are added (quite the contrary!). This can be alleviated by using dedicated queues for consumers, or broadcast topics with filtering, however we then need application-side coordination code which assigns queues to consumers, ensures that there's at least one consumer for each queue, and performs rebalancing on failure.
+
 Here are all of the results:
 
 <table>
