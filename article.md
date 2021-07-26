@@ -20,7 +20,7 @@ When talking about performance, we’ll take into account both **how many messag
 <table>
   <tbody>
     <tr>
-      <td>20 Jul 2021</td>
+      <td>26 Jul 2021</td>
       <td>
           Refresh of the 2020 edition. Tests of RedPanda and Redis Streams. Added encryption and compression info to the summary.
           Co-authored with [Bartłomiej Turos](https://github.com/bturos) and [Robert Dziewoński](https://github.com/robert-dziewonski). 
@@ -29,8 +29,7 @@ When talking about performance, we’ll take into account both **how many messag
     <tr>
       <td>8 Dec 2020</td>
       <td>
-          2020 edition: extended feature comparison, updated benchmarks, new queues (Pulsar, PostgreSQL, Nats Streaming); dropping ActiveMQ 5 in favor of ActiveMQ Artemis.
-          Co-authored with [Kasper Kondzielski](https://twitter.com/kkondzielski). 
+          2020 edition: extended feature comparison, updated benchmarks, new queues (Pulsar, PostgreSQL, Nats Streaming); dropping ActiveMQ 5 in favor of ActiveMQ Artemis. Co-authored with [Kasper Kondzielski](https://twitter.com/kkondzielski). 
       </td>
     </tr>
     <tr>
@@ -54,7 +53,7 @@ When talking about performance, we’ll take into account both **how many messag
 
 ## Tested queues
 
-There is a number of open-source messaging projects available, but only some support both persistence and replication. We'll evaluate the performance and characteristics of 10 message queues, in no particular order:
+There is a number of open-source messaging projects available, but only some support both persistence and replication. We'll evaluate the performance and characteristics of 12 message queues, in no particular order:
 
 * [Amazon SQS](http://aws.amazon.com/sqs/)
 * [MongoDB](http://www.mongodb.com/)
@@ -66,6 +65,8 @@ There is a number of open-source messaging projects available, but only some sup
 * [RocketMQ](https://rocketmq.apache.org)
 * [NATS Streaming](https://docs.nats.io/developing-with-nats-streaming/streaming)
 * [EventStore](https://www.eventstore.com)
+* [RedPand](https://vectorized.io)
+* [Redis Streams](https://redis.io/topics/streams-intro)
 
 You might rightfully notice that not all of these are message queueing systems. Both MongoDB and PostgreSQL (and to some degree, EventStore) are general-purpose databases. However, using some of their mechanisms it’s possible to implement a message queue on top of them. If such a simple queue meets the requirements and the database system is already deployed for other purposes, it might be reasonable to reuse it and reduce operational costs.
 
@@ -108,7 +109,7 @@ The sources for the tests as well as the Ansible scripts used to setup the queue
 
 Each test run is parametrised by the type of the message queue tested, optional message queue parameters, number of client nodes, number of threads on each client node and message count. A client node is either sending or receiving messages; in the tests we used from 1 to 20 client nodes of each type, each running from 1 to 100 threads. By default there are twice as many receiver nodes as sender nodes, but that’s not a strict rule and we’re modifying these proportions basing on what’s working best for a given queue implementation.
 
-Each [Sender](https://github.com/softwaremill/mqperf/blob/master/src/main/scala/com/softwaremill/mqperf/Sender.scala) thread tries to send the given number of messages as fast as possible, in batches of random size between 1 and 10 messages.
+Each [Sender](https://github.com/softwaremill/mqperf/blob/master/src/main/scala/com/softwaremill/mqperf/Sender.scala) thread tries to send the given number of messages as fast as possible, in batches of random size between 1 and 10 messages. The messages are picked from a pool of messages, randomly generated on startup.
 
 The [Receiver](https://github.com/softwaremill/mqperf/blob/master/src/main/scala/com/softwaremill/mqperf/Receiver.scala) tries to receive messages (also in batches of up to 10 messages), and after receiving them, acknowledges their delivery (which should cause the message to be removed from the queue). The test ends when no messages are received for a minute.
 
