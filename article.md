@@ -2215,7 +2215,7 @@ As always, which message queue to choose depends on specific project requirement
 * Kafka offers the best performance and scalability, at the cost of feature set. It is the de-facto standard for processing event streams across enterprises.
 * RedPanda exposes a Kafka-compatible interface, focusing on zero data loss, and providing additional data processing and observability features
 
-Here’s a summary of the performance tests. First, zooming in on our database-based queues, Rabbit, NATS Streaming and Artemis, with SQS for comparison:
+Here’s a summary of the performance tests. First, zooming in on our database-based queues, Rabbit, NATS Streaming, Redis Streams, Artemis, RedPanda and Kafka in the flush variant, with SQS for comparison:
 
 ![Summary mqs](summary1.png)
 
