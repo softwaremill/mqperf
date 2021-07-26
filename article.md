@@ -2,7 +2,7 @@
 
 # Introduction
 
-Message queues are central to many distributed systems and often provide a backbone for asynchronous processing and communication between (micro)services. They are useful in a number of situations. Any time we want to **execute a task** asynchronously, we put the task on a queue; some executor (could be another thread, process or machine) eventually runs it. Or, one component might produce a **stream of events**, which are stored by the message queue. Other, decoupled components, consume the events asynchronously, either on-line or after some period of time.
+Message queues are central to many distributed systems and often provide a backbone for asynchronous processing and communication between (micro)services. They are useful in a number of situations. Any time we want to **execute a task** asynchronously, we put the task on a queue; some executor (could be another thread, process, or machine) eventually runs it. Or, one component might produce a **stream of events** that are stored by the message queue. Other, decoupled components, consume the events asynchronously, either on-line or after some period of time.
 
 Various message queue implementations can give various guarantees on message persistence and delivery. For some use-cases, it is enough to have an in-memory, volatile message queue. For others, we want to be sure that once the message send completes, the message is **persistently enqueued** and will be eventually delivered, despite node or system crashes.
 
@@ -1222,29 +1222,29 @@ Here’s a summary of the test runs:
   </tbody>
 </table>
 
-[Redis](https://redis.io) is probably best known as a really fast, and really useful key-value cache/database. It might be less known, that Redis supports both [persistence](https://redis.io/topics/persistence) and [replication](https://redis.io/topics/replication), as well as fail-over and sharding using [cluster](https://redis.io/topics/cluster-tutorial).
+[Redis](https://redis.io) is probably best known as a really fast and useful key-value cache/database. It might be less known that Redis supports both [persistence](https://redis.io/topics/persistence) and [replication](https://redis.io/topics/replication), as well as fail-over and sharding using [cluster](https://redis.io/topics/cluster-tutorial).
 
-However, Redis also offers a streaming component. The logical design borrows some concepts from Kafka (such as consumer groups), however the internal implementation in entirely different. The documentation includes a [comprehensive tutorial](https://redis.io/topics/streams-intro), providing usage guidelines and detailing the design, along with its limitations.
+However, Redis also offers a streaming component. The logical design borrows some concepts from Kafka (such as consumer groups), however, the internal implementation is entirely different. The documentation includes a [comprehensive tutorial](https://redis.io/topics/streams-intro), providing usage guidelines and detailing the design along with its limitations.
 
 Using streams with Redis is implemented using the `XADD`, `XRANGE`, `XREAD`, `XREADGROUP` and `XACK` commands. In addition to the basic operation of adding an element to a stream, it offers three basic modes of accessing data:
 
-* range scans, to read an arbitrary stream element or elements
-* fan-out reads, where every consumer reads every message (topic semantics)
-* consumer group reads, where every consumer reads a dedicated set of messages (queue semantics)
+* range scans to read an arbitrary stream element or elements
+* fan-out reads where every consumer reads every message (topic semantics)
+* consumer group reads where every consumer reads a dedicated set of messages (queue semantics)
 
-We'll be using the consumer group functionality. Each consumer group and each consumer within a group is identified by a unique identifier. To receive a message, a consumer needs to issue the `XREADGROUP` command with the stream name, consumer group id and consumer id. When a message is processed, it needs to be acknowledged using `XACK`.
+We'll be using the consumer group functionality. Each consumer group and each consumer within a group is identified by a unique identifier. To receive a message, a consumer needs to issue the `XREADGROUP` command with the stream name, consumer group id, and consumer id. When a message is processed, it needs to be acknowledged using `XACK`.
 
-For each stream and consumer group, Redis maintains server-side state which determines which consumer received which messages, which messages are not yet received by any consumer, and which have been acknowledged. What's important, is that consumer ids have to be managed by the application. This means that if a consumer with a given id goes offline permanently, it's possible that some messages will get stuck in a received, but not acknowledged state. To remedy the situation, other consumers should periodically issue a `XAUTOCLAIM` command, which reassigns messages, if they haven't been processed for the given amount of time. This is a mechanism similar to SQS's visibility timeouts, however initiated by the client, not the server.
+For each stream and consumer group, Redis maintains server-side state which determines which consumer received which messages, which messages are not yet received by any consumer, and which have been acknowledged. What's important is that consumer ids have to be managed by the application. This means that if a consumer with a given id goes offline permanently, it's possible that some messages will get stuck in a received, but not acknowledged state. To remedy the situation, other consumers should periodically issue a `XAUTOCLAIM` command, which reassigns messages, if they haven't been processed for the given amount of time. This is a mechanism similar to SQS's visibility timeouts, however, initiated by the client, not the server.
 
-Moreover, after a consumer restarts, it should first check if there are some unacknowledged messages which are assigned to its id. If so, they should be reprocessed. Combined with auto-claiming, we get an implementation of at-least-once delivery. Unlike in Kafka or other messaging systems, the clients need to take care and implement this correctly to make sure no messages are lost.  
+Moreover, after a consumer restarts, it should first check if there are some unacknowledged messages which are assigned to its id. If so, they should be reprocessed. Combined with auto-claiming, we get an implementation of at-least-once delivery. Unlike in Kafka or other messaging systems, the clients need to take care and implement this correctly to make sure no messages are lost.
 
-Replication is Redis is asynchronous, unless we use the `WAIT` command after each operation to make sure it's propagated across the cluster. We won't be using this option in our tests, as it goes against the way Redis should be used and even the documentation states that it will make the system very slow. Hence, upon failure some data loss is possible. Note that it is recommended to have persistence enabled when using replication, as otherwise it's possible to have the entire state truncated upon a node restart.
+Replication in Redis is asynchronous, unless we use the `WAIT` command after each operation to make sure it's propagated across the cluster. We won't be using this option in our tests, as it goes against the way Redis should be used and even the documentation states that it will make the system very slow. Hence, upon failure, some data loss is possible. Note that it is recommended to have persistence enabled when using replication, as otherwise it's possible to have the entire state truncated upon a node restart.
 
-Persistence, by default flushes data to disk asynchronously (every second), but this can be configured to flush after each command - however again, causing a huge performance penalty.
+Persistence, by default, flushes data to disk asynchronously (every second) but this can be configured to flush after each command - however, again, causing a huge performance penalty.
 
 Additional features of Redis Streams include message delivery counters (allowing implementing a dead letter queue), observability commands and specifying a maximum number of elements in a stream, truncating the stream if that limit is exceeded. What's worth noting is a dedicated section in the documentation, explicitly stating the features and limitations of the persistence & replication system, clearly stating when data loss might occur. This leaves no doubt when choosing the right tradeoffs in a system's design.
 
-Finally, let's focus on scaling Redis Streams. All of the streaming operations above operate on a single Redis key, residing on a single Redis master server (operations are then replicated to slaves). What if we'd like to scale our system above that? One solution is to use Redis Cluster and multiple stream keys. When sending data, we then have to choose a stream key, either randomly or in some deterministic fashion. This resembles Kafka's partitions and partition keys. On the consumer side, we might consume from all keys at once; we could also have dedicated consumers for keys, but then we'd need some way to maintain a cluster-wide view of the consumer <-> key association, to ensure that each key is consumer by some consumer, which isn't an easy task. The number of keys also needs to be large enough to ensure that they are evenly distributed across the shards (distribution is based on key hash values). 
+Finally, let's focus on scaling Redis Streams. All of the streaming operations above operate on a single Redis key, residing on a single Redis master server (operations are then replicated to slaves). What if we'd like to scale our system above that? One solution is to use Redis Cluster and multiple stream keys. When sending data, we then have to choose a stream key, either randomly or in some deterministic fashion. This resembles Kafka's partitions and partition keys. On the consumer side, we might consume from all keys at once; we could also have dedicated consumers for keys, but then we'd need some way to maintain a cluster-wide view of the consumer <-> key association, to ensure that each key is consumed by some consumer, which isn't an easy task. The number of keys also needs to be large enough to ensure that they are evenly distributed across the shards (distribution is based on key hash values).
 
 Let's look at the performance test results. A 3-node active-passive setup achieved up to **41 600 msgs/s**:
 
@@ -2090,15 +2090,15 @@ Finally, here are our Kafka test results in full:
   </tbody>
 </table>
 
-The [RedPanda](https://vectorized.io) system targets mission-critical workloads, and exposes a Kafka-compatible API. Hence, the way messaging works in RedPanda carries over from Kafka - we've got topics, partitions, consumer groups etc. In fact, we're using exactly the same client code to test both RedPanda and Kafka. However, the devil lies in the details! 
+The [RedPanda](https://vectorized.io) system targets mission-critical workloads and exposes a Kafka-compatible API. Hence, the way messaging works in RedPanda carries over from Kafka - we've got topics, partitions, consumer groups, etc. In fact, we're using exactly the same client code to test both RedPanda and Kafka. However, the devil lies in the details!
 
-Let's start with data safety. RedPanda's motto, "Zero data loss", indicates its focus on mission-critical systems. By default, RedPanda's configuration for a 3-node cluster [corresponds](https://vectorized.io/blog/kafka-redpanda-availability/) to the following Kafka properties: 
+Let's start with data safety. RedPanda's motto, "Zero data loss" indicates its focus on mission-critical systems. By default, RedPanda's configuration for a 3-node cluster [corresponds](https://vectorized.io/blog/kafka-redpanda-availability/) to the following Kafka properties:
 
 * `acks=-1`
 * `min.insync.replicas=2` (quorum)
 * `log.flush.interval.messages=1`
 
-The last one is especially interesting, as that's where RedPanda differs from what you'd often use in a synchronously-replicated Kafka setup, and also from what we've used in our tests. In Kafka, setting `log.flush.interval.messages` to `1` ensures that the disk cache is flushed on every message, and that's what happens in RedPanda as well. In other words, once a message is accepted by the quorum, it is guaranteed that it will be persistently stored on disk (the default in Kafka, and in our tests, is an unbounded number of messages, hence disk flushes happen asynchronously). This approach to disk safety is similar to what we've seen in RabbitMQ. Keep this in mind while reading the results.
+The last one is especially interesting as that's where RedPanda differs from what you'd often use in a synchronously-replicated Kafka setup, and also from what we've used in our tests. In Kafka, setting `log.flush.interval.messages` to `1` ensures that the disk cache is flushed on every message, and that's what happens in RedPanda as well. In other words, once a message is accepted by the quorum, it is guaranteed that it will be persistently stored on disk (the default in Kafka, and in our tests, is an unbounded number of messages, hence disk flushes happen asynchronously). This approach to disk safety is similar to what we've seen in RabbitMQ. Keep this in mind while reading the results.
 
 On the inside, RedPanda uses a mixture of C++ and Go, while Kafka is JVM-based. Moreover, one of the main selling points of RedPanda is that it eliminates the dependency on ZooKeeper. Instead, it uses the Raft consensus protocol. This has very practical consequences: RedPanda will accept a write once a majority of nodes (the quorum) accepts it; Kafka, on the other hand, will wait for a confirmation from all in-sync-replicas, which might take a longer time (if the ISR set is larger than the quorum). This also means that any disturbance in the cluster will have larger implications on latencies in Kafka, than in RedPanda. It's worth noting that Kafka goes in the same direction with its [KRaft](https://www.confluent.io/blog/kafka-without-zookeeper-a-sneak-peek/) implementation.
 
@@ -2208,7 +2208,7 @@ As always, which message queue to choose depends on specific project requirement
 * if you are already using Mongo, PostgreSQL or EventStore, you can either use it as a message queue or easily build a message queue on top of the database, without the need to create and maintain a separate messaging cluster
 * if you want to have high persistence guarantees, RabbitMQ ensures replication across the cluster and on disk on message send. It's a very popular choice used in many projects, with full AMQP implementation and support for many messaging topologies
 * ActiveMQ Artemis is a popular, battle-tested and widely used messaging broker with wide protocol support and good performance
-* NATS Streaming support many useful communication patterns, and is especially popular in IoT deployments  
+* NATS Streaming support many useful communication patterns, and is especially popular in IoT deployments
 * Redis Streams offers good performance on top of a popular and familiar key-value store
 * RocketMQ offers a JMS-compatible interface, with great performance
 * Pulsar builds provides a wide feature set, with many messaging schemes available. It’s gaining popularity, due to it’s flexible nature, accommodating for a wide range of use-cases, and great performance
