@@ -2231,5 +2231,5 @@ There are of course many other aspects besides performance, which should be take
 
 # Credits
 
-The following team members contributed to this work: [Grzegorz Kocur](https://twitter.com/GrzegorzKocur), [Maciej Opała](https://twitter.com/czaszo), [Marcin Kubala](https://twitter.com/marcin_kubala), [Krzysztof Ciesielski](https://twitter.com/kpciesielski), [Kasper Kondzielski](https://twitter.com/kkondzielski), Tomasz Król, [Adam Warski](https://twitter.com/adamwarski). [Clebert Suconic](https://twitter.com/clebertsuconic), [Michael André Pearce](https://twitter.com/itsourcery) and [Greg Young](https://twitter.com/gregyoung) helped out with some configuration aspects of Artemis and EventStore. Thanks!
+The following team members contributed to this work: [Grzegorz Kocur](https://twitter.com/GrzegorzKocur), [Maciej Opała](https://twitter.com/czaszo), [Marcin Kubala](https://twitter.com/marcin_kubala), [Krzysztof Ciesielski](https://twitter.com/kpciesielski), [Kasper Kondzielski](https://twitter.com/kkondzielski), Tomasz Król, [Adam Warski](https://twitter.com/adamwarski). [Clebert Suconic](https://twitter.com/clebertsuconic), [Michael André Pearce](https://twitter.com/itsourcery), [Greg Young](https://twitter.com/gregyoung) and [Francesco Nigro](https://github.com/franz1981) helped out with some configuration aspects of Artemis and EventStore. Thanks!
 
