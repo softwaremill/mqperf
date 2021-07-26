@@ -23,13 +23,13 @@ When talking about performance, we’ll take into account both **how many messag
       <td>26 Jul 2021</td>
       <td>
           Refresh of the 2020 edition. Tests of RedPanda and Redis Streams. Added encryption and compression info to the summary.
-          Co-authored with [Bartłomiej Turos](https://github.com/bturos) and [Robert Dziewoński](https://github.com/robert-dziewonski). 
+          Co-authored with <a href="https://github.com/bturos">Bartłomiej Turos</a> and <a href="https://github.com/robert-dziewonski">Robert Dziewoński</a>. 
       </td>
     </tr>
     <tr>
       <td>8 Dec 2020</td>
       <td>
-          2020 edition: extended feature comparison, updated benchmarks, new queues (Pulsar, PostgreSQL, Nats Streaming); dropping ActiveMQ 5 in favor of ActiveMQ Artemis. Co-authored with [Kasper Kondzielski](https://twitter.com/kkondzielski). 
+          2020 edition: extended feature comparison, updated benchmarks, new queues (Pulsar, PostgreSQL, Nats Streaming); dropping ActiveMQ 5 in favor of ActiveMQ Artemis. Co-authored with <a href="https://twitter.com/kkondzielski">Kasper Kondzielski</a>. 
       </td>
     </tr>
     <tr>
