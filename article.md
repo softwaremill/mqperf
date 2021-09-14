@@ -65,7 +65,7 @@ There is a number of open-source messaging projects available, but only some sup
 * [RocketMQ](https://rocketmq.apache.org)
 * [NATS Streaming](https://docs.nats.io/developing-with-nats-streaming/streaming)
 * [EventStore](https://www.eventstore.com)
-* [RedPand](https://vectorized.io)
+* [RedPanda](https://vectorized.io)
 * [Redis Streams](https://redis.io/topics/streams-intro)
 
 You might rightfully notice that not all of these are message queueing systems. Both MongoDB and PostgreSQL (and to some degree, EventStore) are general-purpose databases. However, using some of their mechanisms it’s possible to implement a message queue on top of them. If such a simple queue meets the requirements and the database system is already deployed for other purposes, it might be reasonable to reuse it and reduce operational costs.
