@@ -1365,7 +1365,7 @@ Pulsar was initially developed at Yahoo!, and now continues to evolve as an open
 * [ZooKeeper](https://zookeeper.apache.org) for cluster discovery and coordination
 * [BookKeeper](https://bookkeeper.apache.org) as the replicated storage service
 
-A Pulsar deployment consists of nodes which take on one of three nodes:
+A Pulsar deployment consists of nodes which take on one of three roles:
 
 * bookie: handles persistent storage of messages
 * broker: a stateless service which accepts messages from producers, dispatches messages to consumers and communicates with bookies to store data
@@ -1379,9 +1379,9 @@ Combining a shared or unique **subscription name**, with one of the four **consu
 
 Messages in Pulsar are deleted after they are acknowledged, and this is tracked per-subscription. That is, if there are no subscribers to a topic, messages will be marked for deletion right after being sent. Acknowledging a message in one subscription doesn’t affect other subscriptions. Additionally, we can specify a message retention policy, to keep messages for a longer time.
 
-Moreover, topics can be **partitioned**. Behind the scenes, Pulsar creates an internal topic for every partition (these partitions are something quite different than in Kafka!). However, from the producers and consumers point of view such a topic behaves as a single one. As a single topic is always handled by a single broker, increasing the number of partitions, we can increase throughput by allowing multiple brokers to accept and dispatch messages.
+Moreover, topics can be **partitioned**. Behind the scenes, Pulsar creates an internal topic for every partition (these partitions are something quite different than in Kafka!). However, from the producers' and consumers' point of view such a topic behaves as a single one. As a single topic is always handled by a single broker, increasing the number of partitions, we can increase throughput by allowing multiple brokers to accept and dispatch messages.
 
-As mentioned above, all storage is handled by Apache BookKeeper. Entries (messages) are stored in sequences called **ledgers**. We can configure how many copies of a ledger are created (`managedLedgerDefaultEnsembleSize`), in how many copies a message is stored (`managedLedgerDefaultWriteQuorum`) and how many nodes have to acknowledge a write (`managedLedgerDefaultAckQuorum`). Following our persistency requirements, we’ve been using 3 ledger copies, and requiring at least 2 copies of each message.
+As mentioned above, all storage is handled by Apache BookKeeper. Entries (messages) are stored in sequences called **ledgers**. We can configure how many copies of a ledger are created (`managedLedgerDefaultEnsembleSize`), in how many copies a message is stored (`managedLedgerDefaultWriteQuorum`) and how many nodes have to acknowledge a write (`managedLedgerDefaultAckQuorum`). Following our persistence requirements, we’ve been using 3 ledger copies, and requiring at least 2 copies of each message.
 
 The setting above corresponds to synchronous replication, but by setting the quorum to 1 or 0, we would get an asynchronous one.
 
