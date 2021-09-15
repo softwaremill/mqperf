@@ -558,7 +558,7 @@ With 12 sender and 24 receiver nodes, these numbers go up to **130 956 msgs/s** 
 
 ![SQS](sqs.png)
 
-As for latencies, SQS can be quite unpredictable than other queues which we’ll cover later. We've observed processing latency from 94 ms up to **1 960 ms**. Send latencies are more constrained and are usually around **50 ms**.
+As for latencies, SQS can be quite unpredictable compared to other queues which we’ll cover later. We've observed processing latency from 94 ms up to **1 960 ms**. Send latencies are more constrained and are usually around **50 ms**.
 
 Here's the dashboard for the test using 4 nodes, each running 5 threads.
 
