@@ -1,6 +1,6 @@
 # mqperf v2
 ## Overview
-This repository enables you to bootstrap the AWS EKS cluster alongside the Apache Kafka cluster and the kube-prometheus-stack. 
+This repository enables you to bootstrap the AWS EKS cluster alongside the [Apache Kafka cluster by Strimzi](https://strimzi.io/) and the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) 
 
 ## Prerequisites
 - Terragrunt version 0.38.7 or newer
