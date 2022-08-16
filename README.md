@@ -27,5 +27,5 @@ In this repo, Terragrunt is used to keep configurations DRY and to work with mul
 Each folder consists of just one terragrunt.hcl file per component. The terragrunt.hcl files contain the source URL of the module to deploy and the inputs to set for that module in the current folder. It also contains dependencies and definitions for the providers.
 
 - The EKS folder contains the code necessary to bootstrap the AWS EKS cluster.
-- The Kafka folder contains the code necessary to deploy the Apache Kafka cluster on Kubernetes by Helm.
-- The Prometheus folder contains the code necessary to deploy the kube-Prometheus-stack Helm chart. 
+- The Kafka folder contains the code necessary to deploy the Apache Kafka cluster on Kubernetes by [Strimzi](https://strimzi.io/).
+- The Prometheus folder contains the code necessary to deploy the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) Helm chart. 
