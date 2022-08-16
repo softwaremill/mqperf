@@ -28,21 +28,11 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.6.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.8.0"
-    }
   }
 }
 
 data "aws_eks_cluster_auth" "eks" {
   name = "${dependency.eks.outputs.eks_cluster_id}"
-}
-
-provider "kubernetes" {
-    host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-    token                  = data.aws_eks_cluster_auth.eks.token
 }
 
 provider "helm" {

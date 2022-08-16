@@ -1,4 +1,4 @@
-resource "helm_release" "kafka-operator" {
+resource "helm_release" "kafka_operator" {
   name       = var.name
   repository = var.repository
   chart      = var.chart
