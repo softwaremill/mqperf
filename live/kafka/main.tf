@@ -30,7 +30,7 @@ spec:
                       - kafka
                 topologyKey: "kubernetes.io/hostname"
     version: 3.2.0
-    replicas: 3
+    replicas: ${var.replicas_number}
     listeners:
       - name: plain
         port: 9092
@@ -53,7 +53,7 @@ spec:
       - id: 0
         type: persistent-claim
         size: 20Gi
-        deleteClaim: false
+        deleteClaim: ${var.delete_pvc_claim}
   zookeeper:
     template:
       pod:
@@ -70,11 +70,11 @@ spec:
                       values:
                       - zookeeper
                 topologyKey: "kubernetes.io/hostname"
-    replicas: 3
+    replicas: ${var.replicas_number}
     storage:
       type: persistent-claim
       size: 20Gi
-      deleteClaim: true
+      deleteClaim: ${var.delete_pvc_claim}
   entityOperator:
     topicOperator: {}
     userOperator: {}
