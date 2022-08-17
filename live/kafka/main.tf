@@ -1,9 +1,9 @@
-resource "helm_release" "kafka_operator" {
-  name       = var.name
-  repository = var.repository
-  chart      = var.chart
-  version    = var.chart_version
-
+module "helm" {
+  source        = "../../modules/helm//."
+  release_name  = "kafka-operator"
+  repository    = "https://strimzi.io/charts/"
+  chart_name    = "strimzi-kafka-operator"
+  chart_version = "0.30.0"
 }
 
 resource "kubectl_manifest" "kafka" {
@@ -74,7 +74,7 @@ spec:
     storage:
       type: persistent-claim
       size: 20Gi
-      deleteClaim: false
+      deleteClaim: true
   entityOperator:
     topicOperator: {}
     userOperator: {}
@@ -82,6 +82,6 @@ YAML
 
 
   depends_on = [
-    helm_release.kafka-operator
+    module.helm.release_name
   ]
 }

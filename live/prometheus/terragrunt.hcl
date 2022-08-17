@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/prometheus//."
+  source = "../../modules/helm//."
 }
 
 
@@ -45,3 +45,11 @@ provider "helm" {
 EOF
 }
 
+inputs = {
+
+  release_name  = "kube-prometheus-stack"
+  repository    = "https://prometheus-community.github.io/helm-charts"
+  chart_name    = "kube-prometheus-stack"
+  chart_version = "39.6.0"
+
+}

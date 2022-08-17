@@ -1,4 +1,3 @@
-
 dependency "eks" {
   config_path = "../eks"
   mock_outputs = {
@@ -12,7 +11,6 @@ dependency "eks" {
 include "root" {
   path = find_in_parent_folders()
 }
-
 
 generate "provider" {
   path      = "provider.tf"
@@ -50,4 +48,3 @@ provider "helm" {
 }
 EOF
 }
-
