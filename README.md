@@ -1,13 +1,12 @@
 # mqperf v2
 ## Overview
-This repository enables you to bootstrap the AWS EKS cluster alongside the [Apache Kafka cluster by Strimzi](https://strimzi.io/) and the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 ## Prerequisites
 - Terragrunt version 0.38.7 or newer
 - Terraform version v1.2.6 or newer
-- Configure your AWS credentials using one of the supported authentication mechanisms.
 
-## Quick start - deploying all modules
+## Quick start - deploying all components
+Bootstrap the AWS EKS cluster alongside the [Apache Kafka cluster by Strimzi](https://strimzi.io/) and the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 1. Clone the repository.
 2. Navigate to the live root folder `cd live`.
@@ -16,8 +15,8 @@ This repository enables you to bootstrap the AWS EKS cluster alongside the [Apac
 
 By running the ‘run-all’ command, Terragrunt recursively looks through all the subfolders of the current working directory, finds all folders with a terragrunt.hcl file and runs terragrunt apply in each of those folders concurrently.
 
-## Deploying a single module
-1. Navigate to the single module/app folder (e.g. live/eks) `cd live/eks`.
+## Deploying a single component
+1. Navigate to the single component/app folder (e.g. live/eks) `cd live/eks`.
 2. Run `terragrunt plan` to preview the changes
 3. Run `terragrunt apply` to execute the actions.
 
