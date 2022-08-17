@@ -1,6 +1,5 @@
 locals {
   cluster_name = "mqperf-cluster"
-  common_vars  = read_terragrunt_config("common.hcl")
 }
 
 
@@ -8,9 +7,9 @@ remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = local.common_vars.locals.bucket_name
+    bucket         = TF_VAR_BUCKET_NAME
     key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.common_vars.locals.aws_region
+    region         = TF_VAR_AWS_REGION
     dynamodb_table = "terraform-locks"
   }
   generate = {
