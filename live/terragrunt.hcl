@@ -39,5 +39,3 @@ provider "aws" {
 EOF
 }
 
-
-
