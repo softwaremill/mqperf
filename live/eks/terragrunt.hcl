@@ -12,7 +12,7 @@ inputs = {
   environment = "test"
 
   eks_cluster_node_groups = {
-    additional = {
+    default = {
       min_size       = 3
       max_size       = 3
       desired_size   = 3
