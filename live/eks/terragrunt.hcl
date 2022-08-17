@@ -1,6 +1,5 @@
 terraform {
-  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//"
-
+  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.1"
 }
 
 include "root" {
