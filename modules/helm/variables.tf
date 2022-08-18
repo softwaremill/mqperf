@@ -17,3 +17,9 @@ variable "chart_version" {
   type        = string
   description = "Specify the exact chart version to install. If this is not specified, the latest version is installed"
 }
+
+variable "sets" {
+  type        = list(map(any))
+  default     = []
+  description = "Dynamic set block with custom values"
+}

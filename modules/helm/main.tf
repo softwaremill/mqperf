@@ -3,4 +3,12 @@ resource "helm_release" "custom_helm_release" {
   repository = var.repository
   chart      = var.chart_name
   version    = var.chart_version
+
+  dynamic "set" {
+    for_each = var.sets
+    content {
+      name  = set.value.name
+      value = set.value.value
+    }
+  }
 }
