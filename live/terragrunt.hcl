@@ -1,5 +1,6 @@
 locals {
   cluster_name = "mqperf-cluster"
+  region       = "eu-central-1"
 }
 
 
