@@ -8,10 +8,10 @@ remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = "ab-new-bucket"
+    bucket         = get_env("TF_VAR_BUCKET_NAME")
     key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = "eu-central-1"
-    dynamodb_table = "ab-new-table"
+    region         = get_env("TF_VAR_AWS_REGION")
+    dynamodb_table = get_env("TF_VAR_DYNAMODB_TABLE")
   }
   generate = {
     path      = "backend.tf"
