@@ -6,7 +6,7 @@ variable "replicas_number" {
 
 variable "delete_pvc_claim" {
   type        = bool
-  description = "Define if PVC shloud be deleted"
+  description = "Define if PVC should be deleted"
   default     = true
 }
 
