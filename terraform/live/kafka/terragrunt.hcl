@@ -8,6 +8,11 @@ dependency "eks" {
   mock_outputs_merge_strategy_with_state = "shallow"
 }
 
+dependency "prometheus" {
+  config_path = "../prometheus"
+  skip_outputs = true
+}
+
 include "root" {
   path = find_in_parent_folders()
 }
