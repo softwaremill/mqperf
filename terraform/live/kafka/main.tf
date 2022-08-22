@@ -95,12 +95,8 @@ resource "kubernetes_config_map" "grafana_dashboards" {
   }
 
   data = {
-    "strimzi-cruise-control" = "${templatefile("grafana-dashboards/strimzi-cruise-control.json", { "DS_PROMETHEUS" = "default" })}"
-    "strimzi-kafka-bridge"   = "${templatefile("grafana-dashboards/strimzi-kafka-bridge.json", { "DS_PROMETHEUS" = "default" })}"
-    "strimzi-kafka-connect"  = "${templatefile("grafana-dashboards/strimzi-kafka-connect.json", { "DS_PROMETHEUS" = "default" })}"
     "strimzi-kafka-exporter" = "${templatefile("grafana-dashboards/strimzi-kafka-exporter.json", { "DS_PROMETHEUS" = "default" })}"
     "strimzi-kafka.json"     = "${templatefile("grafana-dashboards/strimzi-kafka.json", { "DS_PROMETHEUS" = "default" })}"
-    "strimzi-operators.json" = "${templatefile("grafana-dashboards/strimzi-operators.json", { "DS_PROMETHEUS" = "default" })}"
     "strimzi-zookeeper.json" = "${templatefile("grafana-dashboards/strimzi-zookeeper.json", { "DS_PROMETHEUS" = "default" })}"
   }
 }
