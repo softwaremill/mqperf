@@ -323,3 +323,19 @@ spec:
       action: replace
 YAML
 }
+
+resource "kubernetes_config_map" "grafana_dashboards" {
+  metadata {
+    name = "kafka-dashboards"
+    labels = {
+      "grafana_dashboard" = "1"
+    }
+  }
+
+  data = {
+    "strimzi-kafka-exporter" = "${templatefile("grafana-dashboards/strimzi-kafka-exporter.json", { "DS_PROMETHEUS" = "default" })}"
+    "strimzi-kafka.json"     = "${templatefile("grafana-dashboards/strimzi-kafka.json", { "DS_PROMETHEUS" = "default" })}"
+    "strimzi-zookeeper.json" = "${templatefile("grafana-dashboards/strimzi-zookeeper.json", { "DS_PROMETHEUS" = "default" })}"
+  }
+}
+
