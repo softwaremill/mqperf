@@ -2,8 +2,8 @@
 ## Overview
 
 ## Prerequisites
-- Terragrunt version 0.38.7 or newer
-- Terraform version v1.2.6 or newer
+1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
+2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
 
 ## Quick start - deploying all components
 Bootstrap the AWS EKS cluster alongside the [Apache Kafka cluster by Strimzi](https://strimzi.io/) and the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
