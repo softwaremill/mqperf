@@ -19,19 +19,16 @@ Set environment variables required for the bootstraping script:
 - `TF_VAR_AWS_REGION` - name of the AWS Region.
 
 ## Quick start 
-Bootstrap the Kubernetes cluster alongside the [Apache Kafka cluster by Strimzi](https://strimzi.io/) and the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+Bootstrap the Kubernetes cluster using the cloud provider and the MQ of choice alongside the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 1. Clone the repository.
 2. Navigate to the live root folder `cd terraform/live`.
-3. Run `terragrunt run-all plan` to preview the changes.
-4. Run `terragrunt run-all apply` to execute the actions proposed in the plan.
+3. Navigate to the folder of the cloud provider.
+4. Run `terragrunt run-all plan` to preview the changes.
+5. Run `terragrunt run-all apply` to execute the actions proposed in the plan.
 
 By running the ‘run-all’ command, Terragrunt recursively looks through all the subfolders of the current working directory, finds all folders with a terragrunt.hcl file and runs terragrunt apply in each of those folders concurrently.
 
-## Deploying a single component
-1. Navigate to the single component/app folder (e.g. live/eks) `cd live/eks`.
-2. Run `terragrunt plan` to preview the changes
-3. Run `terragrunt apply` to execute the actions.
 
 ## The file/folder structure
 In this repo, Terragrunt is used to keep configurations DRY and to work with multiple Terraform modules. Follow the [Terragrunt](https://terragrunt.gruntwork.io/docs/) documentation to learn more.
@@ -41,3 +38,29 @@ Each folder consists of just one terragrunt.hcl file per component. The terragru
 - The EKS folder contains the code necessary to bootstrap the AWS EKS cluster.
 - The Kafka folder contains the code necessary to deploy the Apache Kafka cluster on Kubernetes by [Strimzi](https://strimzi.io/).
 - The Prometheus folder contains the code necessary to deploy the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) Helm chart. 
+
+## Kafka KRaft MQ
+To use the [Kafka KRaft](https://strimzi.io/docs/operators/in-development/configuring.html#ref-operator-use-kraft-feature-gate-str) feature, override these variables from the `terraform/live/kafka/variables.tf` file with the values specified below:
+```
+variable "chart_version" {
+  type        = string
+  description = "Define the Strimzi Kafka Operator version"
+  default     = "0.29.0"
+}
+
+variable "sets" {
+  type = list(map(any))
+  default = [
+    {
+      name  = "featureGates"
+      value = "+UseKRaft\\,+UseStrimziPodSets"
+    }
+  ]
+}
+
+variable "kafka_kraft_enabled" {
+  type        = bool
+  description = "Enable Kafka KRaft feature"
+  default     = true
+}
+```
