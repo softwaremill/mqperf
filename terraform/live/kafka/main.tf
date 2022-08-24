@@ -3,7 +3,9 @@ module "helm" {
   release_name  = "kafka-operator"
   repository    = "https://strimzi.io/charts/"
   chart_name    = "strimzi-kafka-operator"
-  chart_version = "0.30.0"
+  chart_version = var.chart_version
+  sets          = var.sets
+
 }
 
 resource "kubectl_manifest" "kafka_metrics_config" {
@@ -15,7 +17,8 @@ resource "kubectl_manifest" "kafka_metrics_config" {
 }
 
 resource "kubectl_manifest" "kafka" {
-  yaml_body = templatefile("kafka-manifests/kafka.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim})
+
+  yaml_body = (var.kafka_kraft_enabled) ? templatefile("kafka-manifests/kafka-kraft.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim }) : templatefile("kafka-manifests/kafka.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim })
 
   depends_on = [
     module.helm.release_name, kubectl_manifest.kafka_metrics_config
