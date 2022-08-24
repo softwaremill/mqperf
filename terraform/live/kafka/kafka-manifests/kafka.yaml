@@ -17,7 +17,7 @@ spec:
                     - key: app
                       operator: In
                       values:
-                      - kafka
+                        - kafka
                 topologyKey: "kubernetes.io/hostname"
     version: 3.2.0
     replicas: ${REPLICAS_NUMBER}
@@ -40,10 +40,10 @@ spec:
     storage:
       type: jbod
       volumes:
-      - id: 0
-        type: persistent-claim
-        size: 20Gi
-        deleteClaim: ${DELETE_PVC}
+        - id: 0
+          type: persistent-claim
+          size: 20Gi
+          deleteClaim: ${DELETE_PVC}
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
@@ -64,7 +64,7 @@ spec:
                     - key: app
                       operator: In
                       values:
-                      - zookeeper
+                        - zookeeper
                 topologyKey: "kubernetes.io/hostname"
     replicas: ${REPLICAS_NUMBER}
     storage:
