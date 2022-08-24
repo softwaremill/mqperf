@@ -23,3 +23,8 @@ variable "sets" {
   default     = []
   description = "Dynamic set block with custom values"
 }
+
+variable "values" {
+  type = list
+  default = []
+}
