@@ -17,12 +17,12 @@ variable "chart_version" {
 }
 
 variable "sets" {
-  type = list(map(any))
+  type    = list(map(any))
   default = []
 }
 
 variable "kafka_kraft_enabled" {
   type        = bool
-  description = "Enable Kafka KRaft feature"
+  description = "Enable Kafka KRaft"
   default     = false
 }
