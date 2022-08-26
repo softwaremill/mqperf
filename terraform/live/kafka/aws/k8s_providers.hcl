@@ -1,28 +1,18 @@
-dependency "eks" {
-  config_path = "../eks"
-  mock_outputs = {
-    eks_cluster_endpoint                   = "temp-endpoint"
-    eks_cluster_certificate_authority_data = "dGVzdA=="
-    eks_cluster_id                         = "temp-id"
-  }
-  mock_outputs_merge_strategy_with_state = "shallow"
+locals {
+  cluster_name = "mqperf-cluster"
+  region       = "eu-central-1"
 }
 
-dependency "prometheus" {
-  config_path = "../prometheus"
-  skip_outputs = true
-}
-
-include "root" {
-  path = find_in_parent_folders()
-}
-
-generate "provider" {
+generate "k8s" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 terraform {
   required_providers {
+    aws = {
+      version = ">= 4.15.1"
+      source = "hashicorp/aws"
+    } 
     helm = {
       source  = "hashicorp/helm"
       version = "2.6.0"
@@ -36,6 +26,10 @@ terraform {
       version = "2.12.1"
     }
   }
+}
+
+provider "aws" {
+    region = "${local.region}"
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -55,7 +49,6 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.eks.token
     }
 }
-
 provider "kubernetes" {
     host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
     cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
