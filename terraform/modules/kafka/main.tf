@@ -1,11 +1,10 @@
 module "helm" {
-  source        = "../../modules/helm//."
+  source        = "./helm//."
   release_name  = "kafka-operator"
   repository    = "https://strimzi.io/charts/"
   chart_name    = "strimzi-kafka-operator"
   chart_version = var.chart_version
   sets          = var.sets
-
 }
 
 resource "kubectl_manifest" "kafka_metrics_config" {
