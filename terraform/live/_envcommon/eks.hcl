@@ -2,6 +2,7 @@ terraform {
   source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.1"
 }
 
+
 inputs = {
 
   org         = "SML"
@@ -17,4 +18,11 @@ inputs = {
   }
   vpc_cidr         = "10.1.0.0/16"
   eks_cluster_name = "mqperf-cluster"
+  eks_additional_cluster_addons = {
+    aws-ebs-csi-driver = {
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = "arn:aws:iam::${get_aws_account_id()}:role/AmazonEKS_EBS_CSI_DriverRole"
+    }
+  }
+#  eks_storage_class_name = "mqperf-storageclass"
 }
