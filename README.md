@@ -21,14 +21,6 @@ Set environment variables required for the bootstraping script:
 ## Quick start 
 Bootstrap the Kubernetes cluster using the cloud provider and the MQ of choice alongside the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
-1. Clone the repository.
-2. Navigate to the live root folder `cd terraform/live`.
-3. Navigate to the folder of the cloud provider.
-4. Run `terragrunt run-all plan` to preview the changes.
-5. Run `terragrunt run-all apply` to execute the actions proposed in the plan.
-
-By running the ‘run-all’ command, Terragrunt recursively looks through all the subfolders of the current working directory, finds all folders with a terragrunt.hcl file and runs terragrunt apply in each of those folders concurrently.
-
 
 ## The file/folder structure
 In this repo, Terragrunt is used to keep configurations DRY and to work with multiple Terraform modules. Follow the [Terragrunt](https://terragrunt.gruntwork.io/docs/) documentation to learn more.
