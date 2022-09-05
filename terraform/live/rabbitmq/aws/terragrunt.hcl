@@ -38,11 +38,11 @@ terraform {
 }
 
 data "aws_eks_cluster" "eks" {
-        name = ${get_env("CLUSTER_NAME", local.cluster_name)}
+        name = "${get_env("CLUSTER_NAME", local.cluster_name)}"
     }
 
 data "aws_eks_cluster_auth" "eks" {
-        name = ${get_env("CLUSTER_NAME", local.cluster_name)}
+        name = "${get_env("CLUSTER_NAME", local.cluster_name)}"
     }
 
 
