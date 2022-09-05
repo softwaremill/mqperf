@@ -1,5 +1,10 @@
 terraform {
   source = "git::https://github.com/softwaremill/terraform-gke-bootstrap//"
+
+  before_hook "select workspace" {
+    commands = ["plan", "state", "apply", "destroy", "refresh"]
+    execute  = ["${dirname(find_in_parent_folders())}/../../../workspace-hook.sh", get_env("CLUSTER_NAME")]
+  }
 }
 
 inputs = {
