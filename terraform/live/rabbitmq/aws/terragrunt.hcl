@@ -38,11 +38,11 @@ terraform {
 }
 
 data "aws_eks_cluster" "eks" {
-        name = "mqperf-cluster"
+        name = ${get_env("CLUSTER_NAME", locals.cluster_name)}
     }
 
 data "aws_eks_cluster_auth" "eks" {
-        name = "mqperf-cluster"
+        name = ${get_env("CLUSTER_NAME", locals.cluster_name)}
     }
 
 

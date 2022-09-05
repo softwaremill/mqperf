@@ -17,7 +17,7 @@ inputs = {
     }
   }
   vpc_cidr         = "10.1.0.0/16"
-  eks_cluster_name = "mqperf-cluster"
+  eks_cluster_name = get_env("CLUSTER_NAME")
   eks_additional_cluster_addons = {
     aws-ebs-csi-driver = {
       resolve_conflicts        = "OVERWRITE"
