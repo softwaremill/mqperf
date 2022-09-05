@@ -26,7 +26,7 @@ spec:
                   tcpSocket:
                     port: amqp
                   timeoutSeconds: 60
-        
+
   rabbitmq:
     additionalConfig: |
       cluster_partition_handling = pause_minority
@@ -41,12 +41,12 @@ spec:
   persistence:
     storage: "20Gi"
   affinity:
-          podAntiAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                        - rabbitmq
-                topologyKey: "kubernetes.io/hostname"
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - rabbitmq
+          topologyKey: "kubernetes.io/hostname"
