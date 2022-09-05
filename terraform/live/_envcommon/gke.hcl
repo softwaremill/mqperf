@@ -17,6 +17,8 @@ inputs = {
       disk_size_gb = 50
       max_count    = 3
       preemptible  = true
+      machine_type = "e2-standard-2"
     }
   ]
+
 }
