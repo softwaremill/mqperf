@@ -1,0 +1,52 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq-cluster
+spec:
+  replicas: ${REPLICAS_NUMBER}
+  resources:
+    requests:
+      cpu: ${CPU_REQUEST}
+      memory: ${MEMORY_REQUEST}
+    limits:
+      cpu: ${CPU_LIMIT}
+      memory: ${MEMORY_LIMIT}
+  override:
+    statefulSet:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: rabbitmq
+                readinessProbe:
+                  failureThreshold: 3
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  successThreshold: 1
+                  tcpSocket:
+                    port: amqp
+                  timeoutSeconds: 60
+
+  rabbitmq:
+    additionalConfig: |
+      cluster_partition_handling = pause_minority
+      vm_memory_high_watermark_paging_ratio = 0.99
+      disk_free_limit.relative = 1.0
+      collect_statistics_interval = 10000
+    template:
+      pod:
+        metadata:
+          labels:
+            app: rabbitmq
+  persistence:
+    storage: "20Gi"
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - rabbitmq
+          topologyKey: "kubernetes.io/hostname"

@@ -1,5 +1,5 @@
 terraform {
-  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.1"
+  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.2"
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]
@@ -22,4 +22,23 @@ inputs = {
   }
   vpc_cidr         = "10.1.0.0/16"
   eks_cluster_name = get_env("CLUSTER_NAME")
+
+  eks_additional_cluster_addons = {
+    aws-ebs-csi-driver = {
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = "arn:aws:iam::${get_aws_account_id()}:role/AmazonEKS_EBS_CSI_DriverRole"
+    }
+  }
+  
+  eks_storage_classes = [
+    {
+      name                      = "mqperf-storageclass"
+      storage_class_provisioner = "ebs.csi.aws.com"
+      volume_binding_mode       = "WaitForFirstConsumer"
+      parameters = {
+        type   = "gp3"
+        fsType = "ext4"
+      }
+    }
+  ]
 }
