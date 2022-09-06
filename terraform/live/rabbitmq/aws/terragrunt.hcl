@@ -18,6 +18,7 @@ remote_state {
   }
 }
 
+
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
@@ -28,34 +29,13 @@ terraform {
       version = ">= 4.15.1"
       source = "hashicorp/aws"
     } 
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.12.1"
-    }
-
 
   }
 }
 
-data "aws_eks_cluster" "eks" {
-        name = ${get_env("CLUSTER_NAME", locals.cluster_name)}
-    }
-
-data "aws_eks_cluster_auth" "eks" {
-        name = ${get_env("CLUSTER_NAME", locals.cluster_name)}
-    }
-
-
-
 provider "aws" {
     region = "${local.region}"
 }
-
-provider "kubernetes" {
-        host                   = data.aws_eks_cluster.eks.endpoint
-        cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-        token                  = data.aws_eks_cluster_auth.eks.token
-    }
 
 EOF
 }
