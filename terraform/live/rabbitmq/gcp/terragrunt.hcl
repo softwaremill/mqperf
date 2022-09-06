@@ -7,7 +7,7 @@ remote_state {
   config = {
     project  = "${get_env("TF_VAR_GCP_PROJECT")}"
     location = "${get_env("TF_VAR_GCS_LOCATION", "eu")}"
-    bucket   = "${get_env("TF_VAR_GCS_NAME")}"
+    bucket   = "${get_env("TF_VAR_BUCKET_NAME")}"
     prefix   = "${path_relative_to_include()}/terraform.tfstate"
 
     gcs_bucket_labels = {
