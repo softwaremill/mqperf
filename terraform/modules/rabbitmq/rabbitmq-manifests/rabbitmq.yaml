@@ -40,6 +40,7 @@ spec:
             app: rabbitmq
   persistence:
     storage: "20Gi"
+    storageClassName: "mqperf-storageclass"
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

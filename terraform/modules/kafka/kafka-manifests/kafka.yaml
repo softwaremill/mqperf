@@ -44,6 +44,7 @@ spec:
           type: persistent-claim
           size: 20Gi
           deleteClaim: ${DELETE_PVC}
+          class: mqperf-storageclass
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
