@@ -10,6 +10,10 @@ include "mqcommon" {
   path = "${dirname(find_in_parent_folders())}/../_mqcommon/kafka.hcl"
 }
 
+include "envcommon" {
+  path = "${dirname(find_in_parent_folders())}/../../_envcommon/storage.hcl"
+}
+
 dependency "eks" {
   config_path = "../eks"
   mock_outputs = {
@@ -19,3 +23,4 @@ dependency "eks" {
   }
   mock_outputs_merge_strategy_with_state = "shallow"
 }
+

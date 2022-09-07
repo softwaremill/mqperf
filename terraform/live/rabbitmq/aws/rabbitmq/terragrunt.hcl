@@ -10,6 +10,10 @@ include "mqcommon" {
   path = "${dirname(find_in_parent_folders())}/../_mqcommon/rabbitmq.hcl"
 }
 
+include "envcommon" {
+  path = "${dirname(find_in_parent_folders())}/../../_envcommon/storage.hcl"
+}
+
 dependency "eks" {
   config_path = "../eks"
   mock_outputs = {

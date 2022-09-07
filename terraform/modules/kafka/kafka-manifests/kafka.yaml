@@ -42,9 +42,9 @@ spec:
       volumes:
         - id: 0
           type: persistent-claim
-          size: 20Gi
+          size: ${STORAGE_SIZE}
           deleteClaim: ${DELETE_PVC}
-          class: mqperf-storageclass
+          class: ${STORAGE_CLASS}
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
