@@ -27,9 +27,48 @@ In this repo, Terragrunt is used to keep configurations DRY and to work with mul
 
 Each folder consists of just one terragrunt.hcl file per component. The terragrunt.hcl files contain the source URL of the module to deploy and the inputs to set for that module in the current folder. It also contains dependencies and definitions for the providers.
 
-- The EKS folder contains the code necessary to bootstrap the AWS EKS cluster.
-- The Kafka folder contains the code necessary to deploy the Apache Kafka cluster on Kubernetes by [Strimzi](https://strimzi.io/).
-- The Prometheus folder contains the code necessary to deploy the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) Helm chart. 
+The code in this repo uses the following folder hierarchy:
+```
+.
+└── terraform/
+    ├── workspace-hook.sh
+    ├── setup.sh
+    ├── live/
+    │   ├── _envcommon/
+    │   │   ├── eks.hcl
+    │   │   ├── gke.hcl
+    │   │   └── prometheus.hcl
+    │   ├── kafka/
+    │   │   ├── _mqcommon/
+    │   │   │   └── kafka.hcl
+    │   │   ├── aws/
+    │   │   │   ├── eks/
+    │   │   │   │   └── terragrunt.hcl
+    │   │   │   ├── prometheus/
+    │   │   │   │   └── terragrunt.hcl
+    │   │   │   ├── kafka/
+    │   │   │   │   └── terragrunt.hcl
+    │   │   │   ├── storage-class/
+    │   │   │   │   └── terragrunt.hcl
+    │   │   │   ├── k8s_providers.hcl
+    │   │   │   └── terragrunt.hcl
+    │   │   └── gcp/
+    │   └── rabbitmq/
+    └── modules/
+        ├── helm/
+        ├── kafka/
+        ├── rabbitmq/
+        └── storage-class/
+```
+Where:
+- **terraform**: Main folder containing terraform and terragrunt files
+- **live**: 
+- **_envcommon**: Folder contains the common configurations across all MQ
+- **kafka**: Folder contains the configuration for Kafka
+- **_mqcommon**: Folder contains the common configuration across the cloud providers for Kafka
+- **aws**: Within each cloud provider you deploy all the resources for that cloud provider
+- **module**: Folder contains resuable modules 
+
 
 ## Kafka KRaft MQ
 To use the [Kafka KRaft](https://strimzi.io/docs/operators/in-development/configuring.html#ref-operator-use-kraft-feature-gate-str) feature, override these variables from the `terraform/live/kafka/variables.tf` file with the values specified below:
