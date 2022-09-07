@@ -8,9 +8,6 @@ spec:
     requests:
       cpu: ${CPU_REQUEST}
       memory: ${MEMORY_REQUEST}
-    limits:
-      cpu: ${CPU_LIMIT}
-      memory: ${MEMORY_LIMIT}
   override:
     statefulSet:
       spec:
@@ -39,8 +36,8 @@ spec:
           labels:
             app: rabbitmq
   persistence:
-    storage: "20Gi"
-    storageClassName: "mqperf-storageclass"
+    storage: "${STORAGE_SIZE}"
+    storageClassName: ${STORAGE_CLASS}
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
