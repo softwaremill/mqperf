@@ -1,5 +1,4 @@
 locals {
-  cluster_name = "mqperf-cluster"
   region       = "eu-central-1"
 }
 
@@ -10,7 +9,6 @@ remote_state {
     bucket         = get_env("TF_VAR_BUCKET_NAME")
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = get_env("TF_VAR_AWS_REGION", "eu-central-1")
-    dynamodb_table = get_env("TF_VAR_DYNAMODB_TABLE")
   }
   generate = {
     path      = "backend.tf"
@@ -29,9 +27,6 @@ terraform {
       version = ">= 4.15.1"
       source = "hashicorp/aws"
     } 
-
-  }
-}
 
 provider "aws" {
     region = "${local.region}"
