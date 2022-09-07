@@ -14,7 +14,7 @@ variable "eks_storage_classes" {
 
 variable "aws_account_id" {
   type             = string
-  descrdescription = "Account ID of the current user for the AWS"
+  description = "Account ID of the current user for the AWS"
 }
 
 variable "oidc_provider_url" {
