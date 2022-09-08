@@ -37,7 +37,7 @@ inputs = {
       }
     }
   ]
-  aws_account_id     = get_aws_account_id()
+  aws_account_id    = get_aws_account_id()
   oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, "https://", "")
   cluster_name      = get_env("CLUSTER_NAME")
 

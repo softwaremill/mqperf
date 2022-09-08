@@ -13,7 +13,7 @@ variable "eks_storage_classes" {
 }
 
 variable "aws_account_id" {
-  type             = string
+  type        = string
   description = "Account ID of the current user for the AWS"
 }
 
