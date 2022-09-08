@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../modules/storage-class"
+  source = "../../../../modules/storage-class//."
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]
