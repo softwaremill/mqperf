@@ -1,0 +1,4 @@
+TF_VAR_CLOUDPROVIDER aws
+TF_VAR_MQ kafka
+TF_VAR_BUCKET_NAME kafka-bucket-mqperf
+CLUSTER_NAME kafka01

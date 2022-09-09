@@ -1,0 +1,37 @@
+name: "Terraform"
+
+on:
+  push:
+    branches:
+      - "feature/github-actions"
+
+  pull_request:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        if: ${{ github.event_name == 'push' }}
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Test terraform
+        run: terraform -version
+      # - name: Terraform Init
+      #   run: terraform init
+      # - name: Terraform Format
+      #   run: terraform fmt -check -recursive -diff
+      - name: Setup Terragrunt
+        uses: autero1/action-terragrunt@v1.1.0
+        with:
+          terragrunt_version: latest
+      - name: Test terragrunt
+        run: terragrunt -version
