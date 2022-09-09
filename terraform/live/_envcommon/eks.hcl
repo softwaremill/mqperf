@@ -10,7 +10,7 @@ terraform {
 
 inputs = {
 
-  org         = get_env("CLUSTER_NAME")
+  org         = "SML"
   environment = get_env("CLUSTER_NAME")
 
   eks_cluster_node_groups = {
