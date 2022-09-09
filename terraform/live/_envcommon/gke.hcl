@@ -11,7 +11,7 @@ inputs = {
   region           = "${get_env("TF_VAR_GCP_REGION", "europe-central2")}"
   create_project   = false
   project_id       = get_env("TF_VAR_GCP_PROJECT")
-  platform_name    = "test"
+  platform_name    = get_env("CLUSTER_NAME")
   subnet_network   = "10.1.0.0/16"
   k8s_network_base = "10.100.0.0/16"
   regional         = false
@@ -20,7 +20,7 @@ inputs = {
     {
       name         = "default-pool"
       disk_size_gb = 50
-      max_count    = 3
+      max_count    = 4
       preemptible  = true
       machine_type = "e2-standard-2"
     }
