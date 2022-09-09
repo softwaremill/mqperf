@@ -39,6 +39,6 @@ jobs:
         env: 
           CLUSTER_NAME: test
           TF_VAR_BUCKET_NAME: test 
-        run: terragrunt fmt -check -recursive -diff --terragrunt-working-dir mqperf/terraform/live/kafka/aws/
+        run: terragrunt fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/
 
 
