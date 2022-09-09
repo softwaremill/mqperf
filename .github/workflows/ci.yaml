@@ -21,24 +21,23 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         with:
           ref: ${{ github.ref_name }}
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
       - name: Test terraform
         run: terraform -version
-      # - name: Terraform Init
-      #   run: terraform init
-      # - name: Terraform Format
-      #   run: terraform fmt -check -recursive -diff
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: latest
       - name: Test terragrunt
         run: terragrunt -version
-      - name: Terraform format 
-        env: 
+      - name: Terraform format
+        env:
           CLUSTER_NAME: test
-          TF_VAR_BUCKET_NAME: test 
+          TF_VAR_BUCKET_NAME: test
         run: terragrunt fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/
-
-
