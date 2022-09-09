@@ -6,6 +6,10 @@ on:
       - "feature/github-actions"
 
   pull_request:
+env: 
+  CLUSTER_NAME: kafka44
+  TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
+
 
 jobs:
   terraform:
@@ -38,7 +42,4 @@ jobs:
       - name: Test terragrunt
         run: terragrunt -version
       - name: Terraform format
-        env:
-          CLUSTER_NAME: test
-          TF_VAR_BUCKET_NAME: test
         run: terragrunt fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/
