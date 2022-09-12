@@ -5,7 +5,7 @@ generate "k8s_providers" {
 terraform {
   required_providers {
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       version = "4.33.0"
     }
     helm = {
@@ -13,7 +13,7 @@ terraform {
       version = "2.6.0"
     }
     kubectl = {
-      source = "gavinbunney/kubectl"
+      source  = "gavinbunney/kubectl"
       version = "1.14.0"
     }
     kubernetes = {
