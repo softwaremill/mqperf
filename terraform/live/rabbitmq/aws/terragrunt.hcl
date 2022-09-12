@@ -29,7 +29,7 @@ terraform {
     } 
 
 provider "aws" {
-    region = "${local.region}"
+  region = "${local.region}"
 }
 
 EOF

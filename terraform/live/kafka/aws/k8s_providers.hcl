@@ -29,7 +29,7 @@ terraform {
 }
 
 provider "aws" {
-    region = "${local.region}"
+  region = "${local.region}"
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -37,9 +37,9 @@ data "aws_eks_cluster_auth" "eks" {
 }
 
 provider "kubectl" {
-    host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-    token                  = data.aws_eks_cluster_auth.eks.token
+  host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  token                  = data.aws_eks_cluster_auth.eks.token
 }
 
 provider "helm" {
@@ -50,9 +50,9 @@ provider "helm" {
     }
 }
 provider "kubernetes" {
-    host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-    token                  = data.aws_eks_cluster_auth.eks.token
+  host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  token                  = data.aws_eks_cluster_auth.eks.token
 }
 EOF
 }

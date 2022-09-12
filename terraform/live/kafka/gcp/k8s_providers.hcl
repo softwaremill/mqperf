@@ -31,9 +31,9 @@ provider "google" {
 data "google_client_config" "provider" {}
 
 provider "kubectl" {
-    host                   = "https://${dependency.gke.outputs.gke_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
-    token                  = data.google_client_config.provider.access_token
+  host                   = "https://${dependency.gke.outputs.gke_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
+  token                  = data.google_client_config.provider.access_token
 }
 
 provider "helm" {
@@ -45,9 +45,9 @@ provider "helm" {
 }
 
 provider "kubernetes" {
-    host                   = "https://${dependency.gke.outputs.gke_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
-    token                  = data.google_client_config.provider.access_token
+  host                   = "https://${dependency.gke.outputs.gke_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
+  token                  = data.google_client_config.provider.access_token
 }
 
 EOF
