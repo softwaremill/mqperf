@@ -61,13 +61,19 @@ The code in this repo uses the following folder hierarchy:
         └── storage-class/
 ```
 Where:
-- **terraform**: Main folder containing terraform and terragrunt files
-- **live**: 
-- **_envcommon**: Folder contains the common configurations across all MQ
-- **kafka**: Folder contains the configuration for Kafka
-- **_mqcommon**: Folder contains the common configuration across the cloud providers for Kafka
-- **aws**: Within each cloud provider you deploy all the resources for that cloud provider
-- **module**: Folder contains resuable modules 
+- **terraform/**: Main folder containing terraform and terragrunt files
+- **live/**: 
+- **_envcommon**: Folder contains the common configurations across all MQ services
+- **kafka/**: Folder contains the configuration for Kafka
+- **_mqcommon**: Folder contains the common configuration across specific MQ, in this case Kafka
+- **aws/**: Within each cloud provider you deploy all the resources for that cloud provider
+- **eks/**: Folder contains the [EKS AWS](https://aws.amazon.com/eks/) service configuration defined in a terragrunt.hcl file
+- **prometheus/**: Folder contains the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts) Helm chart configuration defined in a terragrunt.hcl file
+- **kafka/**: Folder contains [Strimzi Kafka](https://strimzi.io/) cluster-operator and Kafka cluster Helm charts configuration defined in a terragrunt.hcl file
+- **storage-class**: Folder contains configuration for the [AWS GP3 Storage Class](https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html) configuration 
+- **k8s_providers.hcl**: Terragrunt file containing configuration for the [Kubernetes](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs) and [Helm](https://registry.terraform.io/providers/hashicorp/helm/latest/docs) providers
+- **terragrunt.hcl**: Terragrunt file containing configuration for the [AWS](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) provider
+- **modules/**: Folder contains resuable modules 
 
 
 ## Kafka KRaft MQ
