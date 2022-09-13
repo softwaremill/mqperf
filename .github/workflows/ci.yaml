@@ -51,7 +51,7 @@ jobs:
       - name: Terraform plan
         run: terragrunt run-all plan --terragrunt-working-dir terraform/live/kafka/aws/ -out "planfile" --terragrunt-non-interactive
       - name: List provider.tf 
-        run: cat terraform/live/kafka/aws/kafka/.terragrunt-cache/provider.tf
+        run: cat /home/runner/work/mqperf/terraform/live/kafka/aws/kafka/.terragrunt-cache/provider.tf
       - name: Terraform apply
         if: ${{ success() }}
         run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/ "planfile" --terragrunt-non-interactive
