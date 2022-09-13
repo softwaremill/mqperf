@@ -95,3 +95,38 @@ variable "kafka_kraft_enabled" {
   default     = true
 }
 ```
+
+## Storage configuration
+You can use the reusable storage-class module defined in `terraform/modules/storage-class/` folder to create Kubernetes Storage Class resource and necessary [AWS IAM permissions](https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html) for the EBS CSI driver. 
+
+To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where $MQ is your message queue service and $CLOUD_PROVIDER is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necesseary code for your terragrunt configuration. In the inputs block define:
+1. Define variable eks_storage_classes:
+```
+eks_storage_classes = [
+    {
+      name                      = "mqperf-storageclass"
+      storage_class_provisioner = "ebs.csi.aws.com"
+      volume_binding_mode       = "WaitForFirstConsumer"
+      parameters = {
+        type   = "gp3"
+        fsType = "ext4"
+      }
+    }
+  ]
+```
+For the parameters details refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/#parameters).
+
+2. Define variables as in the example below:
+```
+aws_account_id    = get_aws_account_id()
+oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, "https://", "")
+cluster_name      = get_env("CLUSTER_NAME")
+```
+
+In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
+```
+inputs = {
+  storage_class = "mqperf-storageclass"
+  storage_size  = "20Gi"
+}
+```
