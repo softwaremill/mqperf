@@ -54,4 +54,5 @@ jobs:
       #   run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
       - name: Checking provider files
         if: ${{ failure() }}
-        run: find . -type d -name ".terragrunt-cache"
+        working-directory: terraform/live/kafka/aws/kafka
+        run: find . -type f -name "provider.tf" -exec cat -n {} \;
