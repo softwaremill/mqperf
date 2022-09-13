@@ -7,7 +7,7 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: kafka55
+  CLUSTER_NAME: kafka88
   TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
 
 jobs:
