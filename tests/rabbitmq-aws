@@ -1,4 +1,0 @@
-TF_VAR_CLOUDPROVIDER aws
-TF_VAR_MQ rabbitmq
-TF_VAR_BUCKET_NAME rabbitmq-bucket-mqperf
-CLUSTER_NAME rabbitmq01
