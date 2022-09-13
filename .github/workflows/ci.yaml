@@ -7,9 +7,8 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: kafka44
+  CLUSTER_NAME: kafka55
   TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
-
 
 jobs:
   terraform:
@@ -33,6 +32,8 @@ jobs:
           aws-region: eu-central-1
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
+        with: 
+          terraform_wrapper: false
       - name: Test terraform
         run: terraform -version
       - name: Setup Terragrunt
@@ -43,3 +44,15 @@ jobs:
         run: terragrunt -version
       - name: Terraform format
         run: terragrunt fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/
+      - name: Terraform init 
+        run: |
+            rm -rf .terraform
+            terragrunt run-all init --terragrunt-working-dir terraform/live/kafka/aws/
+      - name: Terraform plan
+        run: terragrunt run-all plan --terragrunt-working-dir terraform/live/kafka/aws/ -out "planfile" --terragrunt-non-interactive
+      - name: Terraform apply 
+        if: ${{ success() }}
+        run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/ "planfile" --terragrunt-non-interactive
+      - name: Terraform destroy 
+        if: ${{ success() }}
+        run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
