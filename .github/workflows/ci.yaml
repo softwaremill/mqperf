@@ -49,6 +49,10 @@ jobs:
       - name: Terraform apply
         if: ${{ success() }}
         run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/  --terragrunt-non-interactive
-      - name: Terraform destroy 
-        if: ${{ success() }}
-        run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
+      # - name: Terraform destroy 
+      #   if: ${{ success() }}
+      #   run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
+      - name: Checking provider files
+        if: ${{ failure() }}
+        working-directory: terraform
+        run: cat live/kafka/aws/kafka/.terragrunt-cache/provider.tf
