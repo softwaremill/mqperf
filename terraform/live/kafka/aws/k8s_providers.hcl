@@ -5,7 +5,7 @@ locals {
 
 generate "k8s" {
   path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
+  if_exists = "overwrite"
   contents  = <<EOF
 terraform {
   required_providers {
@@ -17,13 +17,13 @@ terraform {
       source  = "hashicorp/helm"
       version = "2.6.0"
     }
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "1.14.0"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "2.12.1"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.14.0"
     }
   }
 }
