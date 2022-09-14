@@ -10,7 +10,6 @@ remote_state {
     bucket         = get_env("TF_VAR_BUCKET_NAME")
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = get_env("TF_VAR_AWS_REGION", "eu-central-1")
-    // dynamodb_table = get_env("TF_VAR_DYNAMODB_TABLE", "mqperf-lock") 
   }
   generate = {
     path      = "backend.tf"
@@ -20,7 +19,7 @@ remote_state {
 
 generate "provider" {
   path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
+  if_exists = "skip"
   contents  = <<EOF
 terraform {
   required_providers {
