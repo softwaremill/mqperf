@@ -7,7 +7,7 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: rabbitmq1
+  CLUSTER_NAME: rabbitmq2
   TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
 
 jobs:
