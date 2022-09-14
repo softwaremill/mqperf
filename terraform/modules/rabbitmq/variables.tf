@@ -16,18 +16,6 @@ variable "memory_request" {
   default     = "2Gi"
 }
 
-variable "cpu_limit" {
-  type        = string
-  description = "CPU resource limit in CPU units"
-  default     = "1000m"
-}
-
-variable "memory_limit" {
-  type        = string
-  description = "Memory resource limit in bytes"
-  default     = "2Gi"
-}
-
 variable "chart_version" {
   type        = string
   description = "Define the Strimzi Kafka Operator version"
@@ -39,4 +27,13 @@ variable "sets" {
   default = []
 }
 
+variable "storage_size" {
+  type        = string
+  description = "The capacity of the persistent volume, expressed as a Kubernetes resource quantity."
+  default     = "20Gi"
+}
 
+variable "storage_class" {
+  type        = string
+  description = "The name of the Kubernetes StorageClass to use"
+}

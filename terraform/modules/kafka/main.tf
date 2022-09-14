@@ -17,7 +17,7 @@ resource "kubectl_manifest" "kafka_metrics_config" {
 
 resource "kubectl_manifest" "kafka" {
 
-  yaml_body = (var.kafka_kraft_enabled) ? templatefile("kafka-manifests/kafka-kraft.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim }) : templatefile("kafka-manifests/kafka.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim })
+  yaml_body = (var.kafka_kraft_enabled) ? templatefile("kafka-manifests/kafka-kraft.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim }) : templatefile("kafka-manifests/kafka.yaml", { "REPLICAS_NUMBER" = var.replicas_number, "DELETE_PVC" = var.delete_pvc_claim, "STORAGE_SIZE" = var.storage_size, "STORAGE_CLASS" = var.storage_class })
 
   depends_on = [
     module.helm.release_name, kubectl_manifest.kafka_metrics_config
