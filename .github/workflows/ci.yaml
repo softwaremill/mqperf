@@ -48,11 +48,11 @@ jobs:
         run: terragrunt run-all plan --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
       - name: Terraform apply
         if: ${{ success() }}
-        run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/  --terragrunt-non-interactive
-      - name: Terraform destroy 
-        if: ${{ success() }}
-        run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
-      # - name: Checking provider files
-      #   if: ${{ failure() }}
-      #   working-directory: terraform/live/kafka/aws/kafka
-      #   run: find . -type f -name "provider.tf" -exec cat -n {} \;
+        run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/  --terragrunt-non-interactive --terragrunt-log-level debug
+      # - name: Terraform destroy 
+      #   if: ${{ success() }}
+      #   run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
+      - name: Checking provider files
+        if: ${{ failure() }}
+        working-directory: terraform/live/kafka/aws/kafka
+        run: find . -type f -name "provider.tf" -exec cat -n {} \;
