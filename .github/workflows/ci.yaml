@@ -7,7 +7,7 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: rabbitmq3
+  CLUSTER_NAME: rabbitmq4
   TF_VAR_BUCKET_NAME: new-bucket-mqperf
 
 jobs:
@@ -40,6 +40,8 @@ jobs:
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: latest
+      - name: Remove cache
+        run: find . -type d -name ".terragrunt-cache" -prune -exec rm -rf {} \;
       - name: Test terragrunt
         run: terragrunt -version
       - name: Terraform format
