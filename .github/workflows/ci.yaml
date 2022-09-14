@@ -7,7 +7,7 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: kafka103
+  CLUSTER_NAME: rabbitmq1
   TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
 
 jobs:
@@ -43,12 +43,12 @@ jobs:
       - name: Test terragrunt
         run: terragrunt -version
       - name: Terraform format
-        run: terragrunt run-all fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
+        run: terragrunt run-all fmt -check -recursive -diff --terragrunt-working-dir terraform/live/rabbitmq/aws/ --terragrunt-non-interactive
       - name: Terraform plan
-        run: terragrunt run-all plan --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
+        run: terragrunt run-all plan --terragrunt-working-dir terraform/live/rabbitmq/aws/ --terragrunt-non-interactive
       - name: Terraform apply
         if: ${{ success() }}
-        run: terragrunt run-all apply --terragrunt-working-dir terraform/live/kafka/aws/  --terragrunt-non-interactive --terragrunt-log-level debug
+        run: terragrunt run-all apply --terragrunt-working-dir terraform/live/rabbitmq/aws/  --terragrunt-non-interactive --terragrunt-log-level debug
       # - name: Terraform destroy 
       #   if: ${{ success() }}
       #   run: terragrunt run-all destroy  --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive
