@@ -69,8 +69,6 @@ jobs:
       - name: Run script plan 
         working-directory: terraform
         run: python3 script.py plan config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-      - name: Enable google registry 
-        run: gcloud services enable containerregistry.googleapis.com
       - name: Run script apply 
         working-directory: terraform
         run: python3 script.py apply config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
