@@ -40,8 +40,8 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v0"
         with:
           project_id: "${{ secrets.GCP_PROJECT_ID }}"
-      - name: Enable gcloud container registry
-        run: gcloud services enable containerregistry.googleapis.com
+      # - name: Enable gcloud container registry
+      #   run: gcloud services enable containerregistry.googleapis.com
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with: 
