@@ -7,7 +7,7 @@ on:
 
   pull_request:
 env: 
-  TF_VAR_GCP_PROJECT: 204964337255
+  TF_VAR_GCP_PROJECT: ola-sandbox
 jobs:
   terraform:
     strategy:
