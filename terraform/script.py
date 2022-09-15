@@ -10,7 +10,7 @@ def is_configfile_parameter_null():
     if len(sys.argv) == 3:
         return True
     else:
-        print("You need to provide action and config file name as parameter. Exiting script.")
+        print("You need to provide terragrunt action and config file name as parameter. Exiting script.")
         exit()
 
 def check_action():
