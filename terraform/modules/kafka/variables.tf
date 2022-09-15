@@ -26,3 +26,14 @@ variable "kafka_kraft_enabled" {
   description = "Enable Kafka KRaft"
   default     = false
 }
+
+variable "storage_size" {
+  type        = string
+  description = "The capacity of the persistent volume, expressed as a Kubernetes resource quantity."
+  default     = "20Gi"
+}
+
+variable "storage_class" {
+  type        = string
+  description = "The name of the Kubernetes StorageClass to use"
+}

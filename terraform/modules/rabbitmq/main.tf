@@ -12,7 +12,7 @@ resource "kubectl_manifest" "rabbitmq" {
 
   yaml_body = templatefile("rabbitmq-manifests/rabbitmq.yaml", {
     "REPLICAS_NUMBER" = var.replicas_number, "CPU_REQUEST" = var.cpu_request,
-  "MEMORY_REQUEST" = var.memory_request, "CPU_LIMIT" = var.cpu_limit, "MEMORY_LIMIT" = var.memory_limit })
+  "MEMORY_REQUEST" = var.memory_request, "STORAGE_SIZE" = var.storage_size, "STORAGE_CLASS" = var.storage_class })
 
   depends_on = [
     module.helm.release_name,
