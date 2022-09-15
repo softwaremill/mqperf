@@ -7,8 +7,8 @@ on:
 
   pull_request:
 env: 
-  CLUSTER_NAME: kafka666
-  TF_VAR_BUCKET_NAME: new-bucket-mqperf
+  CLUSTER_NAME: kafka12345
+  TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
 
 jobs:
   terraform:
