@@ -6,9 +6,10 @@ on:
       - "feature/github-actions"
 
   pull_request:
-
+env: 
+  TF_VAR_GCP_PROJECT: 204964337255
 jobs:
-  terraform-kafka-aws:
+  terraform:
     strategy:
       matrix:
         mq: [kafka, rabbitmq]
