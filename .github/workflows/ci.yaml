@@ -9,6 +9,10 @@ on:
 
 jobs:
   terraform-kafka-aws:
+    strategy:
+      matrix:
+        mq: [kafka, rabbitmq]
+        cloud_provider: [aws, gcp]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,21 +55,20 @@ jobs:
         run: find . -type d -name ".terragrunt-cache" -prune -exec rm -rf {} \;
       - name: Test terragrunt
         run: terragrunt -version
-      - name: Terraform format
-        env: 
-          CLUSTER_NAME: kafka111
-          TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
-        run: terragrunt run-all fmt -check -recursive -diff --terragrunt-working-dir terraform/live/kafka/aws/ --terragrunt-non-interactive      
-      - name: Terragrunt format 
-        run: terragrunt hclfmt --terragrunt-check
+      # - name: Terraform format
+      #   env: 
+      #     CLUSTER_NAME: kafka111
+      #     TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
+      #   run: terragrunt run-all fmt -check -recursive -diff --terragrunt-working-dir terraform/live/${{matrix.mq}}/${{matrix.cloud_provider}}/ --terragrunt-non-interactive      
+      # - name: Terragrunt format 
+      #   run: terragrunt hclfmt --terragrunt-check
       - name: Run script plan 
         working-directory: terraform
-        run: python3 script.py plan config-kafka-aws.json
-      # - name: Run script apply 
-      #   working-directory: terraform
-      #   run: python3 script.py apply config-kafka-aws.json
+        run: python3 script.py plan config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
+      - name: Run script apply 
+        working-directory: terraform
+        run: python3 script.py apply config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: Run script destroy 
         working-directory: terraform
         if: ${{ success() }}
-        run: python3 script.py destroy config-kafka-aws.json
-
+        run: python3 script.py destroy config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
