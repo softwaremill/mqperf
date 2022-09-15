@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "gcp",
+        "bucket_name": "gcs-bucket-mqperf",
+        "mq": "rabbitmq",
+        "cluster_name": "rabbit01",
+        "nodes_number": "4"
+    }
+}
