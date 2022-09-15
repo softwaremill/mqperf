@@ -3,7 +3,7 @@
         "cloudprovider": "gcp",
         "bucket_name": "kafka-bucket-mqperf",
         "mq": "kafka",
-        "cluster_name": "kafka112",
+        "cluster_name": "kafka99112",
         "nodes_number": "3"
     }
 }

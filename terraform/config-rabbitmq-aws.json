@@ -3,7 +3,7 @@
         "cloudprovider": "aws",
         "bucket_name": "rabbit-bucket-mqperf",
         "mq": "rabbitmq",
-        "cluster_name": "rabbitmq111",
+        "cluster_name": "rabbitmq99111",
         "nodes_number": "3"
     }
 }
