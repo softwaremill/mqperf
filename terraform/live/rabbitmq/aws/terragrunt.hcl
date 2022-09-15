@@ -19,7 +19,7 @@ remote_state {
 
 generate "provider" {
   path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
+  if_exists = "skip"
   contents  = <<EOF
 terraform {
   required_providers {
@@ -27,6 +27,8 @@ terraform {
       version = ">= 4.15.1"
       source = "hashicorp/aws"
     } 
+  }
+}
 
 provider "aws" {
     region = "${local.region}"

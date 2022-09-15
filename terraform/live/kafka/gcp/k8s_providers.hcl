@@ -34,6 +34,7 @@ provider "kubectl" {
     host                   = "https://${dependency.gke.outputs.gke_endpoint}"
     cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
     token                  = data.google_client_config.provider.access_token
+    load_config_file       = false
 }
 
 provider "helm" {
