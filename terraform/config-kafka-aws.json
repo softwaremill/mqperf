@@ -3,7 +3,7 @@
         "cloudprovider": "aws",
         "bucket_name": "kafka-bucket-mqperf",
         "mq": "kafka",
-        "cluster_name": "kafka99111",
+        "cluster_name": "kafka77111",
         "nodes_number": "3"
     }
 }

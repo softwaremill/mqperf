@@ -1,9 +1,9 @@
 {
     "instance": {
         "cloudprovider": "gcp",
-        "bucket_name": "rabbit-bucket-mqperf",
+        "bucket_name": "ola-sandbox",
         "mq": "rabbitmq",
-        "cluster_name": "rabbitmq99112",
+        "cluster_name": "rabbitmq77112",
         "nodes_number": "3"
     }
 }
