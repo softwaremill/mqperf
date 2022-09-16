@@ -3,7 +3,7 @@
         "cloudprovider": "gcp",
         "bucket_name": "ola-sandbox",
         "mq": "rabbitmq",
-        "cluster_name": "rabbitmq00112",
+        "cluster_name": "rabbitmq11112",
         "nodes_number": "3"
     }
 }
