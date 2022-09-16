@@ -6,9 +6,23 @@ on:
       - "feature/github-actions"
 
   pull_request:
+  # schedule: 
+  #   - cron: '0 0 * * 1-5'
+
 env: 
   TF_VAR_GCP_PROJECT: ola-sandbox
+
 jobs:
+  slackNotification:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
+        SLACK_MESSAGE: 'The new workflow started'
   terraform:
     strategy:
       matrix:
