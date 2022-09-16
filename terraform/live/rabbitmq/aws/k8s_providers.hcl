@@ -40,6 +40,8 @@ provider "kubectl" {
   host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
   cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
   token                  = data.aws_eks_cluster_auth.eks.token
+  apply_retry_count      = 5
+  load_config_file       = false
 }
 
 provider "helm" {
