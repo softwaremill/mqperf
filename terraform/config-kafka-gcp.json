@@ -3,7 +3,7 @@
         "cloudprovider": "gcp",
         "bucket_name": "ola-sandbox",
         "mq": "kafka",
-        "cluster_name": "kafka77112",
+        "cluster_name": "kafka66112",
         "nodes_number": "3"
     }
 }
