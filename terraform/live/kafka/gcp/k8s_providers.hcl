@@ -5,7 +5,7 @@ generate "k8s_providers" {
 terraform {
   required_providers {
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       version = "4.33.0"
     }
     helm = {
@@ -13,7 +13,7 @@ terraform {
       version = "2.6.0"
     }
     kubectl = {
-      source = "gavinbunney/kubectl"
+      source  = "gavinbunney/kubectl"
       version = "1.14.0"
     }
     kubernetes = {
@@ -31,10 +31,10 @@ provider "google" {
 data "google_client_config" "provider" {}
 
 provider "kubectl" {
-    host                   = "https://${dependency.gke.outputs.gke_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
-    token                  = data.google_client_config.provider.access_token
-    load_config_file       = false
+  host                   = "https://${dependency.gke.outputs.gke_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
+  token                  = data.google_client_config.provider.access_token
+  load_config_file       = false
 }
 
 provider "helm" {
@@ -46,9 +46,9 @@ provider "helm" {
 }
 
 provider "kubernetes" {
-    host                   = "https://${dependency.gke.outputs.gke_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
-    token                  = data.google_client_config.provider.access_token
+  host                   = "https://${dependency.gke.outputs.gke_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.gke.outputs.gke_ca_certificate}")
+  token                  = data.google_client_config.provider.access_token
 }
 
 EOF
