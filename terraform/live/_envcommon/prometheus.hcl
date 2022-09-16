@@ -20,5 +20,26 @@ inputs = {
     {
       name  = "prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues"
       value = "false"
-  }]
+    },
+    {
+      name  = "prometheus.prometheusSpec.nodeSelector.node-group"
+      value = "controllers"
+    },
+    {
+      name  = "alertmanager.alertmanagerSpec.nodeSelector.node-group"
+      value = "controllers"
+    },
+    {
+      name  = "prometheusOperator.nodeSelector.node-group"
+      value = "controllers"
+    },
+    {
+      name  = "kube-state-metrics.nodeSelector.node-group"
+      value = "controllers"
+    },
+    {
+      name  = "grafana.nodeSelector.node-group"
+      value = "controllers"
+    }
+  ]
 }
