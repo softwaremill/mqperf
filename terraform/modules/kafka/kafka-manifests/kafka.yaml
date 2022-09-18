@@ -10,6 +10,14 @@ spec:
           labels:
             app: kafka
         affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-group
+                    operator: In
+                    values:
+                    - queues
           podAntiAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
               - labelSelector:
@@ -58,6 +66,14 @@ spec:
           labels:
             app: zookeeper
         affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-group
+                    operator: In
+                    values:
+                    - queues
           podAntiAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
               - labelSelector:

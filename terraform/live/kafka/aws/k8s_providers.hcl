@@ -11,8 +11,8 @@ terraform {
   required_providers {
     aws = {
       version = ">= 4.15.1"
-      source = "hashicorp/aws"
-    } 
+      source  = "hashicorp/aws"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "2.6.0"
@@ -37,9 +37,10 @@ data "aws_eks_cluster_auth" "eks" {
 }
 
 provider "kubectl" {
-    host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-    token                  = data.aws_eks_cluster_auth.eks.token
+  host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  token                  = data.aws_eks_cluster_auth.eks.token
+  load_config_file       = false
 }
 
 provider "helm" {
@@ -50,9 +51,9 @@ provider "helm" {
     }
 }
 provider "kubernetes" {
-    host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-    token                  = data.aws_eks_cluster_auth.eks.token
+  host                   = "${dependency.eks.outputs.eks_cluster_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  token                  = data.aws_eks_cluster_auth.eks.token
 }
 EOF
 }

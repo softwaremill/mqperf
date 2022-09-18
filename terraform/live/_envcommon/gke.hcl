@@ -18,12 +18,36 @@ inputs = {
   zones            = ["europe-central2-a"]
   node_pools = [
     {
-      name         = "default-pool"
+      name         = "controllers-pool"
       disk_size_gb = 50
-      max_count    = 4
+      max_count    = 3
+      preemptible  = true
+      machine_type = "e2-standard-2"
+    },
+    {
+      name         = "queues-pool"
+      disk_size_gb = 50
+      max_count    = 3
+      preemptible  = true
+      machine_type = "e2-standard-2"
+    },
+    {
+      name         = "apps-pool"
+      disk_size_gb = 50
+      max_count    = 1
       preemptible  = true
       machine_type = "e2-standard-2"
     }
   ]
-
+  node_pools_labels = {
+    controllers-pool = {
+      node-group = "controllers"
+    },
+    queues-pool = {
+      node-group = "queues"
+    },
+    apps-pool = {
+      node-group = "apps"
+    }
+  }
 }
