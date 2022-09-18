@@ -4,6 +4,7 @@
 ## Prerequisites
 1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
 2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
+3. Install [Python](https://www.python.org/) version v3.9 or newer.
 ### Configure the cloud provider
 #### AWS
 1. Create the [AWS IAM](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html) user and install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
@@ -77,7 +78,7 @@ Where:
 
 ## Kafka KRaft MQ
 To use the [Kafka KRaft](https://strimzi.io/docs/operators/in-development/configuring.html#ref-operator-use-kraft-feature-gate-str) feature, override these variables from the `terraform/live/kafka/variables.tf` file with the values specified below:
-```
+```yml
 variable "chart_version" {
   type        = string
   description = "Define the Strimzi Kafka Operator version"
@@ -106,7 +107,7 @@ You can use the reusable storage-class module defined in `terraform/modules/stor
 
 To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where $MQ is your message queue service and $CLOUD_PROVIDER is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necesseary code for your terragrunt configuration. In the inputs block define:
 1. Define variable eks_storage_classes:
-```
+```yml
 eks_storage_classes = [
     {
       name                      = "mqperf-storageclass"
@@ -135,3 +136,55 @@ inputs = {
   storage_size  = "20Gi"
 }
 ```
+## Using python script
+`terraform\script.py` provides an automated way of performing terragrunt actions against configuration stored in json file:
+#### Command
+```bash
+python3 script.py [terragrunt action] [json file]
+```
+```
+[terragrunt action]: plan, apply, destroy
+```
+#### Json file
+
+```json
+{
+    "instance": {
+        "cloudprovider": "[cloud_provider]",
+        "bucket_name": "[cloud_bucket_name]",
+        "mq": "[mq_name]",
+        "cluster_name": "[cluster_name]",
+        "nodes_number": "[number_of_nodes]"
+    }
+}
+```
+||Accepted values|
+|---|---|
+|[cloud_provider]|"aws" , "gcp" , "az"|
+|[cloud_bucket_name]|"s3-bucket-mqperf" , "gcs-bucket-mqperf" , "az-bucket-mqperf"|
+|[mq_name]|"kafka" , "rabbitmq"|
+|[cluster_name]|str| 
+|[number_of_nodes]|str|
+### Example command
+```
+python3 script.py apply example-data.json
+```
+### [example-data.json](https://github.com/softwaremill/mqperf/blob/workspace-listing/terraform/example-data.json)
+```json
+{
+    "instance": {
+        "cloudprovider": "aws",
+        "bucket_name": "s3-bucket-mqperf",
+        "mq": "rabbitmq",
+        "cluster_name": "rabbit01",
+        "nodes_number": "4"
+    }
+}
+```
+
+
+
+
+ ## Copyright
+
+Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
