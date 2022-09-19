@@ -62,18 +62,18 @@ The code in this repo uses the following folder hierarchy:
         └── storage-class/
 ```
 Where:
-- **terraform/live/**: Main folder containing terraform and terragrunt files
-- **_envcommon/**: Folder contains common configurations across all MQ services
+- **terraform/live/**: Main folder containing Terragrunt files.
+- **_envcommon/**: Folder contains common configurations across all MQ services.
 - **kafka/**: At the top level are each of MQ services such as Kafka, Rabbitmq. This specific folder contains the configuration for Kafka
 - **_mqcommon/**: Folder contains the common configuration across specific MQ. The commmon configuration will be applied across every cloud provider for Kafka MQ service. 
 - **aws/**: Within each MQ service there will be one or more cloud providers, such as [AWS](https://aws.amazon.com/) or [GCP](https://cloud.google.com/). Within each cloud provider you deploy all the resources for that cloud provider - for example the [EKS AWS](https://aws.amazon.com/eks/) and [Kubernetes](https://kubernetes.io/pl/) resources. 
-- **eks/**: Folder contains the [EKS AWS](https://aws.amazon.com/eks/) service configuration defined in a terragrunt.hcl file
-- **prometheus/**: Folder contains the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts) Helm chart configuration defined in a terragrunt.hcl file
-- **kafka/**: Folder contains [Strimzi Kafka](https://strimzi.io/) cluster-operator and Kafka cluster Helm charts configuration defined in a terragrunt.hcl file
-- **storage-class/**: Folder contains configuration for the [AWS GP3 Storage Class](https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html) configuration 
-- **k8s_providers.hcl**: Terragrunt file containing configuration for the [Kubernetes](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs) and [Helm](https://registry.terraform.io/providers/hashicorp/helm/latest/docs) providers
+- **eks/**: Folder contains the [EKS AWS](https://aws.amazon.com/eks/) service configuration defined in a terragrunt.hcl file.
+- **prometheus/**: Folder contains the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts) Helm chart configuration defined in a terragrunt.hcl file.
+- **kafka/**: Folder contains [Strimzi Kafka](https://strimzi.io/) cluster-operator and Kafka cluster Helm charts configuration defined in a terragrunt.hcl file.
+- **storage-class/**: Folder contains configuration for the [AWS GP3 Storage Class](https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html) configuration.
+- **k8s_providers.hcl**: Terragrunt file containing configuration for the [Kubernetes](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs) and [Helm](https://registry.terraform.io/providers/hashicorp/helm/latest/docs) providers.
 - **terragrunt.hcl**: Terragrunt file containing configuration for the [AWS](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) provider
-- **modules/**: Folder contains resuable modules 
+- **modules/**: Folder contains resuable Terraform modules.
 
 
 ## Kafka KRaft MQ
@@ -103,7 +103,7 @@ variable "kafka_kraft_enabled" {
 ```
 
 ## Storage configuration
-You can use the reusable storage-class module defined in `terraform/modules/storage-class/` folder to create Kubernetes Storage Class resource and necessary [AWS IAM permissions](https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html) for the EBS CSI driver. 
+You can use the reusable storage-class module defined in `terraform/modules/storage-class/` folder to create Kubernetes Storage Class resource for the [AWS EKS](https://aws.amazon.com/eks/) and necessary [AWS IAM permissions](https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html) for the EBS CSI driver. 
 
 To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where $MQ is your message queue service and $CLOUD_PROVIDER is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necesseary code for your terragrunt configuration. In the inputs block define:
 1. Define variable eks_storage_classes:
@@ -129,13 +129,16 @@ oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, 
 cluster_name      = get_env("CLUSTER_NAME")
 ```
 
-In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
+In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class for the [AWS EKS](https://aws.amazon.com/eks/). The [GCP](https://cloud.google.com/kubernetes-engine) configuration supports for now only the standard Storage Class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
 ```
 inputs = {
   storage_class = "mqperf-storageclass"
   storage_size  = "20Gi"
 }
 ```
+If you don't define these variables, the default values will be passed:
+- The **storage_class** variable has a default value `standard`.
+- The **storage_size** variable has a default value `20Gi`.
 ## Using python script
 `terraform\script.py` provides an automated way of performing terragrunt actions against configuration stored in json file:
 #### Command
