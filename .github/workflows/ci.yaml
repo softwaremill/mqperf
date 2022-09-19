@@ -57,13 +57,13 @@ jobs:
         run: find . -type d -name ".terragrunt-cache" -prune -exec rm -rf {} \;
       - name: Run script plan 
         working-directory: terraform
-        run: python3 script.py plan config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
+        run: python3 script.py plan tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: Run script apply 
         working-directory: terraform
-        run: python3 script.py apply config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
+        run: python3 script.py apply tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: Run script destroy 
         working-directory: terraform
-        run: python3 script.py destroy config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
+        run: python3 script.py destroy tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: The job has failed
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2
