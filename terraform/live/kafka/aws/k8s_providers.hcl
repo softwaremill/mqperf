@@ -5,7 +5,7 @@ locals {
 
 generate "k8s" {
   path      = "provider.tf"
-  if_exists = "overwrite"
+  if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 terraform {
   required_providers {
