@@ -1,4 +1,4 @@
-name: "Terraform"
+name: "Mqperf terragrunt tests"
 
 on:
   push:
@@ -17,12 +17,16 @@ jobs:
     name: Slack Notification
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      if: ${{ github.event_name == 'push' }}
+      with:
+        ref: ${{ github.ref_name }}
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@v2
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
         SLACK_MESSAGE: 'The new workflow started'
+        MSG_MINIMAL: event, actions url, commit
   terraform:
     strategy:
       matrix:
@@ -53,9 +57,7 @@ jobs:
       - name: "Setup Google Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v0"
         with:
-          project_id: "${{ secrets.GCP_PROJECT_ID }}"
-      # - name: Enable gcloud container registry
-      #   run: gcloud services enable containerregistry.googleapis.com
+          project_id: ${{ env.TF_VAR_GCP_PROJECT }}
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with: 
@@ -77,20 +79,23 @@ jobs:
       - name: Test terragrunt
         run: terragrunt -version
       # - name: Terraform format
-      #   env: 
-      #     CLUSTER_NAME: kafka111
-      #     TF_VAR_BUCKET_NAME: kafka-bucket-mqperf
-      #   run: terragrunt run-all fmt -check -recursive -diff --terragrunt-working-dir terraform/live/${{matrix.mq}}/${{matrix.cloud_provider}}/ --terragrunt-non-interactive      
+      #   run: terraform fmt -check -recursive -diff terraform/modules/    
       # - name: Terragrunt format 
-      #   run: terragrunt hclfmt --terragrunt-check
+      #   run: terragrunt hclfmt
       - name: Run script plan 
         working-directory: terraform
         run: python3 script.py plan config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-      
       - name: Run script apply 
         working-directory: terraform
         run: python3 script.py apply config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: Run script destroy 
         working-directory: terraform
-        if: ${{ success() }}
         run: python3 script.py destroy config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
+
+      - name: The job has failed
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
+          SLACK_MESSAGE: The job Terraform for ${{matrix.mq}}-${{matrix.cloud_provider}} has failed
+          MSG_MINIMAL: event, actions url, commit
