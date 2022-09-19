@@ -91,7 +91,6 @@ jobs:
       - name: Run script destroy 
         working-directory: terraform
         run: python3 script.py destroy config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-
       - name: The job has failed
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2
