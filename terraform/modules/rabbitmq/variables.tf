@@ -24,7 +24,15 @@ variable "chart_version" {
 
 variable "sets" {
   type    = list(map(any))
-  default = []
+  default = [{
+    name  = "clusterOperator.nodeSelector.node-group"
+    value = "controllers"
+   },
+   {
+    name  = "msgTopologyOperator.nodeSelector.node-group"
+    value = "controllers"
+   }
+  ]
 }
 
 variable "storage_size" {
@@ -36,5 +44,5 @@ variable "storage_size" {
 variable "storage_class" {
   type        = string
   description = "The name of the Kubernetes StorageClass to use"
-  default     = "standard"
+  default     = "standard" # default storageclass name for GCP
 }

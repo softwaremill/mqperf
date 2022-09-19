@@ -39,6 +39,14 @@ spec:
     storage: "${STORAGE_SIZE}"
     storageClassName: ${STORAGE_CLASS}
   affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-group
+              operator: In
+              values:
+              - queues
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:

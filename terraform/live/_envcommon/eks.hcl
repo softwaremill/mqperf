@@ -14,11 +14,32 @@ inputs = {
   environment = get_env("CLUSTER_NAME")
 
   eks_cluster_node_groups = {
-    default = {
+    controllers-pool = {
+      min_size       = 1
+      max_size       = 3
+      desired_size   = 1
+      instance_types = ["t3.large"]
+      labels = {
+        node-group   = "controllers"
+      }
+    },
+    queues-pool = {
       min_size       = 3
       max_size       = 3
       desired_size   = 3
       instance_types = ["t3.large"]
+      labels = {
+        node-group   = "queues"
+      }
+    },
+    app-pool = {
+      min_size       = 1
+      max_size       = 1
+      desired_size   = 1
+      instance_types = ["t3.large"]
+      labels = {
+        node-group   = "apps"
+      }
     }
   }
   vpc_cidr         = "10.1.0.0/16"

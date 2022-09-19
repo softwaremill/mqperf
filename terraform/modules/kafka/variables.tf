@@ -18,7 +18,10 @@ variable "chart_version" {
 
 variable "sets" {
   type    = list(map(any))
-  default = []
+  default = [{
+    name  = "nodeSelector.node-group"
+    value = "controllers"
+  }]
 }
 
 variable "kafka_kraft_enabled" {
@@ -36,5 +39,5 @@ variable "storage_size" {
 variable "storage_class" {
   type        = string
   description = "The name of the Kubernetes StorageClass to use"
-  default     = "standard"
+  default     = "standard" # default storageclass name for GCP
 }
