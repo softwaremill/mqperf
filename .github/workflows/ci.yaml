@@ -3,30 +3,12 @@ name: "Mqperf terragrunt tests"
 on:
   push:
     branches:
-      - "feature/github-actions"
-
-  pull_request:
-  # schedule: 
-  #   - cron: '0 0 * * 1-5'
+      - "v2"
 
 env: 
   TF_VAR_GCP_PROJECT: ola-sandbox
 
 jobs:
-  slackNotification:
-    name: Slack Notification
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      if: ${{ github.event_name == 'push' }}
-      with:
-        ref: ${{ github.ref_name }}
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
-        SLACK_MESSAGE: 'The new workflow started'
-        MSG_MINIMAL: event, actions url, commit
   terraform:
     strategy:
       matrix:
@@ -34,11 +16,6 @@ jobs:
         cloud_provider: [aws, gcp]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        if: ${{ github.event_name == 'pull_request' }}
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
       - name: Checkout
         uses: actions/checkout@v3
         if: ${{ github.event_name == 'push' }}
@@ -62,26 +39,22 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with: 
           terraform_wrapper: false
+      - name: Test terraform
+        run: terraform -version
       - name: Setup python 
         uses: actions/setup-python@v3
         with:
           python-version: '3.7.9'
       - name: Install python dependencies 
         run: pip install --upgrade jsonpath-ng
-      - name: Test terraform
-        run: terraform -version
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: latest
-      - name: Remove cache
-        run: find . -type d -name ".terragrunt-cache" -prune -exec rm -rf {} \;
       - name: Test terragrunt
         run: terragrunt -version
-      # - name: Terraform format
-      #   run: terraform fmt -check -recursive -diff terraform/modules/    
-      # - name: Terragrunt format 
-      #   run: terragrunt hclfmt
+      - name: Remove cache
+        run: find . -type d -name ".terragrunt-cache" -prune -exec rm -rf {} \;
       - name: Run script plan 
         working-directory: terraform
         run: python3 script.py plan config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
@@ -98,3 +71,4 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
           SLACK_MESSAGE: The job Terraform for ${{matrix.mq}}-${{matrix.cloud_provider}} has failed
           MSG_MINIMAL: event, actions url, commit
+          SLACK_COLOR: ${{ job.status }}
