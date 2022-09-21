@@ -1,0 +1,45 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: mqperf-postgresql-cluster
+  labels:
+    app: postgresql
+spec:
+  teamId: "mqperf"
+  numberOfInstances: ${REPLICAS_NUMBER}
+  users: # Application/Robot users
+    zalando:
+      - superuser
+      - createdb
+    foo_user: [] # role for application foo
+  databases:
+    foo: zalando # dbname: owner
+  preparedDatabases:
+    bar: {}
+  postgresql:
+    version: "14"
+  volume:
+    size: ${STORAGE_SIZE}
+    storageClass: ${STORAGE_CLASS}
+  resources:
+    requests:
+      cpu: ${CPU_REQUEST}
+      memory: ${MEMORY_REQUEST}
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-group
+                operator: In
+                values:
+                  - queues
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - postgresql
+          topologyKey: "kubernetes.io/hostname"
