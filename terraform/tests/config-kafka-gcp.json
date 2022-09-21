@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "gcp",
+        "bucket_name": "ola-sandbox",
+        "mq": "kafka",
+        "cluster_name": "kafka",
+        "nodes_number": "3"
+    }
+}
