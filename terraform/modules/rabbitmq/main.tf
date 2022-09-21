@@ -15,6 +15,6 @@ resource "kubectl_manifest" "rabbitmq" {
   "MEMORY_REQUEST" = var.memory_request, "STORAGE_SIZE" = var.storage_size, "STORAGE_CLASS" = var.storage_class })
 
   depends_on = [
-    module.helm.release_name,
+    module.helm
   ]
 }
