@@ -25,6 +25,6 @@ variable "sets" {
 }
 
 variable "values" {
-  type    = list
+  type    = list(any)
   default = []
 }
