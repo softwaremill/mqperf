@@ -8,14 +8,11 @@ spec:
   teamId: "mqperf"
   numberOfInstances: ${REPLICAS_NUMBER}
   users: # Application/Robot users
-    zalando:
+    mqperfuser:
       - superuser
       - createdb
-    foo_user: [] # role for application foo
   databases:
-    foo: zalando # dbname: owner
-  preparedDatabases:
-    bar: {}
+    mqperf: mqperfuser # dbname: owner}
   postgresql:
     version: "14"
   volume:
