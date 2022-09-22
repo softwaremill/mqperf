@@ -1,4 +1,5 @@
-from re import T
+from re import T, X
+import subprocess
 from jsonpath_ng import jsonpath, parse
 from genericpath import exists
 import sys
@@ -67,18 +68,68 @@ def confirm_config():
     True
 
 
+def select_workspace():
+    global kube
+    if os.getenv("TF_VAR_CLOUDPROVIDER") == "aws":
+        kube = str("eks")
+    elif os.getenv("TF_VAR_CLOUDPROVIDER") == "gcp":
+        kube = str("gke")
+    elif os.getenv("TF_VAR_CLOUDPROVIDER") == "az":
+        kube = str("azkube")
+    
+    os.environ["TF_VAR_KUBE"] = kube
+
+        
+    output = str(subprocess.check_output("cd live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/"+kube+" ; terragrunt workspace list", shell=True))
+    workspaces = output.replace("b'","").replace("'","").replace("\\n","").replace("*","").split()
+    
+    print("Select cluster to DELETE:")
+    check=False
+    while check == False:
+        count=0
+        for i in workspaces:
+            count+=1
+            print(str(count) + " - " + i)
+        
+        selected_workspace = int(input())
+        if selected_workspace in range(1, count+1):
+            print("Selected cluster: " + workspaces[int(selected_workspace) - 1])
+            check = True
+        else:
+            print("Select again proper value:")
+
+    os.environ["CLUSTER_NAME"] = workspaces[int(selected_workspace) - 1]
+
+
 def run_terragrunt():
     bash_command_init = "terragrunt run-all init --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
     bash_command_apply = "terragrunt run-all "+sys.argv[1]+" --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
+    bash_command_destroy = "terragrunt run-all "+sys.argv[1]+" --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_kube = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBE --terragrunt-non-interactive"
+    bash_command_workspace_delete_kube = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBE --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_mq = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
+    bash_command_workspace_delete_mq = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_prometheus = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
+    bash_command_workspace_delete_prometheus = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
+
+
     if sys.argv[1] == "plan" or sys.argv[1] == "apply":
         os.system(bash_command_init)
-
-    os.system(bash_command_apply)
-
+        os.system(bash_command_apply)
+    elif sys.argv[1] == "destroy":
+        select_workspace()
+        os.system(bash_command_destroy)
+        os.system(bash_command_workspace_swith_default_kube)
+        os.system(bash_command_workspace_delete_kube)
+        os.system(bash_command_workspace_swith_default_mq)
+        os.system(bash_command_workspace_delete_mq)
+        os.system(bash_command_workspace_swith_default_prometheus)
+        os.system(bash_command_workspace_delete_prometheus)
 
 def terragrunt_infrastructure():
     set_envs()
     run_terragrunt()
+
 
 def main():
     check_action()
@@ -86,5 +137,6 @@ def main():
     check_configfile_exists()
     set_envs()
     terragrunt_infrastructure()
+
 
 main()
