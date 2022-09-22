@@ -14,19 +14,17 @@
 1.
 2.
 
-### Set environment variables
-Set environment variables required for the bootstraping script:
-- `TF_VAR_BUCKET_NAME` - name of the [S3 AWS bucket](https://docs.aws.amazon.com/s3/index.html).
-- `TF_VAR_AWS_REGION` - name of the AWS Region.
-
 ## Quick start 
-Bootstrap the Kubernetes cluster using the cloud provider and the MQ of choice alongside the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+Run the script:
+```
+python3 script.py apply example-data.json
+```
 
 
 ## The file/folder structure
 In this repo, Terragrunt is used to keep configurations DRY and to work with multiple Terraform modules. Follow the [Terragrunt](https://terragrunt.gruntwork.io/docs/) documentation to learn more.
 
-Each folder consists of just one terragrunt.hcl file per component. The terragrunt.hcl files contain the source URL of the module to deploy and the inputs to set for that module in the current folder. It also contains dependencies and definitions for the providers.
+In `terraform/live` each folder consists of just one terragrunt.hcl file per component. The terragrunt.hcl files contain the source URL of the module to deploy and the inputs to set for that module in the current folder. It also contains dependencies and definitions for the providers.
 
 The code in this repo uses the following folder hierarchy:
 ```
@@ -64,7 +62,7 @@ The code in this repo uses the following folder hierarchy:
 Where:
 - **terraform/live/**: Main folder containing Terragrunt files.
 - **_envcommon/**: Folder contains common configurations across all MQ services.
-- **kafka/**: At the top level are each of MQ services such as Kafka, Rabbitmq. This specific folder contains the configuration for Kafka
+- **kafka/**: At the top level are each of MQ services such as Kafka, Rabbitmq. This specific folder contains the configuration for Kafka.
 - **_mqcommon/**: Folder contains the common configuration across specific MQ. The commmon configuration will be applied across every cloud provider for Kafka MQ service. 
 - **aws/**: Within each MQ service there will be one or more cloud providers, such as [AWS](https://aws.amazon.com/) or [GCP](https://cloud.google.com/). Within each cloud provider you deploy all the resources for that cloud provider - for example the [EKS AWS](https://aws.amazon.com/eks/) and [Kubernetes](https://kubernetes.io/pl/) resources. 
 - **eks/**: Folder contains the [EKS AWS](https://aws.amazon.com/eks/) service configuration defined in a terragrunt.hcl file.
@@ -105,7 +103,7 @@ variable "kafka_kraft_enabled" {
 ## Storage configuration
 You can use the reusable storage-class module defined in `terraform/modules/storage-class/` folder to create Kubernetes Storage Class resource for the [AWS EKS](https://aws.amazon.com/eks/) and necessary [AWS IAM permissions](https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html) for the EBS CSI driver. 
 
-To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where $MQ is your message queue service and $CLOUD_PROVIDER is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necesseary code for your terragrunt configuration. In the inputs block define:
+To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where `$MQ` is your message queue service and `$CLOUD_PROVIDER` is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necessary code for your terragrunt configuration. Additionally, in the inputs block define:
 1. Define variable eks_storage_classes:
 ```yml
 eks_storage_classes = [
