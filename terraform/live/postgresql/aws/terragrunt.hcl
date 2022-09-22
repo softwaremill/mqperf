@@ -6,10 +6,10 @@ locals {
 remote_state {
   backend = "s3"
   config = {
-    encrypt        = true
-    bucket         = get_env("TF_VAR_BUCKET_NAME")
-    key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = get_env("TF_VAR_AWS_REGION", "eu-central-1")
+    encrypt = true
+    bucket  = get_env("TF_VAR_BUCKET_NAME")
+    key     = "${path_relative_to_include()}/terraform.tfstate"
+    region  = get_env("TF_VAR_AWS_REGION", "eu-central-1")
   }
   generate = {
     path      = "backend.tf"
