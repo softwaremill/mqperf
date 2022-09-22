@@ -64,9 +64,6 @@ def get_envs():
     nodes_number = os.getenv("NODES_NUMBER")
     print(cluster_name)
 
-def confirm_config():
-    True
-
 
 def select_workspace():
     global kube
