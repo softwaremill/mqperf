@@ -17,7 +17,7 @@ variable "chart_version" {
 }
 
 variable "sets" {
-  type    = list(map(any))
+  type = list(map(any))
   default = [{
     name  = "nodeSelector.node-group"
     value = "controllers"
