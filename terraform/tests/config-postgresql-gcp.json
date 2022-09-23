@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "gcp",
+        "bucket_name": "ola-sandbox",
+        "mq": "postgresql",
+        "cluster_name": "postgresql",
+        "nodes_number": "3"
+    }
+}
