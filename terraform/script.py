@@ -106,7 +106,7 @@ def run_terragrunt():
         os.system(bash_command_init)
         os.system(bash_command_plan_or_apply)
     elif sys.argv[1] == "destroy":
-        select_workspace()
+#         select_workspace()
         os.system(bash_command_destroy)
         os.system(bash_command_workspace_swith_default_kubernetes_provider)
         os.system(bash_command_workspace_delete_kubernetes_provider)
