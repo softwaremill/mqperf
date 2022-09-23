@@ -14,10 +14,6 @@ resource "kubernetes_storage_class" "storage_class" {
   reclaim_policy      = lookup(each.value, "reclaim_policy", "Delete")
 }
 
-terraform {
-  experiments = [module_variable_optional_attrs]
-}
-
 resource "aws_iam_role" "storageclass_role" {
   name               = "AmazonEKS_EBS_CSI_DriverRole_${var.cluster_name}"
   assume_role_policy = <<EOF
