@@ -8,17 +8,14 @@ import os
 
 
 def is_configfile_parameter_null():
-    if len(sys.argv) == 3:
-        return True
-    else:
+    if len(sys.argv) != 3:
         print("You need to provide terragrunt action and config file name as parameter. Exiting script.")
         exit()
 
+
 def check_action():
     action = sys.argv[1]
-    if action == "plan" or action == "apply" or action == "destroy":
-        True
-    else:
+    if action != "plan" and action != "apply" and action != "destroy":
         print('Provided action "' +
               sys.argv[1] + '" does not exist. \nAvailable actions: plan, apply, destroy. Exiting script.')
         exit()
@@ -26,9 +23,7 @@ def check_action():
 
 def check_configfile_exists():
     file_exists = exists(sys.argv[2])
-    if file_exists:
-        True
-    else:
+    if file_exists == False:
         print('Provided configfile "' +
               sys.argv[2] + '" does not exist. Exiting script.')
         exit()
