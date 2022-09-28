@@ -31,6 +31,10 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
+      - name: Authenticate to Azure
+        uses: Azure/login@v1
+        with:
+          creds: '{"clientId":"${{ secrets.CLIENT_ID }}","clientSecret":"${{ secrets.CLIENT_SECRET }}","subscriptionId":"${{ secrets.SUBSCRIPTION_ID }}","tenantId":"${{ secrets.TENANT_ID }}"}'
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with: 
@@ -38,7 +42,7 @@ jobs:
       - name: Setup python 
         uses: actions/setup-python@v3
         with:
-          python-version: '3.7.9'
+          python-version: '3.10.6'
       - name: Install python dependencies 
         run: pip install --upgrade jsonpath-ng
       - name: Setup Terragrunt
