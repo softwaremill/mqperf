@@ -22,7 +22,7 @@ inputs = {
   net_profile_dns_service_ip     = "10.3.0.10"
   cluster_sku_tier               = "Paid"
   registry_sku_tier              = "Basic"
-  agents_size                    = "standard_d4s_v3"
+  agents_size                    = "standard_d2s_v3"
   agents_count                   = 1
   agents_max_count               = 3
   agents_min_count               = 1
@@ -42,25 +42,25 @@ inputs = {
   node_pools = {
     "queues" = {
       enable_auto_scaling = true
-      agents_min_count    = 1
-      agents_max_count    = 3
-      vm_size             = "standard_d4s_v3"
+      min_count    = 3
+      max_count    = 3
+      vm_size             = "standard_d2s_v3"
       node_labels = {
         "node-group" = "queues"
       }
-      tags = {
+      node_tags = {
         "environment" = "dev"
       }
     }
     "apps" = {
       enable_auto_scaling = true
-      agents_min_count    = 1
-      agents_max_count    = 1
-      vm_size             = "standard_d4s_v3"
+      min_count    = 1
+      max_count    = 1
+      vm_size             = "standard_d2s_v3"
       node_labels = {
         "node-group" = "apps"
       }
-      tags = {
+      node_tags = {
         "environment" = "dev"
       }
     }
