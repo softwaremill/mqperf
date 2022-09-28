@@ -5,15 +5,21 @@
 1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
 2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
 3. Install [Python](https://www.python.org/) version v3.9 or newer.
+4. Install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
+
 ### Configure the cloud provider
 #### AWS
 1. Create the [AWS IAM](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html) user and install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
 2. Configure basic settings for the AWS CLI. Use the `aws configure` CLI command. You will be prompted for configuration values such as your AWS Access Key Id, your AWS Secret Access Key and the deafult AWS Region. See the [Quick setup](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html) documentation for more details.
 
 #### GCP
-1.
-2.
+1. If you're new to Google Cloud, [create an account](https://console.cloud.google.com/freetrial?_ga=2.87728222.758173713.1664359592-186345793.1659692414&_gac=1.194118239.1663587334.CjwKCAjwpqCZBhAbEiwAa7pXeQdSwnWTCp9XrOL6d450eTiDEqiiq133plcZFiDE36QpyKtwubhX4xoCsAYQAvD_BwE) and follow the *Before you begin* steps from the [GKE Quickstart tutorial](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster).
+2. Download and install the [gcloud CLI](https://cloud.google.com/sdk/gcloud#download_and_install_the).
 
+#### Azure
+1. Create the [Azure account](https://azure.microsoft.com/en-us/free/) and instal the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
+2. Sign in to the Azure CLI by using the [az login](https://learn.microsoft.com/en-us/cli/azure/reference-index?view=azure-cli-latest#az-login) command. 
+3. Make sure the identity you are using to create your cluster has the appropriate minimum permissions. For more details on access and identity for AKS, see [Access and identity options for Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/concepts-identity).
 ## Quick start 
 Run the script:
 ```
