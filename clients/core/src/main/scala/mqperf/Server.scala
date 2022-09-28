@@ -19,8 +19,11 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object Server extends StrictLogging {
+  Thread.setDefaultUncaughtExceptionHandler((t, e) => { println("Uncaught exception in thread: " + t); e.printStackTrace() })
+
   private val Sender = "sender"
   private val Receiver = "receiver"
+  val testIdLabelName = "testId"
 
   def start(mq: Mq): Future[NettyFutureServerBinding[InetSocketAddress]] = {
     val inProgress = new AtomicReference[ListBuffer[String]](ListBuffer.empty)

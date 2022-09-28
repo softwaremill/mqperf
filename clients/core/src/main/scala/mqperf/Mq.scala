@@ -14,7 +14,7 @@ trait MqSender {
 
 trait MqReceiver {
   type MsgId
-  def receive(maxMsgCount: Int): Seq[(MsgId, String)]
-  def ack(ids: List[MsgId]): Future[Unit]
+  def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]]
+  def ack(ids: Seq[MsgId]): Future[Unit]
   def close(): Future[Unit] = Future.successful(())
 }

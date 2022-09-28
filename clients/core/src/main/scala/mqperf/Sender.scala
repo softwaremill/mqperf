@@ -2,6 +2,7 @@ package mqperf
 
 import com.typesafe.scalalogging.StrictLogging
 import io.prometheus.client.{Counter, Histogram}
+import mqperf.Server.testIdLabelName
 
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicInteger
@@ -12,10 +13,8 @@ import scala.util.{Failure, Success}
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   private val messagesPool = RandomMessagesPool(config.msgSize)
-  private val metrics = new Metrics(config)
 
-  private class Metrics(config: Config) {
-    private val testIdLabelName = "testId"
+  private object Metrics {
     private val testIdLabelValue = config.testId
 
     val messagesCounter: Counter.Child =
@@ -43,7 +42,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
         while (clock.millis() < end) {
           val iterationStart = clock.millis()
-          // we send at most `config.msgsPerSecond` message, but no more than the number of available permits
+          // we send at most `config.msgsPerSecond` messages, but no more than the number of available permits
           val msgsToSend = math.min(config.msgsPerSecond, permits.getAndUpdate(p => math.max(0, p - config.msgsPerSecond)))
           logger.info(s"Messages to send: $msgsToSend")
           val batches = msgsToSend / batchSize
@@ -51,8 +50,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
             val sendStart = clock.millis()
             mqSender.send(nextMessagesBatch()).onComplete { result =>
               permits.addAndGet(batchSize)
-              metrics.messagesCounter.inc(batchSize)
-              metrics.messageLatencyHistogram.observe(clock.millis() - sendStart)
+              Metrics.messagesCounter.inc(batchSize)
+              Metrics.messageLatencyHistogram.observe(clock.millis() - sendStart)
               result match {
                 case Failure(t) => logger.error("Exception when sending a batch of messages", t)
                 case Success(_) =>
