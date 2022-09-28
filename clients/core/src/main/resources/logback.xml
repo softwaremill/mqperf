@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true">
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS}%boldYellow(%replace( [%X{cid}] ){' \[\] ', ' '})[%thread] %-5level %logger{5} - %msg%n%rEx</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.amazonaws.services.s3" level="INFO"/>
+  <logger name="com.amazonaws.request" level="INFO"/>
+  <logger name="com.amazonaws.http" level="WARN"/>
+  <logger name="org.apache.http" level="INFO"/>
+  <logger name="org.apache.http.wire" level="WARN"/>
+
+  <root level="${LOG_LEVEL:-INFO}">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
