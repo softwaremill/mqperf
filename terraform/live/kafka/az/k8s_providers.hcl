@@ -29,7 +29,7 @@ provider "azurerm" {
 
 provider "kubectl" {
   host                   = "${dependency.aks.outputs.host}"
-  client_certificate     = base64decode("${dependency.aks.outputs.cluster_certificate}")
+  client_certificate     = base64decode("${dependency.aks.outputs.client_certificate}")
   client_key             = base64decode("${dependency.aks.outputs.client_key}")
   cluster_ca_certificate = base64decode("${dependency.aks.outputs.cluster_ca_certificate}")
   load_config_file       = false
@@ -38,7 +38,7 @@ provider "kubectl" {
 provider "helm" {
   kubernetes {
     host                   = "${dependency.aks.outputs.host}"
-    client_certificate     = base64decode("${dependency.aks.outputs.cluster_certificate}")
+    client_certificate     = base64decode("${dependency.aks.outputs.client_certificate}")
     client_key             = base64decode("${dependency.aks.outputs.client_key}")
     cluster_ca_certificate = base64decode("${dependency.aks.outputs.cluster_ca_certificate}")
   }
@@ -46,7 +46,7 @@ provider "helm" {
 
 provider "kubernetes" {
   host                   = "${dependency.aks.outputs.host}"
-  client_certificate     = base64decode("${dependency.aks.outputs.cluster_certificate}")
+  client_certificate     = base64decode("${dependency.aks.outputs.client_certificate}")
   client_key             = base64decode("${dependency.aks.outputs.client_key}")
   cluster_ca_certificate = base64decode("${dependency.aks.outputs.cluster_ca_certificate}")
 }
