@@ -1,5 +1,5 @@
 locals {
-  region       = "eu-central-1"
+  region = "eu-central-1"
 }
 
 remote_state {
