@@ -1,10 +1,14 @@
+locals {
+  region       = "eu-central-1"
+}
+
 remote_state {
-  backend = "azurerm"
+  backend = "s3"
   config = {
-    resource_group_name  = ""
-    storage_account_name = ""
-    container_name       = get_env("TF_VAR_BUCKET_NAME")
-    key                  = "${path_relative_to_include()}/terraform.tfstate"
+    encrypt = true
+    bucket  = get_env("TF_VAR_BUCKET_NAME")
+    key     = "${path_relative_to_include()}/terraform.tfstate"
+    region  = get_env("TF_VAR_AWS_REGION", "eu-central-1")
   }
   generate = {
     path      = "backend.tf"
@@ -22,10 +26,19 @@ terraform {
       source = "hashicorp/azurerm"
       version = "3.24.0"
     }
+    aws = {
+      version = ">= 4.15.1"
+      source  = "hashicorp/aws"
+    }
   }
 }
 
 provider "azurerm" {
+  features {}
+}
+
+provider "aws" {
+  region = "${local.region}"
 }
 
 EOF
