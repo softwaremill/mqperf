@@ -2,6 +2,7 @@ package mqperf.kafka
 
 import com.typesafe.scalalogging.StrictLogging
 import mqperf.{Config, Mq, MqReceiver, MqSender}
+import org.apache.kafka.clients.admin.{Admin, NewTopic}
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.TopicPartition
@@ -15,6 +16,28 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, SeqHasAsJava}
 class KafkaMq(clock: Clock) extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
   private val TopicConfigKey = "topic"
+
+  override def init(config: Config): Unit = {
+    val hosts: String = config.mqConfig(HostsConfigKey)
+    val topic: String = config.mqConfig(TopicConfigKey)
+    val partitions: Int = config.mqConfig("partitions").toInt
+    val replicationFactor: Short = config.mqConfig("replicationFactor").toShort
+
+    val adminProps = new Properties()
+    adminProps.put("bootstrap.servers", hosts)
+
+    try {
+      Admin
+        .create(adminProps)
+        .createTopics(List(new NewTopic(topic, partitions, replicationFactor)).asJava)
+        .all()
+        .get()
+
+      logger.info(s"Created topic $topic")
+    } catch {
+      case e: Exception => logger.warn(s"Topic $topic creation failed", e)
+    }
+  }
 
   override def createSender(config: Config): MqSender = new MqSender {
     val hosts: String = config.mqConfig(HostsConfigKey)

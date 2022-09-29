@@ -9,6 +9,19 @@ lazy val commonSettings = commonSmlBuildSettings ++ Seq(
 
 val scalaTest = "org.scalatest" %% "scalatest" % "3.2.13" % Test
 
+//
+
+lazy val dockerSettings = Seq(
+  dockerExposedPorts := Seq(8080),
+  dockerBaseImage := "eclipse-temurin:11.0.16.1_1-jre-jammy",
+  dockerUsername := Some("mqperf"),
+  dockerRepository := Some("europe-west2-docker.pkg.dev/sml-gke-iac"),
+  dockerUpdateLatest := true,
+  Docker / version := git.gitHeadCommit.value.map(head => head.take(8) + "-" + (System.currentTimeMillis() / 1000)).getOrElse("latest")
+)
+
+//
+
 lazy val rootProject = (project in file("."))
   .settings(commonSettings: _*)
   .settings(publishArtifact := false, name := "root")
@@ -30,6 +43,8 @@ lazy val core: Project = (project in file("clients/core"))
 
 lazy val kafka: Project = (project in file("clients/kafka"))
   .settings(commonSettings: _*)
+  .settings(dockerSettings)
+  .settings(Docker / packageName := "mqperf-kafka")
   .settings(
     name := "kafka",
     libraryDependencies ++= Seq(
@@ -38,3 +53,5 @@ lazy val kafka: Project = (project in file("clients/kafka"))
     )
   )
   .dependsOn(core)
+  .enablePlugins(JavaServerAppPackaging)
+  .enablePlugins(DockerPlugin)

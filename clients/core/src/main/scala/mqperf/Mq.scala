@@ -3,6 +3,7 @@ package mqperf
 import scala.concurrent.Future
 
 trait Mq {
+  def init(config: Config): Unit
   def createSender(config: Config): MqSender
   def createReceiver(config: Config): MqReceiver
 }

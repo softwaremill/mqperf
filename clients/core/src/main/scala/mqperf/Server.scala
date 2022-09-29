@@ -23,17 +23,25 @@ object Server extends StrictLogging {
 
   private val Sender = "sender"
   private val Receiver = "receiver"
-  val testIdLabelName = "testId"
 
   def start(mq: Mq): Future[NettyFutureServerBinding[InetSocketAddress]] = {
     val inProgress = new AtomicReference[ListBuffer[String]](ListBuffer.empty)
 
-    def startEndpoint(kind: String, start: Config => Future[Unit]): ServerEndpoint[Any, Future] = infallibleEndpoint.get
+    def initEndpoint(mq: Mq): ServerEndpoint[Any, Future] = infallibleEndpoint.post
+      .in("init")
+      .in(jsonBody[Config])
+      .serverLogicSuccess { config =>
+        logger.info(s"Initialising queue with config: $config")
+        mq.init(config)
+        Future.successful(())
+      }
+
+    def startEndpoint(kind: String, start: Config => Future[Unit]): ServerEndpoint[Any, Future] = infallibleEndpoint.post
       .in("start" / kind)
       .in(jsonBody[Config])
       .out(statusCode(StatusCode.Accepted))
       .serverLogicSuccess { config =>
-        logger.info(s"Starting ${kind.toLowerCase} with config: $config")
+        logger.info(s"Starting $kind with config: $config")
         inProgress.getAndUpdate(_ += kind)
         start(config).onComplete { result =>
           inProgress.getAndUpdate(_ -= kind)
@@ -55,6 +63,7 @@ object Server extends StrictLogging {
 
     val allEndpoints: List[ServerEndpoint[Any, Future]] =
       List(
+        initEndpoint(mq),
         startEndpoint(Sender, cfg => new Sender(cfg, mq, Clock.systemUTC()).run()),
         startEndpoint(Receiver, cfg => new Receiver(cfg, mq, Clock.systemUTC()).run()),
         inProgressEndpoint,
@@ -66,12 +75,12 @@ object Server extends StrictLogging {
     val serverOptions = NettyFutureServerOptions.customiseInterceptors
       .metricsInterceptor(prometheusMetrics.metricsInterceptor())
       .options
-    val host = sys.env.getOrElse("http.host", "localhost")
+    val host = sys.env.getOrElse("http.host", "0.0.0.0")
     val port = sys.env.get("http.port").map(_.toInt).getOrElse(8080)
 
     for {
       binding <- NettyFutureServer(serverOptions).host(host).port(port).addEndpoints(allEndpoints).start()
-      _ = logger.info(s"Server started at http:${binding.hostName}:${binding.port}")
+      _ = logger.info(s"Server started at http://${binding.hostName}:${binding.port}")
     } yield binding
   }
 }
