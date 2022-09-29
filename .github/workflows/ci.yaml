@@ -7,6 +7,10 @@ on:
 
 env:
   TF_VAR_GCP_PROJECT: ola-sandbox
+  ARM_CLIENT_ID: ${{secrets.AZ_CLIENT_ID}}
+  ARM_CLIENT_SECRET: ${{secrets.AZ_CLIENT_SECRET}}
+  ARM_SUBSCRIPTION_ID: ${{secrets.AZ_SUBSCRIPTION_ID}}
+  ARM_TENANT_ID: ${{secrets.AZ_TENANT_ID}}
 
 jobs:
   terraform:
@@ -28,20 +32,14 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-      # - name: Authenticate to Google Cloud
-      #   uses: google-github-actions/auth@v0
-      #   with:
-      #     credentials_json: "${{ secrets.GCP_SA_KEY }}"
-      # - name: Authenticate to Azure
-      #   uses: Azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Azure CLI script file
-        uses: azure/CLI@v1
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
         with:
-          azcliversion: 2.30.0
-          inlineScript: |
-            az login -u ${{ secrets.AZ_LOGIN }} -p ${{ secrets.AZ_PASSWORD }}
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+      - name: Authenticate to Azure
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with:
