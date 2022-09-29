@@ -3,7 +3,7 @@ name: "Mqperf terragrunt tests"
 on:
   push:
     branches:
-      - "v2"
+      - "feature/add-azure"
 
 env: 
   TF_VAR_GCP_PROJECT: ola-sandbox
@@ -13,8 +13,8 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        mq: [kafka, rabbitmq, postgresql]
-        cloud_provider: [aws, gcp, az]
+        mq: [kafka, rabbitmq]
+        cloud_provider: [az]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,14 +28,14 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v0
-        with:
-          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+      # - name: Authenticate to Google Cloud
+      #   uses: google-github-actions/auth@v0
+      #   with:
+      #     credentials_json: "${{ secrets.GCP_SA_KEY }}"
       - name: Authenticate to Azure
         uses: Azure/login@v1
         with:
-          creds: '{"clientId":"${{ secrets.AZ_CLIENT_ID }}","clientSecret":"${{ secrets.AZ_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZ_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZ_TENANT_ID }}"}'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
         with: 
@@ -59,11 +59,11 @@ jobs:
       - name: Run script destroy 
         working-directory: terraform
         run: python3 script.py destroy tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-      - name: The job has failed
-        if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
-          SLACK_MESSAGE: The job Terraform for ${{matrix.mq}}-${{matrix.cloud_provider}} has failed
-          MSG_MINIMAL: event, actions url, commit
-          SLACK_COLOR: ${{ job.status }}
+      # - name: The job has failed
+      #   if: ${{ failure() }}
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
+      #     SLACK_MESSAGE: The job Terraform for ${{matrix.mq}}-${{matrix.cloud_provider}} has failed
+      #     MSG_MINIMAL: event, actions url, commit
+      #     SLACK_COLOR: ${{ job.status }}
