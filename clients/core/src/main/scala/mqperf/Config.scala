@@ -19,6 +19,3 @@ case class Config(
     mqConfig: Map[String, String]
 )
 
-/*
-curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
- */
