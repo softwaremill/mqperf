@@ -11,9 +11,9 @@ terraform {
 
 inputs = {
   cluster_name                   = get_env("CLUSTER_NAME")
-  registry_name                  = "AksSoftwareMillRegistry"
+  registry_name                  = "${get_env("CLUSTER_NAME")}AksSoftwareMillRegistry"
   prefix                         = "SML"
-  resource_group_name            = "mqperf-resourcegroup"
+  resource_group_name            = "${get_env("CLUSTER_NAME")}-mqperf-resourcegroup"
   address_space                  = "10.0.0.0/16"
   subnet_prefixes                = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
   subnet_names                   = ["subnet1", "subnet2", "subnet3"]
