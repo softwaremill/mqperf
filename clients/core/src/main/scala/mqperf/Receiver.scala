@@ -47,9 +47,9 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
             val now = clock.millis()
             msgs.foreach { case (_, msg) =>
               val t = Timestamp.extract(msg)
-              Metrics.messageLatencyHistogram.observe(now - t)
+              Metrics.messageLatencyHistogram.observe((now - t).toDouble)
             }
-            Metrics.messageCounter.inc(msgs.size)
+            Metrics.messageCounter.inc(msgs.size.toDouble)
 
             mqReceiver.ack(msgs.map(_._1)).map(_ => msgs.size)
           }

@@ -12,7 +12,7 @@ import scala.util.{Failure, Success}
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
-  private val messagesPool = RandomMessagesPool(config.msgSize)
+  private val messagesPool = RandomMessagesPool(config.msgSizeBytes)
 
   private object Metrics {
     private val testIdLabelValue = config.testId
@@ -35,7 +35,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     Future {
       blocking {
         val start = clock.millis()
-        val end = start + config.testLength.toMillis
+        val end = start + config.testLengthSeconds * 1000L
 
         val permits = new AtomicInteger(config.maxSendInFlight)
         val batchSize = config.batchSizeSend
@@ -50,8 +50,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
             val sendStart = clock.millis()
             mqSender.send(nextMessagesBatch()).onComplete { result =>
               permits.addAndGet(batchSize)
-              Metrics.messagesCounter.inc(batchSize)
-              Metrics.messageLatencyHistogram.observe(clock.millis() - sendStart)
+              Metrics.messagesCounter.inc(batchSize.toDouble)
+              Metrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
               result match {
                 case Failure(t) => logger.error("Exception when sending a batch of messages", t)
                 case Success(_) =>
