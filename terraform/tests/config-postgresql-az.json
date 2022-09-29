@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "az",
+        "bucket_name": "azure-bucket-mqperf",
+        "mq": "postgresql",
+        "cluster_name": "postgresql",
+        "nodes_number": "3"
+    }
+}
