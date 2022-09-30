@@ -3,7 +3,7 @@ name: "Mqperf terragrunt tests"
 on:
   push:
     branches:
-      - "feature/add-azure"
+      - "v2"
 
 env:
   TF_VAR_GCP_PROJECT: ola-sandbox
@@ -18,7 +18,7 @@ jobs:
       max-parallel: 4
       matrix:
         mq: [kafka, rabbitmq, postgresql]
-        cloud_provider: [az]
+        cloud_provider: [aws, gcp, az]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
