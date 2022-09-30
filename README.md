@@ -247,7 +247,7 @@ See docs in `Config` for an explanation of the parameters.
 
 ### Kafka
 
-To test the senders/receivers using Kafka, you might either use the docker image from the repository, or build one locally using: 
+To test the senders/receivers using Kafka, you might either use the docker image from the [repository](https://hub.docker.com/repository/docker/softwaremill/mqperf-kafka), or build one locally using: 
 
 ```
 sbt kafka/docker:publishLocal
