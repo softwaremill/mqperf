@@ -61,7 +61,7 @@ services:
       PORT: 9021
 
   mqperf:
-    image: europe-west2-docker.pkg.dev/sml-gke-iac/mqperf/mqperf-kafka
+    image: softwaremill/mqperf-kafka:latest
     depends_on:
       - broker
     ports:
