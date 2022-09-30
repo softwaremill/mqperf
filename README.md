@@ -4,9 +4,9 @@
 ## Prerequisites
 1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
 2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
-3. Install [Python](https://www.python.org/) version v3.9 or newer.
-4. Install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
-
+3. Install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
+4. Install [Python](https://www.python.org/) version v3.10 or newer.
+5. Install [jsonpath-ng](https://pypi.org/project/jsonpath-ng/) version v1.5.3 or newer.
 ### Configure the cloud provider
 #### AWS
 1. Create the [AWS IAM](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html) user and install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
