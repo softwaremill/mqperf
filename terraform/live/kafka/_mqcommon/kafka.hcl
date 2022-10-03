@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../modules/kafka//."
+  source = "../../../../modules//kafka"
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]

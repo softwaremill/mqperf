@@ -1,5 +1,5 @@
 module "helm" {
-  source        = "./helm//."
+  source        = "../helm"
   release_name  = "kafka-operator"
   repository    = "https://strimzi.io/charts/"
   chart_name    = "strimzi-kafka-operator"

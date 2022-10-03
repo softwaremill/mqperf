@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../modules/postgresql//."
+  source = "../../../../modules//postgresql"
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]
