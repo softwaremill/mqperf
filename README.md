@@ -53,12 +53,15 @@ The code in this repo uses the following folder hierarchy:
     │   │   │   ├── k8s_providers.hcl
     │   │   │   └── terragrunt.hcl
     │   │   └── gcp/
+    │   ├── mongodb/   
     │   └── rabbitmq/
-    └── modules/
-        ├── helm/
-        ├── kafka/
-        ├── rabbitmq/
-        └── storage-class/
+    ├── modules/
+    │   ├── helm/
+    │   ├── kafka/
+    │   ├── mongodb/
+    │   ├── rabbitmq/
+    │   └── storage-class/
+    └── tests/
 ```
 Where:
 - **terraform/live/**: Main folder containing Terragrunt files.
