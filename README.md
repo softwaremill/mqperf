@@ -148,7 +148,7 @@ If you don't define these variables, the default values will be passed:
 python3 script.py [terragrunt action] [json file]
 ```
 ```
-[terragrunt action]: plan, apply, destroy
+[terragrunt action]: plan, apply, destroy, destroy-cluster
 ```
 #### Json file
 
