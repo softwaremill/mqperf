@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../modules/rabbitmq//."
+  source = "../../../../modules//rabbitmq"
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]
