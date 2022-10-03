@@ -111,7 +111,10 @@ def run_terragrunt():
     bash_command_workspace_delete_prometheus = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
 
     match sys.argv[1]:
-        case ["plan","apply"]:
+        case "plan":
+            os.system(bash_command_init)
+            os.system(bash_command_plan_or_apply)
+        case "apply":
             os.system(bash_command_init)
             os.system(bash_command_plan_or_apply)
         case "destroy":
