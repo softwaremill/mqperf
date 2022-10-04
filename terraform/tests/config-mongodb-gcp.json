@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "gcp",
+        "bucket_name": "mongodb-bucket-mqperf",
+        "mq": "mongodb",
+        "cluster_name": "mongodb",
+        "nodes_number": "3"
+    }
+}

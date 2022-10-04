@@ -1,3 +1,4 @@
+from curses.ascii import isdigit
 from re import T, X
 import subprocess
 from jsonpath_ng import jsonpath, parse
@@ -15,9 +16,9 @@ def is_configfile_parameter_null():
 
 def check_action():
     action = sys.argv[1]
-    if action not in ["plan", "apply", "destroy"]:
+    if action not in ["plan", "apply", "destroy", "destroy-cluster"]:
         print('Provided action "' +
-              sys.argv[1] + '" does not exist. \nAvailable actions: plan, apply, destroy. Exiting script.')
+              sys.argv[1] + '" does not exist. \nAvailable actions: plan, apply, destroy, destroy-cluster. Exiting script.')
         exit()
 
 
@@ -59,7 +60,7 @@ def get_envs():
     print(cluster_name)
 
 
-def select_workspace():
+def set_kubernetes_provider():
     global kubernetes_provider
     match os.getenv("TF_VAR_CLOUDPROVIDER"):
         case "aws":
@@ -68,25 +69,33 @@ def select_workspace():
             kubernetes_provider = str("gke")
         case "az":
             kubernetes_provider = str("aks")
-    os.environ["TF_VAR_KUBERNETESPROVIDER"] = kubernetes_provider
-        
+    os.environ["TF_VAR_KUBERNETESPROVIDER"] = kubernetes_provider    
+
+
+def select_workspace():
+    set_kubernetes_provider()        
     output = str(subprocess.check_output(f"cd live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/{kubernetes_provider} ; terragrunt workspace list", shell=True))
     workspaces = output.replace("b'","").replace("'","").replace("\\n","").replace("*","").split()
     
     print("Select cluster to DELETE:")
     check=False
     while check == False:
+        print("0 - exit")
         count=0
         for i in workspaces:
             count+=1
             print(str(count) + " - " + i)
-        
-        selected_workspace = int(input())
-        if selected_workspace in range(1, count+1):
+
+        selected_workspace = input()
+        if isdigit(selected_workspace) and int(selected_workspace) in range(1, count+1):
             print("Selected cluster: " + workspaces[int(selected_workspace) - 1])
             check = True
+        elif int(selected_workspace) == 0:
+            print("Exiting script.")
+            exit()
         else:
             print("Select again proper value:")
+    
     os.environ["CLUSTER_NAME"] = workspaces[int(selected_workspace) - 1]
 
 
@@ -101,19 +110,46 @@ def run_terragrunt():
     bash_command_workspace_swith_default_prometheus = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
     bash_command_workspace_delete_prometheus = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
 
+    match sys.argv[1]:
+        case "plan":
+            os.system(bash_command_init)
+            os.system(bash_command_plan_or_apply)
+        case "apply":
+            os.system(bash_command_init)
+            os.system(bash_command_plan_or_apply)
+        case "destroy":
+            set_kubernetes_provider()
+            os.system(bash_command_destroy)
+            os.system(bash_command_workspace_swith_default_kubernetes_provider)
+            os.system(bash_command_workspace_delete_kubernetes_provider)
+            os.system(bash_command_workspace_swith_default_mq)
+            os.system(bash_command_workspace_delete_mq)
+            os.system(bash_command_workspace_swith_default_prometheus)
+            os.system(bash_command_workspace_delete_prometheus)
+        case "destroy-cluster":
+            select_workspace()            
+            os.system(bash_command_destroy)
+            os.system(bash_command_workspace_swith_default_kubernetes_provider)
+            os.system(bash_command_workspace_delete_kubernetes_provider)
+            os.system(bash_command_workspace_swith_default_mq)
+            os.system(bash_command_workspace_delete_mq)
+            os.system(bash_command_workspace_swith_default_prometheus)
+            os.system(bash_command_workspace_delete_prometheus)
 
-    if sys.argv[1] == "plan" or sys.argv[1] == "apply":
-        os.system(bash_command_init)
-        os.system(bash_command_plan_or_apply)
-    elif sys.argv[1] == "destroy":
-#         select_workspace()
-        os.system(bash_command_destroy)
-        os.system(bash_command_workspace_swith_default_kubernetes_provider)
-        os.system(bash_command_workspace_delete_kubernetes_provider)
-        os.system(bash_command_workspace_swith_default_mq)
-        os.system(bash_command_workspace_delete_mq)
-        os.system(bash_command_workspace_swith_default_prometheus)
-        os.system(bash_command_workspace_delete_prometheus)
+
+#     if sys.argv[1] == "plan" or sys.argv[1] == "apply":
+#         os.system(bash_command_init)
+#         os.system(bash_command_plan_or_apply)
+#     elif sys.argv[1] == "destroy":
+# #         select_workspace()
+#         os.system(bash_command_destroy)
+#         os.system(bash_command_workspace_swith_default_kubernetes_provider)
+#         os.system(bash_command_workspace_delete_kubernetes_provider)
+#         os.system(bash_command_workspace_swith_default_mq)
+#         os.system(bash_command_workspace_delete_mq)
+#         os.system(bash_command_workspace_swith_default_prometheus)
+#         os.system(bash_command_workspace_delete_prometheus)
+
 
 def terragrunt_infrastructure():
     set_envs()
