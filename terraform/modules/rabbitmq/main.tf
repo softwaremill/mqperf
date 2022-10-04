@@ -1,5 +1,5 @@
 module "helm" {
-  source        = "./helm//."
+  source        = "../helm"
   release_name  = "rabbitmq-operator"
   repository    = "https://charts.bitnami.com/bitnami"
   chart_name    = "rabbitmq-cluster-operator"
