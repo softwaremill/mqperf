@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../modules/mongodb//."
+  source = "../../../../modules//mongodb"
 
   before_hook "select workspace" {
     commands = ["plan", "state", "apply", "destroy", "refresh"]

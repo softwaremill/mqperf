@@ -7,7 +7,7 @@ include "k8s_providers" {
 }
 
 include "mqcommon" {
-  path = "${dirname(find_in_parent_folders())}/../_mqcommon/rabbitmq.hcl"
+  path = "${dirname(find_in_parent_folders())}/../_mqcommon/mongodb.hcl"
 }
 
 include "envcommon" {

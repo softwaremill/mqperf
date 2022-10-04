@@ -1,5 +1,5 @@
 module "helm" {
-  source        = "./helm//."
+  source        = "../helm"
   release_name  = "mongodb-operator"
   repository    = "https://charts.bitnami.com/bitnami"
   chart_name    = "mongodb"

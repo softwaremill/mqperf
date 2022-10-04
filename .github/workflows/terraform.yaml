@@ -12,7 +12,7 @@ jobs:
   terraform:
     strategy:
       matrix:
-        mq: [kafka, rabbitmq, postgresql]
+        mq: [kafka, rabbitmq, postgresql, mongodb]
         cloud_provider: [aws, gcp]
     runs-on: ubuntu-latest
     steps:
