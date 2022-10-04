@@ -17,7 +17,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        mq: [kafka, rabbitmq, postgresql]
+        mq: [kafka, rabbitmq, postgresql, mongodb]
         cloud_provider: [aws, gcp, az]
     runs-on: ubuntu-latest
     steps:
