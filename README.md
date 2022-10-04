@@ -1,28 +1,41 @@
 # mqperf v2
+
 ## Overview
 
-## Prerequisites
+mqperf is a set of tools and a site for benchmarking message queue performance, and evaluating message queue characteristics.
+
+## Setting up MQ clusters
+
+Here you can find information on how to automatically setup clusters of various MQ servers, using different cloud providers.
+
+### Prerequisites
+
 1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
 2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
 3. Install [Python](https://www.python.org/) version v3.10 or newer.
 4. Install [jsonpath-ng](https://pypi.org/project/jsonpath-ng/) version v1.5.3 or newer.
-### Configure the cloud provider
-#### AWS
+
+#### Configure the cloud provider
+
+##### AWS
+
 1. Create the [AWS IAM](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html) user and install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
 2. Configure basic settings for the AWS CLI. Use the `aws configure` CLI command. You will be prompted for configuration values such as your AWS Access Key Id, your AWS Secret Access Key and the deafult AWS Region. See the [Quick setup](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html) documentation for more details.
 
-#### GCP
+##### GCP
+
 1.
 2.
 
-## Quick start 
+### Quick start 
+
 Run the script:
 ```
 python3 script.py apply example-data.json
 ```
 
+### The file/folder structure
 
-## The file/folder structure
 In this repo, Terragrunt is used to keep configurations DRY and to work with multiple Terraform modules. Follow the [Terragrunt](https://terragrunt.gruntwork.io/docs/) documentation to learn more.
 
 In `terraform/live` each folder consists of just one terragrunt.hcl file per component. The terragrunt.hcl files contain the source URL of the module to deploy and the inputs to set for that module in the current folder. It also contains dependencies and definitions for the providers.
@@ -63,6 +76,7 @@ The code in this repo uses the following folder hierarchy:
     │   └── storage-class/
     └── tests/
 ```
+
 Where:
 - **terraform/live/**: Main folder containing Terragrunt files.
 - **_envcommon/**: Folder contains common configurations across all MQ services.
@@ -77,8 +91,8 @@ Where:
 - **terragrunt.hcl**: Terragrunt file containing configuration for the [AWS](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) provider
 - **modules/**: Folder contains resuable Terraform modules.
 
+### Kafka KRaft MQ
 
-## Kafka KRaft MQ
 To use the [Kafka KRaft](https://strimzi.io/docs/operators/in-development/configuring.html#ref-operator-use-kraft-feature-gate-str) feature, override these variables from the `terraform/live/kafka/variables.tf` file with the values specified below:
 ```yml
 variable "chart_version" {
@@ -104,10 +118,12 @@ variable "kafka_kraft_enabled" {
 }
 ```
 
-## Storage configuration
+### Storage configuration
+
 You can use the reusable storage-class module defined in `terraform/modules/storage-class/` folder to create Kubernetes Storage Class resource for the [AWS EKS](https://aws.amazon.com/eks/) and necessary [AWS IAM permissions](https://docs.aws.amazon.com/eks/latest/userguide/csi-iam-role.html) for the EBS CSI driver. 
 
 To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where `$MQ` is your message queue service and `$CLOUD_PROVIDER` is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necessary code for your terragrunt configuration. Additionally, in the inputs block define:
+
 1. Define variable eks_storage_classes:
 ```yml
 eks_storage_classes = [
@@ -125,6 +141,7 @@ eks_storage_classes = [
 For the parameters details refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/#parameters).
 
 2. Define variables as in the example below:
+
 ```
 aws_account_id    = get_aws_account_id()
 oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, "https://", "")
@@ -132,24 +149,32 @@ cluster_name      = get_env("CLUSTER_NAME")
 ```
 
 In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class for the [AWS EKS](https://aws.amazon.com/eks/). The [GCP](https://cloud.google.com/kubernetes-engine) configuration supports for now only the standard Storage Class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
+
 ```
 inputs = {
   storage_class = "mqperf-storageclass"
   storage_size  = "20Gi"
 }
 ```
+
 If you don't define these variables, the default values will be passed:
 - The **storage_class** variable has a default value `standard`.
 - The **storage_size** variable has a default value `20Gi`.
-## Using python script
+
+### Using python script
+
 `terraform\script.py` provides an automated way of performing terragrunt actions against configuration stored in json file:
+
 #### Command
+
 ```bash
 python3 script.py [terragrunt action] [json file]
 ```
+
 ```
 [terragrunt action]: plan, apply, destroy, destroy-cluster
 ```
+
 #### Json file
 
 ```json
@@ -162,6 +187,7 @@ python3 script.py [terragrunt action] [json file]
         "nodes_number": "[number_of_nodes]"
     }
 }
+
 ```
 ||Accepted values|
 |---|---|
@@ -170,11 +196,14 @@ python3 script.py [terragrunt action] [json file]
 |[mq_name]|"kafka" , "rabbitmq"|
 |[cluster_name]|str| 
 |[number_of_nodes]|str|
-### Example command
+
+#### Example command
 ```
 python3 script.py apply example-data.json
 ```
-### [example-data.json](https://github.com/softwaremill/mqperf/blob/workspace-listing/terraform/example-data.json)
+
+#### [example-data.json](https://github.com/softwaremill/mqperf/blob/workspace-listing/terraform/example-data.json)
+
 ```json
 {
     "instance": {
@@ -187,9 +216,55 @@ python3 script.py apply example-data.json
 }
 ```
 
+## MQ clients
 
+The MQ clients implement sender & receiver functionality, to provide the configured node during performance and throughput testing.
+For each MQ, a docker image with the clients for that MQ is built. When starting the container, an HTTP server is started. 
+The server exposes the following endpoints:
 
+* `GET /metrics`
+* `GET /in-progress` - a JSON array of names of processes (either `sender` or `reciever`) that have been started by this server
+* `POST /init` - initialize thq MQ (e.g. creating topics), as described by the given configuration; ideally should be run once before starting a sender/receiver
+* `POST /start/receiver` and `POST /start/sender` - start a process of receiving/sending, as described by the given configuration
 
- ## Copyright
+The server by default binds to `0.0.0.0:8080`, but this can be customised by setting the `http.host` and `http.port` environment variables.
+
+The structure of the config JSON is:
+
+```json
+{
+  "testId": "test",
+  "testLengthSeconds": 10,
+  "msgsPerSecond": 10,
+  "msgSizeBytes": 100,
+  "batchSizeSend": 1,
+  "batchSizeReceive": 1,
+  "maxSendInFlight": 1,
+  "mqConfig":{  
+    
+  }
+}
+```
+
+See docs in `Config` for an explanation of the parameters.
+
+### Kafka
+
+To test the senders/receivers using Kafka, you might either use the docker image from the [repository](https://hub.docker.com/repository/docker/softwaremill/mqperf-kafka), or build one locally using: 
+
+```
+sbt kafka/docker:publishLocal
+```
+
+Then, go to `docker/kafka` and run `docker-compose up`. This will start zookeeper, the kafka broker,
+Confluent's control center (available at `http://localhost:9021`), and the mqperf server.
+
+To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
+
+```bash
+curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
+```
+
+## Copyright
 
 Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).

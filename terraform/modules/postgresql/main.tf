@@ -1,5 +1,5 @@
 module "helm" {
-  source        = "./helm//."
+  source        = "../helm"
   release_name  = "postgresql-operator"
   repository    = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
   chart_name    = "postgres-operator"
