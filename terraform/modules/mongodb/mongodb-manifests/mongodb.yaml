@@ -6,6 +6,7 @@ metadata:
     role: mongo
     environment: test
     app: mongo
+  name: mongo
 spec:
   ports:
   - port: 27017
