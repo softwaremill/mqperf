@@ -8,14 +8,15 @@ terraform {
 }
 
 inputs = {
-  region           = "${get_env("TF_VAR_GCP_REGION", "europe-central2")}"
-  create_project   = false
-  project_id       = get_env("TF_VAR_GCP_PROJECT")
-  platform_name    = get_env("CLUSTER_NAME")
-  subnet_network   = "10.1.0.0/16"
-  k8s_network_base = "10.100.0.0/16"
-  regional         = false
-  zones            = ["europe-central2-a"]
+  region                      = "${get_env("TF_VAR_GCP_REGION", "europe-central2")}"
+  create_project              = false
+  project_id                  = get_env("TF_VAR_GCP_PROJECT")
+  platform_name               = get_env("CLUSTER_NAME")
+  subnet_network              = "10.1.0.0/16"
+  k8s_network_base            = "10.100.0.0/16"
+  regional                    = false
+  zones                       = ["europe-central2-a"]
+  disable_services_on_destroy = false
   node_pools = [
     {
       name         = "controllers-pool"
