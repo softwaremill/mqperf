@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "az",
+        "bucket_name": "azure-bucket-mqperf",
+        "mq": "mongodb",
+        "cluster_name": "mongodb",
+        "nodes_number": "3"
+    }
+}
