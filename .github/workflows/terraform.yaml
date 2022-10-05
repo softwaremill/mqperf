@@ -5,15 +5,20 @@ on:
     branches:
       - "v2"
 
-env: 
+env:
   TF_VAR_GCP_PROJECT: ola-sandbox
+  ARM_CLIENT_ID: ${{secrets.AZ_CLIENT_ID}}
+  ARM_CLIENT_SECRET: ${{secrets.AZ_CLIENT_SECRET}}
+  ARM_SUBSCRIPTION_ID: ${{secrets.AZ_SUBSCRIPTION_ID}}
+  ARM_TENANT_ID: ${{secrets.AZ_TENANT_ID}}
 
 jobs:
   terraform:
     strategy:
+      max-parallel: 4
       matrix:
         mq: [kafka, rabbitmq, postgresql, mongodb]
-        cloud_provider: [aws, gcp]
+        cloud_provider: [aws, gcp, az]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,27 +36,31 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
+      - name: Authenticate to Azure
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v1
-        with: 
+        with:
           terraform_wrapper: false
-      - name: Setup python 
+      - name: Setup python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10.6'
-      - name: Install python dependencies 
+          python-version: "3.10.6"
+      - name: Install python dependencies
         run: pip install --upgrade jsonpath-ng
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: latest
-      - name: Run script plan 
+      - name: Run script plan
         working-directory: terraform
         run: python3 script.py plan tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-      - name: Run script apply 
+      - name: Run script apply
         working-directory: terraform
         run: python3 script.py apply tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
-      - name: Run script destroy 
+      - name: Run script destroy
         working-directory: terraform
         run: python3 script.py destroy tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
       - name: The job has failed

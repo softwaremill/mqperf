@@ -23,9 +23,13 @@ Here you can find information on how to automatically setup clusters of various 
 2. Configure basic settings for the AWS CLI. Use the `aws configure` CLI command. You will be prompted for configuration values such as your AWS Access Key Id, your AWS Secret Access Key and the deafult AWS Region. See the [Quick setup](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html) documentation for more details.
 
 ##### GCP
+1. If you're new to Google Cloud, [create an account](https://console.cloud.google.com/freetrial?_ga=2.87728222.758173713.1664359592-186345793.1659692414&_gac=1.194118239.1663587334.CjwKCAjwpqCZBhAbEiwAa7pXeQdSwnWTCp9XrOL6d450eTiDEqiiq133plcZFiDE36QpyKtwubhX4xoCsAYQAvD_BwE) and follow the *Before you begin* steps from the [GKE Quickstart tutorial](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster).
+2. Download and install the [gcloud CLI](https://cloud.google.com/sdk/gcloud#download_and_install_the).
 
-1.
-2.
+##### Azure
+1. Create the [Azure account](https://azure.microsoft.com/en-us/free/) and instal the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
+2. Sign in to the Azure CLI by using the [az login](https://learn.microsoft.com/en-us/cli/azure/reference-index?view=azure-cli-latest#az-login) command. 
+3. Make sure the identity you are using to create your cluster has the appropriate minimum permissions. For more details on access and identity for AKS, see [Access and identity options for Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/concepts-identity).
 
 ### Quick start 
 

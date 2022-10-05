@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "az",
+        "bucket_name": "azure-bucket-mqperf",
+        "mq": "kafka",
+        "cluster_name": "kafka",
+        "nodes_number": "3"
+    }
+}

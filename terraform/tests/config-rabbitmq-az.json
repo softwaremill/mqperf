@@ -1,0 +1,9 @@
+{
+    "instance": {
+        "cloudprovider": "az",
+        "bucket_name": "azure-bucket-mqperf",
+        "mq": "rabbitmq",
+        "cluster_name": "rabbitmq",
+        "nodes_number": "3"
+    }
+}

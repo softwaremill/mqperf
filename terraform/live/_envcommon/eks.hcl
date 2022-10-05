@@ -20,7 +20,7 @@ inputs = {
       desired_size   = 1
       instance_types = ["t3.large"]
       labels = {
-        node-group   = "controllers"
+        node-group = "controllers"
       }
     },
     queues-pool = {
@@ -29,7 +29,7 @@ inputs = {
       desired_size   = 3
       instance_types = ["t3.large"]
       labels = {
-        node-group   = "queues"
+        node-group = "queues"
       }
     },
     app-pool = {
@@ -38,7 +38,7 @@ inputs = {
       desired_size   = 1
       instance_types = ["t3.large"]
       labels = {
-        node-group   = "apps"
+        node-group = "apps"
       }
     }
   }
