@@ -116,8 +116,8 @@ def run_terragrunt():
             subprocess.run(bash_command_init, shell=True, check=True)
             subprocess.run(bash_command_plan_or_apply, shell=True, check=True)
         case "apply":
-            subprocess.run(bash_command_init, shell=True)
-            subprocess.run(bash_command_plan_or_apply, shell=True)
+            subprocess.run(bash_command_init, shell=True, check=True)
+            subprocess.run(bash_command_plan_or_apply, shell=True, check=True)
         case "destroy":
             set_kubernetes_provider()
             subprocess.run(bash_command_destroy, shell=True, check=True)
