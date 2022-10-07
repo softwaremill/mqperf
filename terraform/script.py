@@ -100,46 +100,50 @@ def select_workspace():
 
 
 def run_terragrunt():
-    bash_command_init = "terragrunt run-all init --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
-    bash_command_plan_or_apply = f"terragrunt run-all {sys.argv[1]} --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
-    bash_command_destroy = f"terragrunt run-all {sys.argv[1]} --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
-    bash_command_workspace_swith_default_kubernetes_provider = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBERNETESPROVIDER --terragrunt-non-interactive"
-    bash_command_workspace_delete_kubernetes_provider = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBERNETESPROVIDER --terragrunt-non-interactive"
-    bash_command_workspace_swith_default_mq = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
-    bash_command_workspace_delete_mq = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
-    bash_command_workspace_swith_default_prometheus = "terragrunt workspace select default --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
-    bash_command_workspace_delete_prometheus = "terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir ""$(dirname ""$0"")""/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
+    path = os.path.dirname(os.path.abspath(__file__))
+    bash_command_init = f"terragrunt run-all init --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
+    bash_command_plan_or_apply = f"terragrunt run-all {sys.argv[1]} --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
+    bash_command_destroy = f"terragrunt run-all {sys.argv[1]} --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_kubernetes_provider = f"terragrunt workspace select default --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBERNETESPROVIDER --terragrunt-non-interactive"
+    bash_command_workspace_delete_kubernetes_provider = f"terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_KUBERNETESPROVIDER --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_mq = f"terragrunt workspace select default --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
+    bash_command_workspace_delete_mq = f"terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/$TF_VAR_MQ --terragrunt-non-interactive"
+    bash_command_workspace_swith_default_prometheus = f"terragrunt workspace select default --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
+    bash_command_workspace_delete_prometheus = f"terragrunt workspace delete $CLUSTER_NAME  --terragrunt-working-dir {path}/live/$TF_VAR_MQ/$TF_VAR_CLOUDPROVIDER/prometheus --terragrunt-non-interactive"
 
     match sys.argv[1]:
         case "plan":
-            os.system(bash_command_init)
-            os.system(bash_command_plan_or_apply)
+            subprocess.run(bash_command_init, shell=True, check=True)
+            subprocess.run(bash_command_plan_or_apply, shell=True, check=True)
         case "apply":
-            os.system(bash_command_init)
-            os.system(bash_command_plan_or_apply)
+            subprocess.run(bash_command_init, shell=True, check=True)
+            subprocess.run(bash_command_plan_or_apply, shell=True, check=True)
         case "destroy":
             set_kubernetes_provider()
-            os.system(bash_command_destroy)
-            os.system(bash_command_workspace_swith_default_kubernetes_provider)
-            os.system(bash_command_workspace_delete_kubernetes_provider)
-            os.system(bash_command_workspace_swith_default_mq)
-            os.system(bash_command_workspace_delete_mq)
-            os.system(bash_command_workspace_swith_default_prometheus)
-            os.system(bash_command_workspace_delete_prometheus)
+            subprocess.run(bash_command_destroy, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_kubernetes_provider, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_kubernetes_provider, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_mq, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_mq, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_prometheus, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_prometheus, shell=True, check=True)
         case "destroy-cluster":
             select_workspace()            
-            os.system(bash_command_destroy)
-            os.system(bash_command_workspace_swith_default_kubernetes_provider)
-            os.system(bash_command_workspace_delete_kubernetes_provider)
-            os.system(bash_command_workspace_swith_default_mq)
-            os.system(bash_command_workspace_delete_mq)
-            os.system(bash_command_workspace_swith_default_prometheus)
-            os.system(bash_command_workspace_delete_prometheus)
+            subprocess.run(bash_command_destroy, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_kubernetes_provider, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_kubernetes_provider, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_mq, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_mq, shell=True, check=True)
+            subprocess.run(bash_command_workspace_swith_default_prometheus, shell=True, check=True)
+            subprocess.run(bash_command_workspace_delete_prometheus, shell=True, check=True)
 
 
 def terragrunt_infrastructure():
     set_envs()
-    run_terragrunt()
+    try:
+        run_terragrunt()
+    except subprocess.CalledProcessError:
+        exit(1)
 
 
 def main():
