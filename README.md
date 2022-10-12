@@ -188,7 +188,8 @@ python3 script.py [terragrunt action] [json file]
         "bucket_name": "[cloud_bucket_name]",
         "mq": "[mq_name]",
         "cluster_name": "[cluster_name]",
-        "nodes_number": "[number_of_nodes]"
+        "nodes_number": "[number_of_nodes]",
+        "app_image": "[image_repository]"
     }
 }
 
@@ -197,9 +198,10 @@ python3 script.py [terragrunt action] [json file]
 |---|---|
 |[cloud_provider]|"aws" , "gcp" , "az"|
 |[cloud_bucket_name]|"s3-bucket-mqperf" , "gcs-bucket-mqperf" , "az-bucket-mqperf"|
-|[mq_name]|"kafka" , "rabbitmq"|
+|[mq_name]|"kafka" , "rabbitmq" , "postgresql"|
 |[cluster_name]|str| 
-|[number_of_nodes]|str|
+|[number_of_nodes]|str number|
+|[app_image]|str|
 
 #### Example command
 ```
@@ -213,9 +215,10 @@ python3 script.py apply example-data.json
     "instance": {
         "cloudprovider": "aws",
         "bucket_name": "s3-bucket-mqperf",
-        "mq": "rabbitmq",
-        "cluster_name": "rabbit01",
-        "nodes_number": "4"
+        "mq": "kafka",
+        "cluster_name": "kafka01",
+        "nodes_number": "3",
+        "app_image": "softwaremill/mqperf-kafka:latest"
     }
 }
 ```
