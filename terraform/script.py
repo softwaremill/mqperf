@@ -44,6 +44,7 @@ def set_envs():
         os.environ["TF_VAR_MQ"] = parse_json_file("instance.mq")
         os.environ["CLUSTER_NAME"] = parse_json_file("instance.cluster_name")
         os.environ["TF_VAR_NODES_NUMBER"] = parse_json_file("instance.nodes_number")
+        os.environ["APP_IMAGE"] = parse_json_file("instance.app_image")
 
 
 def get_envs():

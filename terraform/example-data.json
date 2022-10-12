@@ -1,9 +1,10 @@
 {
     "instance": {
-        "cloudprovider": "gcp",
-        "bucket_name": "gcs-bucket-mqperf",
-        "mq": "rabbitmq",
-        "cluster_name": "rabbit01",
-        "nodes_number": "4"
+        "cloudprovider": "aws",
+        "bucket_name": "s3-bucket-mqperf",
+        "mq": "kafka",
+        "cluster_name": "kafka01",
+        "nodes_number": "3",
+        "app_image": "softwaremill/mqperf-kafka:latest"
     }
 }
