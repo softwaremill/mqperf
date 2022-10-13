@@ -4,6 +4,7 @@
         "bucket_name": "azure-bucket-mqperf",
         "mq": "kafka",
         "cluster_name": "kafka",
-        "nodes_number": "3"
+        "nodes_number": "3",
+        "app_image": "softwaremill/mqperf-kafka:latest"
     }
 }
