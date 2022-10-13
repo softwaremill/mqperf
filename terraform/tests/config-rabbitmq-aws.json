@@ -4,6 +4,7 @@
         "bucket_name": "rabbit-bucket-mqperf",
         "mq": "rabbitmq",
         "cluster_name": "rabbitmq",
-        "nodes_number": "3"
+        "nodes_number": "3",
+        "app_image": ""
     }
 }

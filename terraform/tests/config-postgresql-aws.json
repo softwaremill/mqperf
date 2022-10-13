@@ -4,6 +4,7 @@
         "bucket_name": "postgresql-bucket-mqperf",
         "mq": "postgresql",
         "cluster_name": "postgresql",
-        "nodes_number": "3"
+        "nodes_number": "3",
+        "app_image": ""
     }
 }

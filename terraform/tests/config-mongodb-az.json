@@ -4,6 +4,7 @@
         "bucket_name": "azure-bucket-mqperf",
         "mq": "mongodb",
         "cluster_name": "mongodb",
-        "nodes_number": "3"
+        "nodes_number": "3",
+        "app_image": ""
     }
 }
