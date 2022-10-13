@@ -44,20 +44,7 @@ def set_envs():
         os.environ["TF_VAR_MQ"] = parse_json_file("instance.mq")
         os.environ["CLUSTER_NAME"] = parse_json_file("instance.cluster_name")
         os.environ["TF_VAR_NODES_NUMBER"] = parse_json_file("instance.nodes_number")
-
-
-def get_envs():
-    global cloud_provider
-    global mq
-    global bucket_name
-    global cluster_name
-    global nodes_number
-    cloud_provider = os.getenv("TF_VAR_CLOUDPROVIDER")
-    mq = os.getenv("TF_VAR_MQ")
-    bucket_name = os.getenv("TF_VAR_BUCKET_NAME")
-    cluster_name = os.getenv("CLUSTER_NAME")
-    nodes_number = os.getenv("TF_VAR_NODES_NUMBER")
-    print(cluster_name)
+        os.environ["APP_IMAGE"] = parse_json_file("instance.app_image")
 
 
 def set_kubernetes_provider():
