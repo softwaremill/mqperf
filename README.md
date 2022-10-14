@@ -38,6 +38,63 @@ Run the script:
 python3 script.py apply example-data.json
 ```
 
+### Using python script
+
+`terraform/script.py` provides an automated way of performing terragrunt actions against configuration stored in json file.
+
+#### Command
+Run the script with the following command:
+```bash
+python3 script.py [terragrunt action] [json file]
+```
+where `[terragrunt action]` is:
+```
+[terragrunt action]: plan, apply, destroy, destroy-cluster
+```
+
+#### Json file
+
+```json
+{
+    "instance": {
+        "cloudprovider": "[cloud_provider]",
+        "bucket_name": "[cloud_bucket_name]",
+        "mq": "[mq_name]",
+        "cluster_name": "[cluster_name]",
+        "nodes_number": "[number_of_nodes]",
+        "app_image": "[app_image]"
+    }
+}
+
+```
+||Accepted values|
+|---|---|
+|[cloud_provider]|"aws" , "gcp" , "az"|
+|[cloud_bucket_name]|"s3-bucket-mqperf" , "gcs-bucket-mqperf" |
+|[mq_name]|"kafka" , "rabbitmq"|
+|[cluster_name]|str| 
+|[number_of_nodes]|str|
+
+#### Example command
+```
+python3 script.py apply example-data.json
+```
+
+#### [example-data.json](https://github.com/softwaremill/mqperf/blob/workspace-listing/terraform/example-data.json)
+
+```json
+{
+    "instance": {
+        "cloudprovider": "aws",
+        "bucket_name": "s3-bucket-mqperf",
+        "mq": "rabbitmq",
+        "cluster_name": "rabbit01",
+        "nodes_number": "4",
+        "app_image": "softwaremill/mqperf-kafka:latest"
+    }
+}
+```
+
 ### The file/folder structure
 
 In this repo, Terragrunt is used to keep configurations DRY and to work with multiple Terraform modules. Follow the [Terragrunt](https://terragrunt.gruntwork.io/docs/) documentation to learn more.
@@ -233,60 +290,6 @@ If you don't define these variables, the default values will be passed:
 - The **storage_class** variable has a default value `standard`.
 - The **storage_size** variable has a default value `20Gi`.
 
-### Using python script
-
-`terraform\script.py` provides an automated way of performing terragrunt actions against configuration stored in json file:
-
-#### Command
-
-```bash
-python3 script.py [terragrunt action] [json file]
-```
-
-```
-[terragrunt action]: plan, apply, destroy, destroy-cluster
-```
-
-#### Json file
-
-```json
-{
-    "instance": {
-        "cloudprovider": "[cloud_provider]",
-        "bucket_name": "[cloud_bucket_name]",
-        "mq": "[mq_name]",
-        "cluster_name": "[cluster_name]",
-        "nodes_number": "[number_of_nodes]"
-    }
-}
-
-```
-||Accepted values|
-|---|---|
-|[cloud_provider]|"aws" , "gcp" , "az"|
-|[cloud_bucket_name]|"s3-bucket-mqperf" , "gcs-bucket-mqperf" , "az-bucket-mqperf"|
-|[mq_name]|"kafka" , "rabbitmq"|
-|[cluster_name]|str| 
-|[number_of_nodes]|str|
-
-#### Example command
-```
-python3 script.py apply example-data.json
-```
-
-#### [example-data.json](https://github.com/softwaremill/mqperf/blob/workspace-listing/terraform/example-data.json)
-
-```json
-{
-    "instance": {
-        "cloudprovider": "aws",
-        "bucket_name": "s3-bucket-mqperf",
-        "mq": "rabbitmq",
-        "cluster_name": "rabbit01",
-        "nodes_number": "4"
-    }
-}
-```
 
 ## MQ clients
 
