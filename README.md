@@ -67,13 +67,14 @@ where `[terragrunt action]` is:
 }
 
 ```
-||Accepted values|
+|Name|Accepted values|
 |---|---|
-|[cloud_provider]|"aws" , "gcp" , "az"|
-|[cloud_bucket_name]|"s3-bucket-mqperf" , "gcs-bucket-mqperf" |
-|[mq_name]|"kafka" , "rabbitmq"|
-|[cluster_name]|str| 
-|[number_of_nodes]|str|
+| cloudprovider |"aws" , "gcp" , "az"|
+| cloud_bucket_name |"s3-bucket-mqperf" , "gcs-bucket-mqperf" |
+| mq_name |"kafka" , "rabbitmq", "postgresql", "mongodb" |
+| cluster_name|`string`| 
+| number_of_nodes |`string`|
+| app_image | `string` |
 
 #### Example command
 ```
