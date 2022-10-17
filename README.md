@@ -70,7 +70,7 @@ where `[terragrunt action]` is:
 |Name|Accepted values|
 |---|---|
 | cloudprovider |"aws" , "gcp" , "az"|
-| cloud_bucket_name |"s3-bucket-mqperf" , "gcs-bucket-mqperf" |
+| cloud_bucket_name |"s3-bucket-mqperf" |
 | mq_name |"kafka" , "rabbitmq", "postgresql", "mongodb" |
 | cluster_name|`string`| 
 | number_of_nodes |`string`|

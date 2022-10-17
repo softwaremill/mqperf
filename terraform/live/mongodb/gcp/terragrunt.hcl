@@ -1,19 +1,14 @@
 remote_state {
-  backend = "gcs"
+  backend = "s3"
+  config = {
+    encrypt = true
+    bucket  = get_env("TF_VAR_BUCKET_NAME")
+    key     = "${path_relative_to_include()}/terraform.tfstate"
+    region  = get_env("TF_VAR_AWS_REGION", "eu-central-1")
+  }
   generate = {
     path      = "backend.tf"
-    if_exists = "overwrite"
-  }
-  config = {
-    project  = "${get_env("TF_VAR_GCP_PROJECT")}"
-    location = "${get_env("TF_VAR_GCS_LOCATION", "eu")}"
-    bucket   = "${get_env("TF_VAR_BUCKET_NAME")}"
-    prefix   = "${path_relative_to_include()}/terraform.tfstate"
-
-    gcs_bucket_labels = {
-      owner = "terraform"
-      name  = "mqperf_state_storage"
-    }
+    if_exists = "overwrite_terragrunt"
   }
 }
 
