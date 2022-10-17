@@ -25,6 +25,10 @@ Here you can find information on how to automatically setup clusters of various 
 ##### GCP
 1. If you're new to Google Cloud, [create an account](https://console.cloud.google.com/freetrial?_ga=2.87728222.758173713.1664359592-186345793.1659692414&_gac=1.194118239.1663587334.CjwKCAjwpqCZBhAbEiwAa7pXeQdSwnWTCp9XrOL6d450eTiDEqiiq133plcZFiDE36QpyKtwubhX4xoCsAYQAvD_BwE) and follow the *Before you begin* steps from the [GKE Quickstart tutorial](https://cloud.google.com/kubernetes-engine/docs/deploy-app-cluster).
 2. Download and install the [gcloud CLI](https://cloud.google.com/sdk/gcloud#download_and_install_the).
+3. Export the `TF_VAR_GCP_PROJECT` variable, where `"your-project-id"` is the name of your GCP project to manage resources in:
+   ```
+   export TF_VAR_GCP_PROJECT="your-project-id"
+   ``` 
 
 ##### Azure
 1. Create the [Azure account](https://azure.microsoft.com/en-us/free/) and instal the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
