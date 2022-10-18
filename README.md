@@ -16,7 +16,7 @@ Here you can find information on how to automatically setup clusters of various 
 4. Install [jsonpath-ng](https://pypi.org/project/jsonpath-ng/) version v1.5.3 or newer.
 
 #### Configure the cloud provider
-In this repo, we are using [Amazon S3 bucket](https://aws.amazon.com/s3/) to store the state, thus it is required to configure the AWS account. The backend configuration is similiar among all of the cloud providers. To configure your bucket, provide the `backend_name` variable in the JSON config file. See the [Terraform documentation](https://www.terraform.io/language/settings/backends/s3) for more details about the S3 backend.
+
 ##### AWS
 
 1. Create the [AWS IAM](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html) user and install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
