@@ -186,7 +186,7 @@ You can use the files that are already in the repo as the guidelines and example
 2. Add your Terraform configuration files necessary for your new queue deployment. Those could be Kubernetes or Helm resources. Later, in Terragrunt file, you will source that configuration within a block:
    ```
    terraform {
-   source = "../../../../modules/newQueueName//."
+   source = "../../../../modules//newQueueName"
    }
    ```
 3. Create the new folder `newQueueName` in `terraform/live/`.
