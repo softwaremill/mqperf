@@ -4,7 +4,12 @@
         "bucket_name": "ola-sandbox",
         "mq": "kafka",
         "cluster_name": "kafka",
-        "nodes_number": "3",
-        "app_image": "softwaremill/mqperf-kafka:latest"
+        "app_image": "softwaremill/mqperf-kafka:latest",
+        "app_nodes_number": "1",
+        "app_nodes_type": "e2-standard-2",
+        "controller_nodes_number": "3",
+        "controller_nodes_type": "e2-standard-2",
+        "queue_nodes_number": "3",
+        "queue_nodes_type": "e2-standard-2"
     }
 }
