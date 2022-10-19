@@ -5,11 +5,14 @@
         "mq": "postgresql",
         "cluster_name": "postgresql",
         "app_image": "",
-        "app_nodes_number": "1",
+        "app_max_nodes_number": "1",
         "app_nodes_type": "standard_d2s_v3",
-        "controller_nodes_number": "3",
+        "controller_max_nodes_number": "3",
         "controller_nodes_type": "standard_d2s_v3",
-        "queue_nodes_number": "3",
-        "queue_nodes_type": "standard_d2s_v3"
+        "queue_max_nodes_number": "3",
+        "queue_nodes_type": "standard_d2s_v3",
+        "gke_app_preemptible": "true",
+        "gke_controller_preemptible": "true",
+        "gke_queue_preemptible": "true"
     }
 }
