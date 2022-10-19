@@ -1,7 +1,7 @@
 {
     "instance": {
         "cloudprovider": "gcp",
-        "bucket_name": "ola-sandbox",
+        "bucket_name": "gcp-bucket-mqperf",
         "mq": "kafka",
         "cluster_name": "kafka",
         "nodes_number": "3",

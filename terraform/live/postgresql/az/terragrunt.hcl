@@ -1,7 +1,3 @@
-locals {
-  region = "eu-central-1"
-}
-
 remote_state {
   backend = "s3"
   config = {
@@ -26,10 +22,6 @@ terraform {
       source = "hashicorp/azurerm"
       version = "3.24.0"
     }
-    aws = {
-      version = ">= 4.15.1"
-      source  = "hashicorp/aws"
-    }
   }
 }
 
@@ -37,9 +29,6 @@ provider "azurerm" {
   features {}
 }
 
-provider "aws" {
-  region = "${local.region}"
-}
 
 EOF
 }
