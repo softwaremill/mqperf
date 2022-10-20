@@ -4,7 +4,15 @@
         "bucket_name": "gcp-bucket-mqperf",
         "mq": "rabbitmq",
         "cluster_name": "rabbitmq",
-        "nodes_number": "3",
-        "app_image": ""
+        "app_image": "",
+        "app_max_nodes_number": "1",
+        "app_nodes_type": "e2-standard-2",
+        "controller_max_nodes_number": "3",
+        "controller_nodes_type": "e2-standard-2",
+        "queue_max_nodes_number": "3",
+        "queue_nodes_type": "e2-standard-2",
+        "gke_app_preemptible": "true",
+        "gke_controller_preemptible": "true",
+        "gke_queue_preemptible": "true"
     }
 }

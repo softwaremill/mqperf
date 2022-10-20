@@ -21,23 +21,23 @@ inputs = {
     {
       name         = "controllers-pool"
       disk_size_gb = 50
-      max_count    = 3
-      preemptible  = true
-      machine_type = "e2-standard-2"
+      max_count    = get_env("CONTROLLER_MAX_NODES_NUMBER")
+      preemptible  = get_env("GKE_CONTROLLER_PREEMPTIBLE")
+      machine_type = "${get_env("CONTROLLER_NODES_TYPE")}"
     },
     {
       name         = "queues-pool"
       disk_size_gb = 50
-      max_count    = 3
-      preemptible  = true
-      machine_type = "e2-standard-2"
+      max_count    = get_env("QUEUE_MAX_NODES_NUMBER")
+      preemptible  = get_env("GKE_QUEUE_PREEMPTIBLE")
+      machine_type = "${get_env("QUEUE_NODES_TYPE")}"
     },
     {
       name         = "apps-pool"
       disk_size_gb = 50
-      max_count    = 1
-      preemptible  = true
-      machine_type = "e2-standard-2"
+      max_count    = get_env("APP_MAX_NODES_NUMBER")
+      preemptible  = get_env("GKE_APP_PREEMPTIBLE")
+      machine_type = "${get_env("APP_NODES_TYPE")}"
     }
   ]
   node_pools_labels = {

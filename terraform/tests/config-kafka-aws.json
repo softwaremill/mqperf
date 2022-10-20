@@ -4,7 +4,15 @@
         "bucket_name": "kafka-bucket-mqperf",
         "mq": "kafka",
         "cluster_name": "kafka",
-        "nodes_number": "3",
-        "app_image": "softwaremill/mqperf-kafka:latest"
+        "app_image": "softwaremill/mqperf-kafka:latest",
+        "app_max_nodes_number": "1",
+        "app_nodes_type": "t3.large",
+        "controller_max_nodes_number": "3",
+        "controller_nodes_type": "t3.large",
+        "queue_max_nodes_number": "3",
+        "queue_nodes_type": "t3.large",
+        "gke_app_preemptible": "true",
+        "gke_controller_preemptible": "true",
+        "gke_queue_preemptible": "true"
     }
 }

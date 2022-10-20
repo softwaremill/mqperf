@@ -43,8 +43,16 @@ def set_envs():
         os.environ["TF_VAR_BUCKET_NAME"] = parse_json_file("instance.bucket_name")
         os.environ["TF_VAR_MQ"] = parse_json_file("instance.mq")
         os.environ["CLUSTER_NAME"] = parse_json_file("instance.cluster_name")
-        os.environ["TF_VAR_NODES_NUMBER"] = parse_json_file("instance.nodes_number")
         os.environ["APP_IMAGE"] = parse_json_file("instance.app_image")
+        os.environ["APP_MAX_NODES_NUMBER"] = parse_json_file("instance.app_max_nodes_number")
+        os.environ["APP_NODES_TYPE"] = parse_json_file("instance.app_nodes_type")
+        os.environ["CONTROLLER_MAX_NODES_NUMBER"] = parse_json_file("instance.controller_max_nodes_number")
+        os.environ["CONTROLLER_NODES_TYPE"] = parse_json_file("instance.controller_nodes_type")
+        os.environ["QUEUE_MAX_NODES_NUMBER"] = parse_json_file("instance.queue_max_nodes_number")
+        os.environ["QUEUE_NODES_TYPE"] = parse_json_file("instance.queue_nodes_type")
+        os.environ["GKE_APP_PREEMPTIBLE"] = parse_json_file("instance.gke_app_preemptible")
+        os.environ["GKE_CONTROLLER_PREEMPTIBLE"] = parse_json_file("instance.gke_controller_preemptible")
+        os.environ["GKE_QUEUE_PREEMPTIBLE"] = parse_json_file("instance.gke_queue_preemptible")
 
 
 def set_kubernetes_provider():

@@ -16,27 +16,27 @@ inputs = {
   eks_cluster_node_groups = {
     controllers-pool = {
       min_size       = 1
-      max_size       = 3
-      desired_size   = 1
-      instance_types = ["t3.large"]
+      max_size       = get_env("CONTROLLER_MAX_NODES_NUMBER")
+      desired_size   = get_env("CONTROLLER_MAX_NODES_NUMBER")
+      instance_types = ["${get_env("CONTROLLER_NODES_TYPE")}"]
       labels = {
         node-group = "controllers"
       }
     },
     queues-pool = {
       min_size       = 3
-      max_size       = 3
-      desired_size   = 3
-      instance_types = ["t3.large"]
+      max_size       = get_env("QUEUE_MAX_NODES_NUMBER")
+      desired_size   = get_env("QUEUE_MAX_NODES_NUMBER")
+      instance_types = ["${get_env("QUEUE_NODES_TYPE")}"]
       labels = {
         node-group = "queues"
       }
     },
     app-pool = {
       min_size       = 1
-      max_size       = 1
-      desired_size   = 1
-      instance_types = ["t3.large"]
+      max_size       = get_env("APP_MAX_NODES_NUMBER")
+      desired_size   = get_env("APP_MAX_NODES_NUMBER")
+      instance_types = ["${get_env("APP_NODES_TYPE")}"]
       labels = {
         node-group = "apps"
       }
