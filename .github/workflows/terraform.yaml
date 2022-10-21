@@ -3,7 +3,7 @@ name: "Mqperf terragrunt tests"
 on:
   push:
     branches:
-      - "v2"
+      - "feature/gha-update"
 
 env:
   TF_VAR_GCP_PROJECT: ola-sandbox
@@ -17,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mq: [kafka, rabbitmq, postgresql, mongodb]
-        cloud_provider: [aws, gcp, az]
+        mq: [kafka]
+        cloud_provider: [aws]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,7 +27,7 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
       - name: Configure AWS credentials from Test account
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,7 +41,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Setup terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
       - name: Setup python
