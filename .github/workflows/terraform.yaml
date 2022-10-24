@@ -51,7 +51,7 @@ jobs:
       - name: Install python dependencies
         run: pip install --upgrade jsonpath-ng
       - name: Setup Terragrunt
-        uses: eLco/setup-terragrunt@v1
+        uses: autero1/action-terragrunt@v1.2.0
       - name: Run script plan
         working-directory: terraform
         run: python3 script.py plan tests/config-${{matrix.mq}}-${{matrix.cloud_provider}}.json
