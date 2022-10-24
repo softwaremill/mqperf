@@ -3,7 +3,7 @@ name: "Mqperf terragrunt tests"
 on:
   push:
     branches:
-      - "feature/gha-update"
+      - "v2"
 
 env:
   TF_VAR_GCP_PROJECT: ola-sandbox
@@ -17,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mq: [kafka]
-        cloud_provider: [aws]
+        mq: [kafka, rabbitmq, postgresql, mongodb]
+        cloud_provider: [aws, gcp, az]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
