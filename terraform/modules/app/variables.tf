@@ -4,7 +4,7 @@ variable "app_image" {
 }
 
 variable "app_max_nodes_number" {
-  type = number
+  type        = number
   description = "Number of nodes client app should be deployed on"
-  default = 1
+  default     = 1
 }
