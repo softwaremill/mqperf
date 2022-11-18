@@ -26,6 +26,11 @@ dependency "eks" {
   mock_outputs_merge_strategy_with_state = "shallow"
 }
 
+dependency "prometheus" {
+  config_path  = "../prometheus"
+  skip_outputs = true
+}
+
 inputs = {
   app_image = get_env("APP_IMAGE")
   app_max_nodes_number = get_env("APP_MAX_NODES_NUMBER")
