@@ -28,4 +28,5 @@ dependency "eks" {
 
 inputs = {
   app_image = get_env("APP_IMAGE")
+  app_max_nodes_number = get_env("APP_MAX_NODES_NUMBER")
 }
