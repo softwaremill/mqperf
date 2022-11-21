@@ -5,6 +5,9 @@ on:
     branches:
       - "v2"
 
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 env:
   TF_VAR_GCP_PROJECT: ola-sandbox
   ARM_CLIENT_ID: ${{secrets.AZ_CLIENT_ID}}
