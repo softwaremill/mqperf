@@ -7,7 +7,7 @@ object Metrics {
 
   object Sender {
     val messageCounter: Counter =
-      Counter.build("mqperf_sent", "number of sent messages").labelNames(testIdLabelName).register()
+      Counter.build("mqperf_sent", "total number of sent messages since start of application").labelNames(testIdLabelName).register()
 
     val messageLatencyHistogram: Histogram = Histogram
       .build("mqperf_send_latency_ms", "latency of sent messages")
@@ -19,7 +19,7 @@ object Metrics {
 
   object Receiver {
     val messageCounter: Counter = Counter
-      .build("mqperf_received", "number of received messages")
+      .build("mqperf_received", "total number of received messages since start of application")
       .labelNames(testIdLabelName)
       .register()
 
