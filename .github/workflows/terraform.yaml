@@ -74,7 +74,7 @@ jobs:
         if: ${{ failure() }}
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_TEST_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: The job Terraform for ${{matrix.mq}}-${{matrix.cloud_provider}} has failed
           MSG_MINIMAL: event, actions url, commit
           SLACK_COLOR: ${{ job.status }}
