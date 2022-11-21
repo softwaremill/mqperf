@@ -10,8 +10,8 @@ Here you can find information on how to automatically setup clusters of various 
 
 ### Prerequisites
 
-1. Install [Terraform](https://www.terraform.io/) version 0.38.7 or newer.
-2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version v1.2.6 or newer.
+1. Install [Terraform](https://www.terraform.io/) version v1.2.6 or newer.
+2. Install [Terragrunt](https://terragrunt.gruntwork.io/) version 0.38.7 or newer.
 3. Install [Python](https://www.python.org/) version v3.10 or newer.
 4. Install [jsonpath-ng](https://pypi.org/project/jsonpath-ng/) version v1.5.3 or newer.
 
