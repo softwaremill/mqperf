@@ -9,6 +9,5 @@ spec:
     matchLabels:
       name: app
   endpoints:
-  - port: web
+  - port: http
     path: /metrics
-    
