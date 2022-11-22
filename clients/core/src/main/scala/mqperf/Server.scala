@@ -36,6 +36,15 @@ object Server extends StrictLogging {
         Future.successful(())
       }
 
+    def cleanUpEndpoint(mq: Mq): ServerEndpoint[Any, Future] = infallibleEndpoint.post
+      .in("cleanup")
+      .in(jsonBody[Config])
+      .serverLogicSuccess { config =>
+        logger.info(s"Cleaning up queue with config: $config")
+        mq.cleanUp(config)
+        Future.successful(())
+      }
+
     def startEndpoint(kind: String, start: Config => Future[Unit]): ServerEndpoint[Any, Future] = infallibleEndpoint.post
       .in("start" / kind)
       .in(jsonBody[Config])
@@ -64,6 +73,7 @@ object Server extends StrictLogging {
     val allEndpoints: List[ServerEndpoint[Any, Future]] =
       List(
         initEndpoint(mq),
+        cleanUpEndpoint(mq),
         startEndpoint(Sender, cfg => new Sender(cfg, mq, Clock.systemUTC()).run()),
         startEndpoint(Receiver, cfg => new Receiver(cfg, mq, Clock.systemUTC()).run()),
         inProgressEndpoint,
