@@ -39,6 +39,26 @@ class KafkaMq(clock: Clock) extends Mq with StrictLogging {
     }
   }
 
+  override def cleanUp(config: Config): Unit = {
+    val hosts: String = config.mqConfig(HostsConfigKey)
+    val topic: String = config.mqConfig(TopicConfigKey)
+
+    val adminProps = new Properties()
+    adminProps.put("bootstrap.servers", hosts)
+
+    try {
+      Admin
+        .create(adminProps)
+        .deleteTopics(List(topic).asJava)
+        .all()
+        .get()
+
+      logger.info(s"Deleted topic $topic")
+    } catch {
+      case e: Exception => logger.warn(s"Topic $topic deletion failed", e)
+    }
+  }
+
   override def createSender(config: Config): MqSender = new MqSender {
     val hosts: String = config.mqConfig(HostsConfigKey)
     val topic: String = config.mqConfig(TopicConfigKey)
