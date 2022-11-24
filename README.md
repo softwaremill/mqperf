@@ -348,6 +348,24 @@ To init, then start the sender/receiver, use the following commands, using appro
 curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
 ```
 
+### RabbitMQ
+
+To test the senders/receivers using RabbitMQ, you might build the docker image locally using:
+
+```
+sbt rabbitmq/docker:publishLocal
+```
+
+Then, go to `docker/rabbitmq` and run `docker-compose up`. This will start the RabbitMQ broker 
+with its management interface (available at `http://localhost:15672`), and the mqperf server.
+
+To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
+
+```bash
+curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"rabbitmq","queueName":"mqperf-test","nrPollReattempt":"10","qos":"100","multipleAck":"true"}}' http://localhost:8080/init     
+```
+
+
 ## Copyright
 
 Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
