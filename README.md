@@ -356,6 +356,24 @@ To init, then start the sender/receiver, use the following commands, using appro
 curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"senderConcurrency":4,"batchSizeReceive":1,"receiverConcurrency":4,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
 ```
 
+### RabbitMQ
+
+To test the senders/receivers using RabbitMQ, you might build the docker image locally using:
+
+```
+sbt rabbitmq/docker:publishLocal
+```
+
+Then, go to `docker/rabbitmq` and run `docker-compose up`. This will start the RabbitMQ broker 
+with its management interface (available at `http://localhost:15672`), and the mqperf server.
+
+To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
+
+```bash
+curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"rabbitmq","queueName":"mqperf-test","nrPollReattempt":"10","qos":"100","multipleAck":"true"}}' http://localhost:8080/init     
+```
+
+
 ## Working with AWS cluster
 
 0. Using `aws configure` set credentials and region (e.g. eu-central-1)
@@ -380,15 +398,15 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
    ```
   echo -n <coded username/password> | base64 -d
   ```
-   NOTE: after encoding the result will have a '%' sign at the end. It should be omitted.
-   NOTE 2: hostname: rabbitmq-cluster.default.svc
+  NOTE: after encoding the result will have a '%' sign at the end. It should be omitted.
+  NOTE 2: hostname: rabbitmq-cluster.default.svc
 
 - Postgress
    ```
   kubectl get secret/mqperfuser.mqperf-postgresql-cluster.credentials.postgresql.acid.zalan.do -o json
   echo -n 'putBase64Here' | base64 -d
   ```
-  
+
 4. Port-forwarding:
 - grafana (e.g. port 9090 locally) (admin/prom-operator)
     ```   
@@ -398,7 +416,7 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
     ```
   kubectl port-forward services/mqperf-postgresql-cluster-0 9543:5432
   ```
-  
+
 5. Useful commands:
 - display all pods:
    ```
@@ -418,7 +436,7 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
     kubectl scale deployment app-deployment --replicas <nr_of_app_nodes>
    ```
   NOTE: it is possible to refresh the cluster in order to use the newest version of the mqperf app docker image.
-        Add `imagePullPolicy: Always` to app.yml file
+  Add `imagePullPolicy: Always` to app.yml file
 - pulling the newest app image without imagePullPolicy: Always and without a need to restart the whole cluster
     ```
     kubectl get deployment app-deployment -o yaml > temp-deployment.yaml' # get current conf
@@ -438,7 +456,8 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
 - install additional modules: kubernetes, portforward, wheel, golang
 
 2. After adding a new queue client, mqperf app does not get deployed to cluster
-Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.
+   Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.
+
 
 ## Copyright
 
