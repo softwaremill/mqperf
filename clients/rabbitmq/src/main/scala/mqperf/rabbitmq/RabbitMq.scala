@@ -13,18 +13,22 @@ import scala.util.Try
 class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
   private val QueueNameConfigKey = "queueName"
-  private val NrPollReattemptConfigKey = "nrPollReattempt"
+  private val MaxPollAttemptsConfigKey = "maxPollAttempts"
+  private val UsernameConfigKey = "username"
+  private val PasswordConfigKey = "password"
 
   var conn: Connection = _
 
   override def init(config: Config): Unit = {
     val host: String = config.mqConfig(HostsConfigKey)
     val queueName: String = config.mqConfig(QueueNameConfigKey)
+    val username: String = config.mqConfig(UsernameConfigKey)
+    val password: String = config.mqConfig(PasswordConfigKey)
 
     val cf = new ConnectionFactory()
     cf.setHost(host)
-    cf.setUsername("guest")
-    cf.setPassword("guest")
+    cf.setUsername(username)
+    cf.setPassword(password)
 
     try {
       conn = cf.newConnection()
@@ -58,7 +62,7 @@ class RabbitMq extends Mq with StrictLogging {
     override type MsgId = Long
 
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
-    private val nrPollReattempt: Int = Try(config.mqConfig(NrPollReattemptConfigKey).toInt).getOrElse(0)
+    private val maxPollAttempts: Int = Option(config.mqConfig(MaxPollAttemptsConfigKey)).map(_.toInt).getOrElse(0)
     private val channel = newChannel(queueName, passive = true)
     channel.basicQos(config.mqConfig("qos").toInt, false)
 
@@ -106,14 +110,14 @@ class RabbitMq extends Mq with StrictLogging {
             } else Some(next)
           }
 
-          doPoll(if (waitForMsgs) nrPollReattempt else 0)
+          doPoll(if (waitForMsgs) maxPollAttempts else 0)
         }
 
         doReceive(Nil, maxMsgCount)
       }
     }
 
-    private val multipleAck = Try(config.mqConfig("multipleAck").toBoolean).getOrElse(false)
+    private val multipleAck = Option(config.mqConfig("multipleAck")).exists(_.toBoolean)
 
     override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful {
       if (multipleAck) {
