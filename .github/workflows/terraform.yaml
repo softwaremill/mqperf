@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "v2"
+    paths:
+      - 'terraform/**'
 
 concurrency: 
   group: ${{ github.workflow }}-${{ github.ref }}
