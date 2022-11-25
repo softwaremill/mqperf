@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, blocking}
-import scala.util.Try
 
 class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
