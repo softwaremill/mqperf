@@ -31,7 +31,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Publish JVM docker image
-      run: sbt "docker:publish"
+      run: sbt "kafka/docker:publish"
     - name: Cleanup
       run: |
         rm -rf "$HOME/.ivy2/local" || true
