@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - "v2"
-    paths:
-      - 'clients/**'
+#    paths:
+#      - 'clients/**'
 jobs:
   ci:
     # run on external PRs, but not on internal PRs since those will be run by push to branch
