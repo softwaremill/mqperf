@@ -52,8 +52,6 @@ class RabbitMq extends Mq with StrictLogging {
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
-    implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(50))
-
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
     private val channel = newChannel(queueName, passive = true)
     channel.confirmSelect()
