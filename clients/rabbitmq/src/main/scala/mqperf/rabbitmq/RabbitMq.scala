@@ -59,7 +59,6 @@ class RabbitMq extends Mq with StrictLogging {
     override def send(msgs: Seq[String]): Future[Unit] = Future {
       blocking {
         msgs.foreach(msg => channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes))
-        logger.info(s"Sent ${msgs.size} messages. Waiting for ack...")
         channel.waitForConfirms()
       }
     }
