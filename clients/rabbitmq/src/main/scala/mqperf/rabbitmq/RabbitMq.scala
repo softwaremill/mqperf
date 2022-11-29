@@ -1,13 +1,14 @@
 package mqperf.rabbitmq
 
 import com.rabbitmq.client._
+import com.rabbitmq.client.impl.nio.NioParams
 import com.typesafe.scalalogging.StrictLogging
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, Executors}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, blocking}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future, blocking}
 
 class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
@@ -29,6 +30,9 @@ class RabbitMq extends Mq with StrictLogging {
     cf.setUsername(username)
     cf.setPassword(password)
 
+    cf.useNio()
+    cf.setNioParams(new NioParams().setNbIoThreads(50))
+
     try {
       conn = cf.newConnection()
 
@@ -48,12 +52,18 @@ class RabbitMq extends Mq with StrictLogging {
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
+    implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(50))
+
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
     private val channel = newChannel(queueName, passive = true)
     channel.confirmSelect()
 
     override def send(msgs: Seq[String]): Future[Unit] = Future {
-      msgs.foreach(msg => channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes))
+      blocking {
+        msgs.foreach(msg => channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes))
+        logger.info(s"Sent ${msgs.size} messages. Waiting for ack...")
+        channel.waitForConfirms()
+      }
     }
   }
 
