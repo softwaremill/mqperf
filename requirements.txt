@@ -1,0 +1,4 @@
+requests
+kubernetes
+portforward
+pathlib
