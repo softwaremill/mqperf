@@ -54,7 +54,7 @@ class RabbitMq extends Mq with StrictLogging {
 
   override def createSender(config: Config): MqSender = new MqSender {
     val channelPoolList: CopyOnWriteArrayList[(Channel, Int)] =
-      new CopyOnWriteArrayList[(Channel, Int)]() // int param - size of the still available messages for in flight send
+      new CopyOnWriteArrayList[(Channel, Int)]()
     val maxChannelsNr: Int = Option(config.mqConfig(MaxChannelsNrConfigKey)).map(_.toInt).getOrElse(1)
     val maxSendInFlight: Int = config.maxSendInFlight
     val batchSizeSend: Int = config.batchSizeSend
