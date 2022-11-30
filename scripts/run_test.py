@@ -40,9 +40,9 @@ def run(test_file: str):
     check_if_ok(requests.post(base_url + '/init', json=payload))
     print('Initialized')
 
-    for (pod_name, _, url), job in zip(instances, payload['jobs']):
+    for (pod, _, url), job in zip(instances, payload['jobs']):
         check_if_ok(requests.post(url + '/start/' + job, json=payload))
-        print(f'Job {job} started on {pod_name}')
+        print(f'Job {job} started on {pod.metadata.name}')
 
     start = datetime.utcnow()
 

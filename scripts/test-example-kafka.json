@@ -1,0 +1,19 @@
+{
+  "testId": "test-1",
+  "testLengthSeconds": 300,
+  "msgsPerSecond": 100000,
+  "msgSizeBytes": 1024,
+  "batchSizeSend": 1000,
+  "batchSizeReceive": 1000,
+  "maxSendInFlight": 10000,
+  "mqConfig": {
+    "hosts": "my-cluster-kafka-bootstrap:9092",
+    "topic": "mqperf-test-1",
+    "acks": "-1",
+    "groupId": "mqperf",
+    "commitMs": "1000",
+    "partitions": "10",
+    "replicationFactor": "2"
+  },
+  "jobs": ["sender", "receiver", "receiver"]
+}
