@@ -44,8 +44,6 @@ class RabbitMq extends Mq with StrictLogging {
     }
   }
 
-  override def cleanUp(config: Config): Unit = {}
-
   private def newChannel(queueName: String, passive: Boolean): Channel = {
     val channel = conn.createChannel()
     if (passive) channel.queueDeclarePassive(queueName)
