@@ -372,7 +372,7 @@ with its management interface (available at `http://localhost:15672`), and the m
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
 ```bash
-curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true","maxChannelsNr":"10"}}' http://localhost:8080/start/sender
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true","maxChannelsNr":"10"}}' http://localhost:8080/init
 ```
 
 
