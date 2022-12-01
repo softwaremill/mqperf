@@ -20,6 +20,6 @@ resource "kubernetes_config_map" "grafana_dashboards" {
   }
 
   data = {
-    "mqperf" = "${templatefile("grafana-dashboards/mqperf.json", { "DS_PROMETHEUS" = "default" })}"
+    "mqperf.json" = "${templatefile("grafana-dashboards/mqperf.json", { "DS_PROMETHEUS" = "default" })}"
   }
 }
