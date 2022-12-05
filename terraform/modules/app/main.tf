@@ -10,3 +10,16 @@ resource "kubectl_manifest" "service" {
 resource "kubectl_manifest" "servicemonitor" {
   yaml_body = file("app-manifests/servicemonitor.yaml")
 }
+
+resource "kubernetes_config_map" "grafana_dashboards" {
+  metadata {
+    name = "app-dashboards"
+    labels = {
+      "grafana_dashboard" = "1"
+    }
+  }
+
+  data = {
+    "mqperf.json" = "${templatefile("grafana-dashboards/mqperf.json", { "DS_PROMETHEUS" = "default" })}"
+  }
+}
