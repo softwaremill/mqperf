@@ -24,7 +24,7 @@ lazy val dockerSettings = Seq(
 lazy val rootProject = (project in file("."))
   .settings(commonSettings: _*)
   .settings(publishArtifact := false, name := "root")
-  .aggregate(core, kafka)
+  .aggregate(core, kafka, postgres)
 
 lazy val core: Project = (project in file("clients/core"))
   .settings(commonSettings: _*)
@@ -50,6 +50,20 @@ lazy val kafka: Project = (project in file("clients/kafka"))
     name := "kafka",
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "3.2.3",
+      scalaTest
+    )
+  )
+  .dependsOn(core)
+  .enablePlugins(JavaServerAppPackaging)
+  .enablePlugins(DockerPlugin)
+
+lazy val postgres: Project = (project in file("clients/postgres"))
+  .settings(commonSettings: _*)
+  .settings(dockerSettings)
+  .settings(Docker / packageName := "mqperf-postgres")
+  .settings(
+    name := "postgres",
+    libraryDependencies ++= Seq(
       scalaTest
     )
   )
