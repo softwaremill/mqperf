@@ -1,0 +1,22 @@
+---
+version: '2'
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+
+services:
+  postgresmq:
+    image: postgres
+    container_name: 'postgresmq'
+    environment:
+      POSTGRES_PASSWORD: defaultPass
+
+  mqperf:
+    image: softwaremill/mqperf-kafka:latest
+    depends_on:
+      - postgresmq
+    ports:
+      - 8080:8080
+    hostname: mqperf
+    container_name: mqperf

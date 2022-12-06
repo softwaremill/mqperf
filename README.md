@@ -442,6 +442,22 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerProcessInSecond":
 2. After adding a new queue client, mqperf app does not get deployed to cluster
 Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.
 
+### PostgresMQ
+
+To test the senders/receivers using PostgresMQ, you might build the docker image locally using:
+
+```
+sbt postgresmq/docker:publishLocal
+```
+
+Then, go to `docker/postgresmq` and run `docker-compose up`. This will start the PostgreSQL server.
+
+To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
+
+```bash
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true","maxChannelsNr":"10"}}' http://localhost:8080/init
+```
+
 ## Copyright
 
 Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
