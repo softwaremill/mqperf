@@ -56,7 +56,7 @@ def run(test_file: str):
 
 def check_if_ok(resp):
     if not resp.ok:
-        raise Exception('Request failed: ' + resp)
+        raise Exception(f'Request failed: {resp.status_code} - {resp.reason}')
     return resp
 
 def query_metrics(start: datetime, end: datetime, metric_query: str):
