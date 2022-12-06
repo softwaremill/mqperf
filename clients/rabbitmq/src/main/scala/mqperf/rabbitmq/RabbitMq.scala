@@ -5,7 +5,7 @@ import com.rabbitmq.client.impl.nio.NioParams
 import com.typesafe.scalalogging.StrictLogging
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 
-import java.util.concurrent.{ConcurrentLinkedQueue, CopyOnWriteArrayList}
+import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, blocking}
@@ -14,7 +14,6 @@ class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
   private val QueueNameConfigKey = "queueName"
   private val MaxPollAttemptsConfigKey = "maxPollAttempts"
-  private val MaxChannelsNrConfigKey = "maxChannelsNr"
   private val UsernameConfigKey = "username"
   private val PasswordConfigKey = "password"
 
@@ -44,7 +43,6 @@ class RabbitMq extends Mq with StrictLogging {
     }
   }
 
-
   override def cleanUp(config: Config): Unit = {
     logger.info("Closing connection")
     conn.close()
@@ -59,63 +57,44 @@ class RabbitMq extends Mq with StrictLogging {
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
-    val channelPoolList: CopyOnWriteArrayList[(Channel, Int)] =
-      new CopyOnWriteArrayList[(Channel, Int)]()
-    val maxChannelsNr: Int = Option(config.mqConfig(MaxChannelsNrConfigKey)).map(_.toInt).getOrElse(1)
-    val maxSendInFlight: Int = config.maxSendInFlight
-    val batchSizeSend: Int = config.batchSizeSend
+    private val channelPool: LinkedBlockingQueue[Channel] = new LinkedBlockingQueue[Channel]()
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
 
+    private val maxSendInFlight: Int = config.maxSendInFlight
+    private val batchSizeSend: Int = config.batchSizeSend
+    private val maxChannelsNr: Int = maxSendInFlight / batchSizeSend
+    logger.info(s"[Sender] - maxChannelsNr: $maxChannelsNr")
+
     for (_ <- 1 to maxChannelsNr) {
-      val channel = conn.createChannel()
-      channel.queueDeclarePassive(queueName)
+      val channel = newChannel(queueName, passive = true)
       channel.confirmSelect()
-      channelPoolList.add((channel, maxSendInFlight))
+      channelPool.add(channel)
     }
 
     /*
       Send method uses channels pool in order to be able to send messages using the sender instance on multiple threads simultaneously.
-      Channel has a limit of messages that it can publish without ack - maxInFlight TODO: mstopyra (Question? - is it global - shared for channels)
-      After publishing messages the limit for the channel decreases (minus size of a send batch)
-      Releasing a channel (adding it back to the pool) happens after publishing a certain batch, according to the following logic:
-       1. if the limit that is left is smaller than the size of a send batch (also 0)
-          - the channel is waiting for send ack and after that it is appended to the channel pool and the limit gets reset to the init value
-       2. if the limit that is left is greater or equal the size of a send batch
-          - the channel gets prepended to the list with the decreased limit
+      In order not to be able to send more yet unacked messgages than the MaxSendInFlight setting allows the number of channels is set as a result
+      of a following calculation: maxSendInFlight / batchSizeSend.
+      If all of the available channels are used at a specific time for sending the other threads will actively wait for the channels to be available
+      in the pool again. Only after a succesfull channel poll will they be able to publish more messages.
      */
     override def send(msgs: Seq[String]): Future[Unit] = {
       pollChannelUntilPresent()
-        .flatMap { case (channel, leftInFlightSizeBeforePublish) =>
+        .flatMap { channel =>
           Future {
             blocking {
               msgs.foreach(msg => channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes))
-              logger.info(s"publishing message - channel ${channel.toString}")
-              val leftInFlightSizeAfterPublish = leftInFlightSizeBeforePublish - msgs.size
-              if (leftInFlightSizeAfterPublish >= batchSizeSend) {
-                channelPoolList.add(0, (channel, leftInFlightSizeAfterPublish))
-                logger.info(s"releasing channel ${channel.toString} for next publish - left in flight size: $leftInFlightSizeAfterPublish")
-                Future.successful()
-              } else {
-                channel.waitForConfirms()
-                channelPoolList.add((channel, maxSendInFlight))
-                logger.info(s"releasing channel ${channel.toString} after ack - resetting left in flight size")
-              }
+              channel.waitForConfirms()
+              channelPool.add(channel)
             }
           }
         }
     }
 
-
-    private def pollChannelUntilPresent(): Future[(Channel, Int)] = {
-      @tailrec
-      def doPollChannel(): (Channel, Int) = {
-        if (!channelPoolList.isEmpty) channelPoolList.remove(0)
-        else doPollChannel()
-      }
-
+    private def pollChannelUntilPresent(): Future[Channel] = {
       Future {
         blocking {
-          doPollChannel()
+          channelPool.take()
         }
       }
     }
@@ -140,6 +119,7 @@ class RabbitMq extends Mq with StrictLogging {
       ): Unit = {
 
         queue.add((envelope.getDeliveryTag, new String(body, "UTF-8")))
+        logger.info("queue.add")
       }
     }
 
@@ -170,7 +150,10 @@ class RabbitMq extends Mq with StrictLogging {
                 Thread.sleep(100L)
                 doPoll(waitIterations - 1)
               } else None
-            } else Some(next)
+            } else {
+              logger.info("poll from queue")
+              Some(next)
+            }
           }
 
           doPoll(if (waitForMsgs) maxPollAttempts else 0)
