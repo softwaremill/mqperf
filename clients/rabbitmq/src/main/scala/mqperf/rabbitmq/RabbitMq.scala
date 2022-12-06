@@ -117,9 +117,7 @@ class RabbitMq extends Mq with StrictLogging {
           properties: AMQP.BasicProperties,
           body: Array[Byte]
       ): Unit = {
-
         queue.add((envelope.getDeliveryTag, new String(body, "UTF-8")))
-        logger.info("queue.add")
       }
     }
 
@@ -151,7 +149,6 @@ class RabbitMq extends Mq with StrictLogging {
                 doPoll(waitIterations - 1)
               } else None
             } else {
-              logger.info("poll from queue")
               Some(next)
             }
           }
