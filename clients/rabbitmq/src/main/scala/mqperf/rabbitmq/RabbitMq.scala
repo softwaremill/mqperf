@@ -5,10 +5,10 @@ import com.rabbitmq.client.impl.nio.NioParams
 import com.typesafe.scalalogging.StrictLogging
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 
-import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue}
+import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentNavigableMap, ConcurrentSkipListMap, LinkedBlockingQueue}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, blocking}
+import scala.concurrent.{Future, Promise, blocking}
 
 class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
@@ -76,17 +76,47 @@ class RabbitMq extends Mq with StrictLogging {
       In order not to be able to send more yet unacked messgages than the MaxSendInFlight setting allows the number of channels is set as a result
       of a following calculation: maxSendInFlight / batchSizeSend.
       If all of the available channels are used at a specific time for sending the other threads will actively wait for the channels to be available
-      in the pool again. Only after a succesfull channel poll will they be able to publish more messages.
+      in the pool again. Only after a succesful channel poll will they be able to publish more messages.
      */
     override def send(msgs: Seq[String]): Future[Unit] = {
       pollChannelUntilPresent()
         .flatMap { channel =>
-          Future {
-            blocking {
-              msgs.foreach(msg => channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes))
-              channel.waitForConfirms()
-              channelPool.add(channel)
-            }
+          {
+            val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] = new ConcurrentSkipListMap() // publishSeqNo are ordered asc
+
+            channel.addConfirmListener(new ConfirmListener {
+              override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
+                logger.info(s"ack, channel: $channel")
+                // if multiple = true - all messages with publishSeqNo <= deliveryTag were ack
+                if (multiple) {
+                  publishSeqNoPromiseMap.headMap(deliveryTag, true).values()
+                    .forEach(promise => promise.success())
+                } else Option(publishSeqNoPromiseMap.get(deliveryTag)).foreach(_.success())
+
+                publishSeqNoPromiseMap.headMap(deliveryTag, true).clear()
+              }
+
+              override def handleNack(deliveryTag: Long, multiple: Boolean): Unit = {
+                logger.warn(s"UNACK for deliveryTag: $deliveryTag, channel: $channel")
+              }
+            })
+
+            Future
+              .sequence {
+                for (msg <- msgs) yield {
+                  val promise = Promise[Unit]()
+                  val nextPublishSeqNo = channel.getNextPublishSeqNo
+                  publishSeqNoPromiseMap.put(nextPublishSeqNo, promise)
+
+                  logger.info(s"publishing to channel: $channel")
+                  channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
+                  promise.future
+                }
+              }
+              .map(_ => {
+                logger.info(s"returning channel: $channel to pool")
+                channelPool.add(channel)
+              })
           }
         }
     }
