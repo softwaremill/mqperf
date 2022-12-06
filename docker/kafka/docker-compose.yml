@@ -20,11 +20,15 @@ services:
     image: confluentinc/cp-server:7.2.2
     hostname: broker
     container_name: broker
+    restart: always
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
       - "9101:9101"
+    entrypoint: ${PWD}/entrypoint.sh
+    volumes:
+      - ./entrypoint.sh:${PWD}/entrypoint.sh
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
