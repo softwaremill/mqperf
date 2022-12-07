@@ -1,7 +1,0 @@
-groups:
-  - name: mqperf
-    rules:
-      - record: mqperf_received_1m_rate
-        expr: rate(mqperf_received_total[1m])
-      - record: mqperf_sent_1m_rate
-        expr: rate(mqperf_sent_total[1m])

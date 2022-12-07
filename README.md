@@ -339,7 +339,11 @@ To test the senders/receivers using Kafka, you might either use the docker image
 sbt kafka/docker:publishLocal
 ```
 
-Then, go to `docker/kafka` and run `docker-compose up`. This will start zookeeper, the kafka broker,
+Then, go to `docker/kafka` and run
+```
+docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p kafka up
+```
+This will start zookeeper, the kafka broker,
 Confluent's control center (available at `http://localhost:9021`), and the mqperf server.
 
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
