@@ -343,6 +343,9 @@ Then, go to `docker/kafka` and run
 ```
 docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p kafka up
 ```
+> **_NOTE:_** Please remember to start the client file after the metrics file <br>
+> -p flag is used in order to give a specified name to the whole container
+
 This will start zookeeper, the kafka broker,
 Confluent's control center (available at `http://localhost:9021`), and the mqperf server.
 
