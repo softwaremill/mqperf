@@ -1,21 +1,22 @@
 ---
 version: '2'
 
-volumes:
-  prometheus_data: {}
-  grafana_data: {}
-
 services:
-  postgresmq:
+  postgres:
     image: postgres
-    container_name: 'postgresmq'
+    container_name: 'postgres'
     environment:
       POSTGRES_PASSWORD: defaultPass
+    volumes:
+      - ./init-mqDb.sh:/docker-entrypoint-initdb.d/init-mqDb.sh
+    hostname: postgres
+    ports:
+      - 5432:5432
 
   mqperf:
-    image: softwaremill/mqperf-kafka:latest
+    image: softwaremill/mqperf-postgres:latest
     depends_on:
-      - postgresmq
+      - postgres
     ports:
       - 8080:8080
     hostname: mqperf
