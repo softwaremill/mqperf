@@ -366,13 +366,17 @@ To test the senders/receivers using RabbitMQ, you might build the docker image l
 sbt rabbitmq/docker:publishLocal
 ```
 
-Then, go to `docker/rabbitmq` and run `docker-compose up`. This will start the RabbitMQ broker (default credentials)
+Then, go to `docker/rabbitmq` and run 
+```
+docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p rabbitmq up
+```
+This will start the RabbitMQ broker (default credentials)
 with its management interface (available at `http://localhost:15672`), and the mqperf server.
 
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
 ```bash
-curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true","maxChannelsNr":"10"}}' http://localhost:8080/init
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true"}}' http://localhost:8080/init
 ```
 
 

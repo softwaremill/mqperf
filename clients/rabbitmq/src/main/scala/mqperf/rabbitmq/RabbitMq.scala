@@ -86,8 +86,7 @@ class RabbitMq extends Mq with StrictLogging {
 
             channel.addConfirmListener(new ConfirmListener {
               override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
-                logger.info(s"ack, channel: $channel")
-                // if multiple = true - all messages with publishSeqNo <= deliveryTag were ack
+                // if multiple = true - all messages with publishSeqNo <= deliveryTag has been acked
                 if (multiple) {
                   publishSeqNoPromiseMap.headMap(deliveryTag, true).values()
                     .forEach(promise => promise.success())
@@ -97,7 +96,7 @@ class RabbitMq extends Mq with StrictLogging {
               }
 
               override def handleNack(deliveryTag: Long, multiple: Boolean): Unit = {
-                logger.warn(s"UNACK for deliveryTag: $deliveryTag, channel: $channel")
+                logger.warn(s"NACK for deliveryTag: $deliveryTag, channel: $channel")
               }
             })
 
@@ -108,13 +107,11 @@ class RabbitMq extends Mq with StrictLogging {
                   val nextPublishSeqNo = channel.getNextPublishSeqNo
                   publishSeqNoPromiseMap.put(nextPublishSeqNo, promise)
 
-                  logger.info(s"publishing to channel: $channel")
                   channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
                   promise.future
                 }
               }
               .map(_ => {
-                logger.info(s"returning channel: $channel to pool")
                 channelPool.add(channel)
               })
           }

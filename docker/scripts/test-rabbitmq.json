@@ -1,0 +1,19 @@
+{
+  "testId": "test-1",
+  "testLengthSeconds": 300,
+  "msgsPerSecond": 10,
+  "msgSizeBytes": 1024,
+  "batchSizeSend": 10,
+  "batchSizeReceive": 10,
+  "maxSendInFlight": 10,
+  "mqConfig": {
+    "hosts": "rabbitmq",
+    "username": "guest",
+    "password": "guest",
+    "queueName":"mqperf-test",
+    "maxPollAttempts":"10",
+    "qos":"100",
+    "multipleAck":"true"
+  },
+  "jobs": ["sender", "receiver", "receiver"]
+}
