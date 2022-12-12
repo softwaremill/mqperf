@@ -3,21 +3,25 @@ package mqperf.postgres
 import com.typesafe.scalalogging.StrictLogging
 import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
-import io.r2dbc.spi.Connection
+import io.r2dbc.spi.{Connection, ConnectionFactory}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 import reactor.core.publisher.Mono
 
-import java.time.Duration
+import java.time.{Duration, OffsetDateTime}
+import java.util.UUID
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.jdk.FutureConverters.CompletionStageOps
+import scala.util.{Failure, Success}
 
 class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   private val HostsConfigKey = "hosts"
+  private var connectionFactory: Option[ConnectionFactory] = None
 
   override def init(config: Config): Unit = {
-    Try {
-      val connectionFactory = new PostgresqlConnectionFactory(
+    connectionFactory = Some(
+      new PostgresqlConnectionFactory(
         PostgresqlConnectionConfiguration
           .builder()
           .host("postgres")
@@ -27,19 +31,11 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
           .database("mqdb")
           .build()
       )
-
-      val poolConfiguration = ConnectionPoolConfiguration
-        .builder(connectionFactory)
-        .maxIdleTime(Duration.ofMillis(1000))
-        .maxSize(10)
-        .minIdle(10)
-        .build()
-
-      val connectionPool = new ConnectionPool(poolConfiguration)
-
+    )
+    connectionFactory.map { cf =>
       Mono
         .usingWhen(
-          connectionPool.create(),
+          cf.create(),
           (v: Connection) =>
             Mono
               .from(
@@ -61,18 +57,63 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
           logger.error("Error", ex)
           Mono.empty()
         })
-        .thenEmpty(connectionPool.close())
         .subscribe()
-    } match {
-      case Success(v)  => logger.info(s"PostgresMq initialized $v")
-      case Failure(ex) => logger.error("PostgresMq initialization error", ex)
     }
   }
 
   override def cleanUp(config: Config): Unit = ???
 
   override def createSender(config: Config): MqSender = new MqSender {
-    override def send(msgs: Seq[String]): Future[Unit] = ???
+
+    val senderPool: ConnectionPool = connectionFactory
+      .map(cf =>
+        new ConnectionPool(
+          ConnectionPoolConfiguration
+            .builder(cf)
+            .maxIdleTime(Duration.ofMillis(1000))
+            .maxSize(10)
+            .minIdle(10)
+            .build()
+        )
+      )
+      .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
+
+    override def send(msgs: Seq[String]): Future[Unit] = {
+      Mono
+        .usingWhen(
+          senderPool.create(),
+          (c: Connection) =>
+            Mono.from {
+              val insert = s"insert into jobs(id, content, next_delivery) values "
+              val values = msgs
+                .map(msg => {
+                  s"('${UUID.randomUUID()}', '$msg', '${OffsetDateTime.now(clock)}')"
+                })
+                .mkString(",")
+              c.createStatement(s"$insert $values").execute()
+            },
+          (c: Connection) => c.close
+        )
+        .toFuture
+        .asScala
+        .flatMap(r => Mono.from(r.getRowsUpdated).toFuture.asScala)
+        .andThen {
+          case Success(v)  => logger.info(s"Sender#send done, inserted rows: $v")
+          case Failure(ex) => logger.error(s"Sender#send fails", ex)
+        }
+        .map(_ => ())
+    }
+
+    override def close(): Future[Unit] =
+      senderPool
+        .disposeLater()
+        .toFuture
+        .asScala
+        .map(_ => ())
+        .andThen {
+          case Success(v)  => logger.info(s"PostgresMq#close done with $v")
+          case Failure(ex) => logger.error(s"PostgresMq#close fails", ex)
+        }
   }
 
   override def createReceiver(config: Config): MqReceiver = new MqReceiver {
