@@ -82,29 +82,28 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
 
     override def send(msgs: Seq[String]): Future[Unit] = {
-      Mono
+      val promise = Promise[Unit]
+
+      Flux
         .usingWhen(
           senderPool.create(),
-          (c: Connection) =>
-            Mono.from {
-              val insert = s"insert into jobs(id, content, next_delivery) values "
-              val values = msgs
-                .map(msg => {
-                  s"('${UUID.randomUUID()}', '$msg', '${OffsetDateTime.now(clock)}')"
-                })
-                .mkString(",")
-              c.createStatement(s"$insert $values").execute()
-            },
+          (c: Connection) => {
+            val statement = c.createStatement("insert into jobs(id, content, next_delivery) values ($1, $2, $3)")
+            statement.bind("$1", UUID.randomUUID()).bind("$2", msgs.head).bind("$3", ZonedDateTime.now(clock))
+            msgs.tail.foreach(msg => {
+              statement.add()
+              statement.bind("$1", UUID.randomUUID()).bind("$2", msg).bind("$3", ZonedDateTime.now(clock))
+            })
+            statement.execute()
+          },
           (c: Connection) => c.close
         )
-        .toFuture
-        .asScala
-        .flatMap(r => Mono.from(r.getRowsUpdated).toFuture.asScala)
-        .andThen {
-          case Success(v)  => logger.info(s"Sender#send done, inserted rows: $v")
-          case Failure(ex) => logger.error(s"Sender#send fails", ex)
-        }
-        .map(_ => ())
+        .doOnComplete(() => promise.success(Seq()))
+        .doOnError(ex => promise.failure(ex))
+        .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
+        .subscribe((t: UUID) => logger.info(s"ID: $t"))
+
+        promise.future
     }
 
     override def close(): Future[Unit] =
@@ -154,6 +153,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       .doOnError(ex => promise.failure(ex))
       .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
       .subscribe((t: UUID) => logger.info(s"ID: $t"))
+
       promise.future
     }
 
