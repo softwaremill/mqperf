@@ -5,13 +5,10 @@ import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
 import io.r2dbc.spi.{Connection, ConnectionFactory, Result}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
-import org.reactivestreams.Subscription
-import reactor.core.CoreSubscriber
-import reactor.core.publisher.{BaseSubscriber, Flux, Mono}
+import reactor.core.publisher.{Flux, Mono}
 
-import java.time.{Duration, OffsetDateTime, ZonedDateTime}
+import java.time.{Duration, ZonedDateTime}
 import java.util.UUID
-import java.util.function.Consumer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.jdk.FutureConverters.CompletionStageOps
@@ -103,7 +100,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
         .subscribe((t: UUID) => logger.info(s"ID: $t"))
 
-        promise.future
+      promise.future
     }
 
     override def close(): Future[Unit] =
@@ -135,29 +132,46 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       )
       .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
 
+
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
       val now = ZonedDateTime.now(clock)
       val nextDelivery = now.plusSeconds(100)
 
       val promise = Promise[Seq[(MsgId, String)]]
-      Flux.usingWhen(
-        receiverPool.create(),
-        (c: Connection) =>
-          c.createStatement("select id, content from jobs where next_delivery <= $1")
-            .bind("$1", now)
-            .execute()
-        ,
-        (c: Connection) => c.close()
-      )
-      .doOnComplete(() => promise.success(Seq()))
-      .doOnError(ex => promise.failure(ex))
-      .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
-      .subscribe((t: UUID) => logger.info(s"ID: $t"))
+      Flux
+        .usingWhen(
+          receiverPool.create(),
+          (c: Connection) => {
+            Flux
+              .from(
+                c.createStatement("select id, content from jobs where next_delivery <= $1 limit $2")
+                  .bind("$1", now)
+                  .bind("$2", config.batchSizeReceive)
+                  .execute()
+              )
+              .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
+              .collectList()
+              .flatMap(ids => {
+                Mono.from {
+                  c.createStatement("update jobs set next_delivery = $1 where id::text in ( $2 )")
+                    .bind("$1", nextDelivery.plusDays(1))
+                    .bind("$2", ids.toArray.mkString(","))
+                    .execute()
+                }
+                .flatMap((value: Result) => Mono.from(value.getRowsUpdated))
+              })
+              .doOnSuccess(value => logger.info(s"#DO_ON_SUCCESS with $value"))
+              .doOnError(ex => logger.info("#DO_ON_ERROR", ex))
+          },
+          (c: Connection) => c.close()
+        )
+        .doOnComplete(() => promise.success(Seq()))
+        .doOnError(ex => promise.failure(ex))
+        .subscribe()
 
       promise.future
     }
 
-
-    override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful()
+    override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful( Thread.sleep(5000L))
   }
 }
