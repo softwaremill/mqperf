@@ -3,14 +3,17 @@ package mqperf.postgres
 import com.typesafe.scalalogging.StrictLogging
 import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
-import io.r2dbc.spi.{Connection, ConnectionFactory}
+import io.r2dbc.spi.{Connection, ConnectionFactory, Result}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
-import reactor.core.publisher.Mono
+import org.reactivestreams.Subscription
+import reactor.core.CoreSubscriber
+import reactor.core.publisher.{BaseSubscriber, Flux, Mono}
 
-import java.time.{Duration, OffsetDateTime}
+import java.time.{Duration, OffsetDateTime, ZonedDateTime}
 import java.util.UUID
+import java.util.function.Consumer
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.jdk.FutureConverters.CompletionStageOps
 import scala.util.{Failure, Success}
 
@@ -118,8 +121,43 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   override def createReceiver(config: Config): MqReceiver = new MqReceiver {
 
-    override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = ???
+    override type MsgId = String
 
-    override def ack(ids: Seq[MsgId]): Future[Unit] = ???
+    val receiverPool: ConnectionPool = connectionFactory
+      .map(cf =>
+        new ConnectionPool(
+          ConnectionPoolConfiguration
+            .builder(cf)
+            .maxIdleTime(Duration.ofMillis(1000))
+            .maxSize(10)
+            .minIdle(10)
+            .build()
+        )
+      )
+      .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
+
+    override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
+      val now = ZonedDateTime.now(clock)
+      val nextDelivery = now.plusSeconds(100)
+
+      val promise = Promise[Seq[(MsgId, String)]]
+      Flux.usingWhen(
+        receiverPool.create(),
+        (c: Connection) =>
+          c.createStatement("select id, content from jobs where next_delivery <= $1")
+            .bind("$1", now)
+            .execute()
+        ,
+        (c: Connection) => c.close()
+      )
+      .doOnComplete(() => promise.success(Seq()))
+      .doOnError(ex => promise.failure(ex))
+      .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
+      .subscribe((t: UUID) => logger.info(s"ID: $t"))
+      promise.future
+    }
+
+
+    override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful()
   }
 }
