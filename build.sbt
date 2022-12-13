@@ -62,8 +62,9 @@ lazy val postgres: Project = (project in file("clients/postgres"))
   .settings(
     name := "postgres",
     libraryDependencies ++= Seq(
-      "org.postgresql" % "r2dbc-postgresql" % "1.0.0.RELEASE",
-      "io.r2dbc" % "r2dbc-pool" % "1.0.0.RELEASE",
+      "org.postgresql" % "r2dbc-postgresql" % "0.9.2.RELEASE",
+      "io.r2dbc" % "r2dbc-pool" % "0.9.2.RELEASE",
+      "org.springframework.data" % "spring-data-r2dbc" % "1.5.6",
       scalaTest
     )
   )
