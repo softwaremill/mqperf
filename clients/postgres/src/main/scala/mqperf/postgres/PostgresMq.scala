@@ -5,6 +5,7 @@ import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
 import io.r2dbc.spi.{Connection, ConnectionFactory, Result}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
+import org.springframework.r2dbc.core.DatabaseClient
 import reactor.core.publisher.{Flux, Mono}
 
 import java.time.{Duration, ZonedDateTime}
@@ -132,39 +133,34 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       )
       .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
 
+    val client: DatabaseClient = DatabaseClient.builder()
+      .connectionFactory(receiverPool)
+      //.bindMarkers(() -> BindMarkersFactory.named(":", "", 20).create())
+      .namedParameters(true)
+      .build();
 
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
       val now = ZonedDateTime.now(clock)
       val nextDelivery = now.plusSeconds(100)
 
       val promise = Promise[Seq[(MsgId, String)]]
-      Flux
-        .usingWhen(
-          receiverPool.create(),
-          (c: Connection) => {
-            Flux
-              .from(
-                c.createStatement("select id, content from jobs where next_delivery <= $1 limit $2")
-                  .bind("$1", now)
-                  .bind("$2", config.batchSizeReceive)
-                  .execute()
-              )
-              .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
-              .collectList()
-              .flatMap(ids => {
-                Mono.from {
-                  c.createStatement("update jobs set next_delivery = $1 where id::text in ( $2 )")
-                    .bind("$1", nextDelivery.plusDays(1))
-                    .bind("$2", ids.toArray.mkString(","))
-                    .execute()
-                }
-                .flatMap((value: Result) => Mono.from(value.getRowsUpdated))
-              })
-              .doOnSuccess(value => logger.info(s"#DO_ON_SUCCESS with $value"))
-              .doOnError(ex => logger.info("#DO_ON_ERROR", ex))
-          },
-          (c: Connection) => c.close()
+
+      client
+        .sql("select id, content from jobs where next_delivery <= :now limit :limit")
+        .bind("now", now)
+        .bind("limit", config.batchSizeReceive)
+        .map(row => row.get("id", classOf[UUID]))
+        .all()
+        .collectList()
+        .flatMap(ids =>
+          client
+            .sql("update jobs set next_delivery = :nextDelivery where id in (:inIds)")
+            .bind("nextDelivery", nextDelivery)
+            .bind("inIds", ids)
+            .fetch()
+            .rowsUpdated()
         )
+        .flux()
         .doOnComplete(() => promise.success(Seq()))
         .doOnError(ex => promise.failure(ex))
         .subscribe()
