@@ -57,7 +57,19 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     })
   }
 
-  override def cleanUp(config: Config): Unit = ???
+  override def cleanUp(config: Config): Unit = connectionFactory.map(cf => {
+    val client: DatabaseClient = DatabaseClient
+      .builder()
+      .connectionFactory(cf)
+      .namedParameters(true)
+      .build()
+
+    client
+      .sql("drop table if exists jobs")
+      .fetch()
+      .rowsUpdated()
+      .subscribe()
+  })
 
   override def createSender(config: Config): MqSender = new MqSender {
 
