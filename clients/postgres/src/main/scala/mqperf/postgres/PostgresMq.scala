@@ -3,20 +3,19 @@ package mqperf.postgres
 import com.typesafe.scalalogging.StrictLogging
 import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
-import io.r2dbc.spi.{Connection, ConnectionFactory, Result}
+import io.r2dbc.spi.{Connection, ConnectionFactory}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.transaction.reactive.TransactionalOperator
-import reactor.core.publisher.{Flux, Mono}
+import reactor.core.publisher.Mono
 
 import java.time.{Duration, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import scala.jdk.FutureConverters.CompletionStageOps
-import scala.util.{Failure, Success}
 
 class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
@@ -69,7 +68,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   override def createSender(config: Config): MqSender = new MqSender {
 
-    val senderPool: ConnectionPool = connectionFactory
+    private val senderPool: ConnectionPool = connectionFactory
       .map(cf =>
         new ConnectionPool(
           ConnectionPoolConfiguration
@@ -82,29 +81,24 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       )
       .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
 
+    private val client: DatabaseClient = DatabaseClient
+      .builder()
+      .connectionFactory(senderPool)
+      .namedParameters(true)
+      .build()
+
     override def send(msgs: Seq[String]): Future[Unit] = {
-      val promise = Promise[Unit]
+      val query = new StringBuilder("insert into jobs(id, content, next_delivery) values ")
+      query ++= s"('${UUID.randomUUID()}', '${msgs.head}', '${ZonedDateTime.now(clock)}')"
+      msgs.tail.foreach(m => query ++= s", ('${UUID.randomUUID()}', '$m', '${ZonedDateTime.now(clock)}')")
 
-      Flux
-        .usingWhen(
-          senderPool.create(),
-          (c: Connection) => {
-            val statement = c.createStatement("insert into jobs(id, content, next_delivery) values ($1, $2, $3)")
-            statement.bind("$1", UUID.randomUUID()).bind("$2", msgs.head).bind("$3", ZonedDateTime.now(clock))
-            msgs.tail.foreach(msg => {
-              statement.add()
-              statement.bind("$1", UUID.randomUUID()).bind("$2", msg).bind("$3", ZonedDateTime.now(clock))
-            })
-            statement.execute()
-          },
-          (c: Connection) => c.close
-        )
-        .doOnComplete(() => promise.success(Seq()))
-        .doOnError(ex => promise.failure(ex))
-        .flatMap((r: Result) => r.map(_.get("id", classOf[UUID])))
-        .subscribe((t: UUID) => logger.info(s"ID: $t"))
-
-      promise.future
+      client
+        .sql(query.toString)
+        .fetch()
+        .rowsUpdated()
+        .toFuture
+        .asScala
+        .map(_ => ())
     }
 
     override def close(): Future[Unit] =
@@ -113,10 +107,6 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .toFuture
         .asScala
         .map(_ => ())
-        .andThen {
-          case Success(v)  => logger.info(s"PostgresMq#close done with $v")
-          case Failure(ex) => logger.error(s"PostgresMq#close fails", ex)
-        }
   }
 
   override def createReceiver(config: Config): MqReceiver = new MqReceiver {
