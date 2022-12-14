@@ -3,7 +3,7 @@ package mqperf.postgres
 import com.typesafe.scalalogging.StrictLogging
 import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
-import io.r2dbc.spi.{Connection, ConnectionFactory}
+import io.r2dbc.spi.ConnectionFactory
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
 import org.springframework.r2dbc.core.DatabaseClient
@@ -35,33 +35,26 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
           .build()
       )
     )
-    connectionFactory.map { cf =>
-      Mono
-        .usingWhen(
-          cf.create(),
-          (v: Connection) =>
-            Mono
-              .from(
-                v.createStatement(
-                  "CREATE TABLE IF NOT EXISTS jobs(ID UUID PRIMARY KEY, CONTENT TEXT NOT NULL, NEXT_DELIVERY TIMESTAMPTZ NOT NULL)"
-                ).execute()
-              )
-              .map(v => {
-                logger.info(s"Result $v")
-                v
-              })
-              .onErrorResume(ex => {
-                logger.error("Error", ex)
-                Mono.empty()
-              }),
-          (v: Connection) => v.close()
+
+    connectionFactory.map(cf => {
+      val client: DatabaseClient = DatabaseClient
+        .builder()
+        .connectionFactory(cf)
+        .namedParameters(true)
+        .build()
+
+      client
+        .sql("create table if not exists jobs(id uuid primary key, content text not null, next_delivery timestamptz not null)")
+        .fetch()
+        .rowsUpdated()
+        .flatMap(_ =>
+          client
+            .sql("create index if not exists next_delivery_idx on jobs(next_delivery)")
+            .fetch()
+            .rowsUpdated()
         )
-        .onErrorResume(ex => {
-          logger.error("Error", ex)
-          Mono.empty()
-        })
         .subscribe()
-    }
+    })
   }
 
   override def cleanUp(config: Config): Unit = ???
