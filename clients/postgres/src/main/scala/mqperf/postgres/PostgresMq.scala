@@ -200,15 +200,20 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .asScala
     }
 
-    override def ack(ids: Seq[MsgId]): Future[Unit] =
-      client
-        .sql("delete from jobs where id in (:inIds)")
-        .bind("inIds", ids.asJava)
-        .fetch()
-        .rowsUpdated()
-        .toFuture
-        .asScala
-        .map(_ => ())
+    override def ack(ids: Seq[MsgId]): Future[Unit] = ids match {
+      case Nil =>
+        Future.successful()
+      case vs =>
+        client
+          .sql("delete from jobs where id in (:inIds)")
+          .bind("inIds", vs.asJava)
+          .fetch()
+          .rowsUpdated()
+          .toFuture
+          .asScala
+          .map(_ => ())
+    }
+
 
     override def close(): Future[Unit] = {
       receiverPool
