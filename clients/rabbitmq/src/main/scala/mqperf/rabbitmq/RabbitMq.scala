@@ -78,51 +78,42 @@ class RabbitMq extends Mq with StrictLogging {
       If all of the available channels are used at a specific time for sending the other threads will actively wait for the channels to be available
       in the pool again. Only after a succesful channel poll will they be able to publish more messages.
      */
-    override def send(msgs: Seq[String]): Future[Unit] = {
-      pollChannelUntilPresent()
-        .flatMap { channel =>
-          {
-            val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] = new ConcurrentSkipListMap() // publishSeqNo are ordered asc
+    override def send(msgs: Seq[String]): Future[Unit] = Future {
+      blocking {
+        val channel = channelPool.take()
+        val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] = new ConcurrentSkipListMap() // publishSeqNo are ordered asc
 
-            channel.addConfirmListener(new ConfirmListener {
-              override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
-                // if multiple = true - all messages with publishSeqNo <= deliveryTag has been acked
-                if (multiple) {
-                  publishSeqNoPromiseMap.headMap(deliveryTag, true).values()
-                    .forEach(promise => promise.success())
-                } else Option(publishSeqNoPromiseMap.get(deliveryTag)).foreach(_.success())
+        channel.addConfirmListener(new ConfirmListener {
+          override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
+            // if multiple = true - all messages with publishSeqNo <= deliveryTag has been acked
+            if (multiple) {
+              publishSeqNoPromiseMap.headMap(deliveryTag, true).values()
+                .forEach(promise => promise.success())
+            } else Option(publishSeqNoPromiseMap.get(deliveryTag)).foreach(_.success())
 
-                publishSeqNoPromiseMap.headMap(deliveryTag, true).clear()
-              }
-
-              override def handleNack(deliveryTag: Long, multiple: Boolean): Unit = {
-                logger.warn(s"NACK for deliveryTag: $deliveryTag, channel: $channel")
-              }
-            })
-
-            Future
-              .sequence {
-                for (msg <- msgs) yield {
-                  val promise = Promise[Unit]()
-                  val nextPublishSeqNo = channel.getNextPublishSeqNo
-                  publishSeqNoPromiseMap.put(nextPublishSeqNo, promise)
-
-                  channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
-                  promise.future
-                }
-              }
-              .map(_ => {
-                channelPool.add(channel)
-              })
+            publishSeqNoPromiseMap.headMap(deliveryTag, true).clear()
           }
-        }
-    }
 
-    private def pollChannelUntilPresent(): Future[Channel] = {
-      Future {
-        blocking {
-          channelPool.take()
-        }
+          override def handleNack(deliveryTag: Long, multiple: Boolean): Unit = {
+            throw new IllegalStateException(s"NACK for deliveryTag: $deliveryTag")
+          }
+        })
+
+        val a = Future
+          .sequence {
+            for (msg <- msgs) yield {
+              val promise = Promise[Unit]()
+              val nextPublishSeqNo = channel.getNextPublishSeqNo
+              publishSeqNoPromiseMap.put(nextPublishSeqNo, promise)
+
+              channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
+              promise.future
+            }
+          }
+          .map(_ => {
+            channelPool.add(channel)
+            ()
+          })
       }
     }
   }
@@ -139,11 +130,11 @@ class RabbitMq extends Mq with StrictLogging {
 
     private val consumer = new DefaultConsumer(channel) {
       override def handleDelivery(
-          consumerTag: String,
-          envelope: Envelope,
-          properties: AMQP.BasicProperties,
-          body: Array[Byte]
-      ): Unit = {
+                                   consumerTag: String,
+                                   envelope: Envelope,
+                                   properties: AMQP.BasicProperties,
+                                   body: Array[Byte]
+                                 ): Unit = {
         queue.add((envelope.getDeliveryTag, new String(body, "UTF-8")))
       }
     }
@@ -159,7 +150,7 @@ class RabbitMq extends Mq with StrictLogging {
             acc
           } else {
             nextMessageFromQueue(waitForMsgs = acc.isEmpty) match {
-              case None    => acc
+              case None => acc
               case Some(m) => doReceive(acc :+ m, count - 1)
             }
           }
