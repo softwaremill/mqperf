@@ -5,13 +5,16 @@ import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
 import io.r2dbc.spi.{Connection, ConnectionFactory, Result}
 import mqperf.{Config, Mq, MqReceiver, MqSender}
+import org.springframework.r2dbc.connection.R2dbcTransactionManager
 import org.springframework.r2dbc.core.DatabaseClient
+import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.core.publisher.{Flux, Mono}
 
 import java.time.{Duration, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import scala.jdk.FutureConverters.CompletionStageOps
 import scala.util.{Failure, Success}
 
@@ -118,9 +121,9 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   override def createReceiver(config: Config): MqReceiver = new MqReceiver {
 
-    override type MsgId = String
+    override type MsgId = UUID
 
-    val receiverPool: ConnectionPool = connectionFactory
+    private val receiverPool: ConnectionPool = connectionFactory
       .map(cf =>
         new ConnectionPool(
           ConnectionPoolConfiguration
@@ -133,41 +136,59 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       )
       .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
 
-    val client: DatabaseClient = DatabaseClient.builder()
+    private val client: DatabaseClient = DatabaseClient
+      .builder()
       .connectionFactory(receiverPool)
-      //.bindMarkers(() -> BindMarkersFactory.named(":", "", 20).create())
       .namedParameters(true)
-      .build();
+      .build()
+
+    private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
 
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
       val now = ZonedDateTime.now(clock)
       val nextDelivery = now.plusSeconds(100)
 
-      val promise = Promise[Seq[(MsgId, String)]]
-
       client
-        .sql("select id, content from jobs where next_delivery <= :now limit :limit")
+        .sql("select id, content from jobs where next_delivery <= :now for update skip locked limit :limit")
         .bind("now", now)
-        .bind("limit", config.batchSizeReceive)
-        .map(row => row.get("id", classOf[UUID]))
+        .bind("limit", maxMsgCount)
+        .map(row => (row.get("id", classOf[UUID]), row.get("content", classOf[String])))
         .all()
         .collectList()
-        .flatMap(ids =>
-          client
-            .sql("update jobs set next_delivery = :nextDelivery where id in (:inIds)")
-            .bind("nextDelivery", nextDelivery)
-            .bind("inIds", ids)
-            .fetch()
-            .rowsUpdated()
-        )
-        .flux()
-        .doOnComplete(() => promise.success(Seq()))
-        .doOnError(ex => promise.failure(ex))
-        .subscribe()
-
-      promise.future
+        .map(_.asScala.toList)
+        .flatMap {
+          case Nil =>
+            Mono.just(Seq.empty[(MsgId, String)])
+          case ids =>
+            client
+              .sql("update jobs set next_delivery = :nextDelivery where id in (:inIds)")
+              .bind("nextDelivery", nextDelivery)
+              .bind("inIds", ids.map(_._1).asJava)
+              .fetch()
+              .rowsUpdated()
+              .map(_ => ids)
+        }
+        .as((v: Mono[Seq[(MsgId, String)]]) => txOperator.transactional(v))
+        .toFuture
+        .asScala
     }
 
-    override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful( Thread.sleep(5000L))
+    override def ack(ids: Seq[MsgId]): Future[Unit] =
+      client
+        .sql("delete from jobs where id in (:inIds)")
+        .bind("inIds", ids.asJava)
+        .fetch()
+        .rowsUpdated()
+        .toFuture
+        .asScala
+        .map(_ => ())
+
+    override def close(): Future[Unit] = {
+      receiverPool
+        .disposeLater()
+        .toFuture
+        .asScala
+        .map(_ => ())
+    }
   }
 }
