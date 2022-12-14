@@ -1,0 +1,81 @@
+### /init: "-1" means that value is not used
+
+POST http://localhost:8080/init
+Content-Type: application/json
+
+{
+  "testId": "test",
+  "testLengthSeconds": -1,
+  "msgsPerSecond": -1,
+  "msgSizeBytes": -1,
+  "batchSizeSend": -1,
+  "maxSendInFlight": -1,
+  "batchSizeReceive": -1,
+  "mqConfig": {
+    "host": "postgres",
+    "port": "5432",
+    "table": "jobs"
+  }
+}
+
+### /sender: "-1" means that value is not used
+
+POST http://localhost:8080/start/sender
+Content-Type: application/json
+
+{
+  "testId": "test",
+  "testLengthSeconds": 3,
+  "msgsPerSecond": 100,
+  "msgSizeBytes": 1000,
+  "batchSizeSend": 10,
+  "maxSendInFlight": 1000,
+  "batchSizeReceive": -1,
+  "mqConfig": {
+    "senderPoolSize": "5"
+  }
+}
+
+### /receiver: "-1" means that value is not used
+
+POST http://localhost:8080/start/receiver
+Content-Type: application/json
+
+{
+  "testId": "test",
+  "testLengthSeconds": -1,
+  "msgsPerSecond": -1,
+  "msgSizeBytes": -1,
+  "batchSizeSend": -1,
+  "maxSendInFlight": -1,
+  "batchSizeReceive": 100,
+  "mqConfig": {
+    "receiverPoolSize": "5"
+  }
+}
+
+### /cleanup:  "-1" means that value is not used
+
+POST http://localhost:8080/cleanup
+Content-Type: application/json
+
+{
+  "testId": "test",
+  "testLengthSeconds": -1,
+  "msgsPerSecond": -1,
+  "msgSizeBytes": -1,
+  "batchSizeSend": -1,
+  "maxSendInFlight": -1,
+  "batchSizeReceive": -1,
+  "mqConfig": {
+    "table": "jobs"
+  }
+}
+
+### /in-progress
+
+GET http://localhost:8080/in-progress
+
+### /metrics
+
+GET http://localhost:8080/metrics
