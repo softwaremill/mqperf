@@ -50,7 +50,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       )
     )
 
-    connectionFactory.map(cf => {
+    connectionFactory.foreach(cf => {
       val client: DatabaseClient = DatabaseClient
         .builder()
         .connectionFactory(cf)
@@ -76,7 +76,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     })
   }
 
-  override def cleanUp(config: Config): Unit = connectionFactory.map(cf => {
+  override def cleanUp(config: Config): Unit = connectionFactory.foreach(cf => {
     val table = config.mqConfig(TableConfigKey)
 
     val client: DatabaseClient = DatabaseClient
@@ -202,7 +202,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     override def ack(ids: Seq[MsgId]): Future[Unit] = ids match {
       case Nil =>
-        Future.successful()
+        Future.successful(())
       case vs =>
         client
           .sql("delete from jobs where id in (:inIds)")
