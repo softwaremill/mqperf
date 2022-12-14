@@ -81,13 +81,16 @@ class RabbitMq extends Mq with StrictLogging {
     override def send(msgs: Seq[String]): Future[Unit] = Future {
       blocking {
         val channel = channelPool.take()
-        val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] = new ConcurrentSkipListMap() // publishSeqNo are ordered asc
+        val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] =
+          new ConcurrentSkipListMap() // publishSeqNo are ordered asc
 
         channel.addConfirmListener(new ConfirmListener {
           override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
             // if multiple = true - all messages with publishSeqNo <= deliveryTag has been acked
             if (multiple) {
-              publishSeqNoPromiseMap.headMap(deliveryTag, true).values()
+              publishSeqNoPromiseMap
+                .headMap(deliveryTag, true)
+                .values()
                 .forEach(promise => promise.success())
             } else Option(publishSeqNoPromiseMap.get(deliveryTag)).foreach(_.success())
 
@@ -99,7 +102,7 @@ class RabbitMq extends Mq with StrictLogging {
           }
         })
 
-        val a = Future
+        Future
           .sequence {
             for (msg <- msgs) yield {
               val promise = Promise[Unit]()
@@ -130,11 +133,11 @@ class RabbitMq extends Mq with StrictLogging {
 
     private val consumer = new DefaultConsumer(channel) {
       override def handleDelivery(
-                                   consumerTag: String,
-                                   envelope: Envelope,
-                                   properties: AMQP.BasicProperties,
-                                   body: Array[Byte]
-                                 ): Unit = {
+          consumerTag: String,
+          envelope: Envelope,
+          properties: AMQP.BasicProperties,
+          body: Array[Byte]
+      ): Unit = {
         queue.add((envelope.getDeliveryTag, new String(body, "UTF-8")))
       }
     }
@@ -150,7 +153,7 @@ class RabbitMq extends Mq with StrictLogging {
             acc
           } else {
             nextMessageFromQueue(waitForMsgs = acc.isEmpty) match {
-              case None => acc
+              case None    => acc
               case Some(m) => doReceive(acc :+ m, count - 1)
             }
           }
