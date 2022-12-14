@@ -360,16 +360,18 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
 To test the senders/receivers using PostgresMQ, you might build the docker image locally using:
 
 ```
-sbt postgresmq/docker:publishLocal
+sbt postgres/docker:publishLocal
 ```
 
-Then, go to `docker/postgresmq` and run `docker-compose up`. This will start the PostgreSQL server.
+Then, go to `docker/postgres` and run `docker-compose up`. This will start the PostgreSQL server.
 
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
 ```bash
-curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"hosts":"rabbitmq","username":"guest","password":"guest","queueName":"mqperf-test","maxPollAttempts":"10","qos":"100","multipleAck":"true","maxChannelsNr":"10"}}' http://localhost:8080/init
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"host": "postgres", "port": "5432", "table": "jobs"}}' http://localhost:8080/init
 ```
+
+You can also check sample requests in `postgresMq.http` file.
 
 ## Copyright
 
