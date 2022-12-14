@@ -63,7 +63,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .rowsUpdated()
         .flatMap(_ =>
           client
-            .sql("create index if not exists next_delivery_idx on jobs(next_delivery)")
+            .sql(s"create index if not exists next_delivery_idx on $table(next_delivery)")
             .fetch()
             .rowsUpdated()
         )
