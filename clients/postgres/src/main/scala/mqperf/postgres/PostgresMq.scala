@@ -16,22 +16,36 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import scala.jdk.FutureConverters.CompletionStageOps
+import scala.util.{Failure, Success}
 
 class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
-  private val HostsConfigKey = "hosts"
+  private val MqUser = "mquser"
+  private val MqPass = "mqpass"
+  private val MqDb = "mqdb"
+
+  private val HostConfigKey = "host"
+  private val PortConfigKey = "port"
+  private val TableConfigKey = "table"
+  private val SenderPoolSize = "senderPoolSize"
+  private val ReceiverPoolSize = "receiverPoolSize"
+
   private var connectionFactory: Option[ConnectionFactory] = None
 
   override def init(config: Config): Unit = {
+    val host = config.mqConfig(HostConfigKey)
+    val port = config.mqConfig(PortConfigKey).toInt
+    val table = config.mqConfig(TableConfigKey)
+
     connectionFactory = Some(
       new PostgresqlConnectionFactory(
         PostgresqlConnectionConfiguration
           .builder()
-          .host("postgres")
-          .port(5432)
-          .username("mquser")
-          .password("mqpass")
-          .database("mqdb")
+          .host(host)
+          .port(port)
+          .username(MqUser)
+          .password(MqPass)
+          .database(MqDb)
           .build()
       )
     )
@@ -44,7 +58,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .build()
 
       client
-        .sql("create table if not exists jobs(id uuid primary key, content text not null, next_delivery timestamptz not null)")
+        .sql(s"create table if not exists $table(id uuid primary key, content text not null, next_delivery timestamptz not null)")
         .fetch()
         .rowsUpdated()
         .flatMap(_ =>
@@ -53,11 +67,18 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
             .fetch()
             .rowsUpdated()
         )
-        .subscribe()
+        .toFuture
+        .asScala
+        .andThen {
+          case Success(_)  => logger.info(s"Table $table created.")
+          case Failure(ex) => logger.error(s"Table $table creating failure.", ex)
+        }
     })
   }
 
   override def cleanUp(config: Config): Unit = connectionFactory.map(cf => {
+    val table = config.mqConfig(TableConfigKey)
+
     val client: DatabaseClient = DatabaseClient
       .builder()
       .connectionFactory(cf)
@@ -65,22 +86,30 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       .build()
 
     client
-      .sql("drop table if exists jobs")
+      .sql(s"drop table if exists $table")
       .fetch()
       .rowsUpdated()
-      .subscribe()
+      .toFuture
+      .asScala
+      .andThen {
+        case Success(_)  => logger.info(s"Table $table dropped.")
+        case Failure(ex) => logger.error(s"Table $table dropping failure.", ex)
+      }
   })
 
   override def createSender(config: Config): MqSender = new MqSender {
+
+    private val poolSize = config.mqConfig(SenderPoolSize).toInt
 
     private val senderPool: ConnectionPool = connectionFactory
       .map(cf =>
         new ConnectionPool(
           ConnectionPoolConfiguration
             .builder(cf)
-            .maxIdleTime(Duration.ofMillis(1000))
-            .maxSize(10)
-            .minIdle(10)
+            .maxIdleTime(Duration.ofMinutes(5))
+            .initialSize(poolSize)
+            .maxSize(poolSize)
+            .minIdle(poolSize)
             .build()
         )
       )
@@ -118,14 +147,17 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     override type MsgId = UUID
 
+    private val poolSize = config.mqConfig(ReceiverPoolSize).toInt
+
     private val receiverPool: ConnectionPool = connectionFactory
       .map(cf =>
         new ConnectionPool(
           ConnectionPoolConfiguration
             .builder(cf)
-            .maxIdleTime(Duration.ofMillis(1000))
-            .maxSize(10)
-            .minIdle(10)
+            .maxIdleTime(Duration.ofMinutes(5))
+            .initialSize(poolSize)
+            .maxSize(poolSize)
+            .minIdle(poolSize)
             .build()
         )
       )
