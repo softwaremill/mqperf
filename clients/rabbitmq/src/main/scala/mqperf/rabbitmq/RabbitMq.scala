@@ -7,7 +7,6 @@ import mqperf.{Config, Mq, MqReceiver, MqSender}
 
 import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentNavigableMap, ConcurrentSkipListMap, LinkedBlockingQueue}
 import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise, blocking}
 
@@ -20,14 +19,16 @@ class RabbitMq extends Mq with StrictLogging {
   private val NbIoThreadsConfigKey = "nbNioThreads"
   private val multipleAckConfigKey = "multipleAck"
 
-  private val connections: mutable.Set[Connection] = mutable.Set()
 
   override def init(config: Config): Unit = {
     val queueName: String = config.mqConfig(QueueNameConfigKey)
 
-    val connection = createConnection(config)
-    newChannel(connection, queueName, passive = false)
-    logger.info(s"Created queue: $queueName")
+    Option(createConnection(config))
+      .foreach(conn => {
+        newChannel(conn, queueName, passive = false)
+        logger.info(s"Created queue: $queueName")
+        conn.close()
+      })
   }
 
   override def cleanUp(config: Config): Unit = {
@@ -35,11 +36,11 @@ class RabbitMq extends Mq with StrictLogging {
 
     Option(createConnection(config))
       .map(newChannel(_, queueName, passive = true))
-      .foreach(_.queueDelete(queueName))
-    logger.info(s"Deleted queue $queueName")
-
-    connections.foreach(_.close())
-    logger.info("Closed all active connections")
+      .foreach(conn => {
+        conn.queueDelete(queueName)
+        conn.close()
+        logger.info(s"Deleted queue $queueName")
+      })
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
@@ -107,6 +108,8 @@ class RabbitMq extends Mq with StrictLogging {
           })
       }
     }
+
+    override def close(): Future[Unit] = Future(senderConnection.close())
   }
 
   override def createReceiver(config: Config): MqReceiver = new MqReceiver {
@@ -187,6 +190,8 @@ class RabbitMq extends Mq with StrictLogging {
         }
       }
     }
+
+    override def close(): Future[Unit] = Future(receiverConnection.close())
   }
 
 
@@ -205,7 +210,6 @@ class RabbitMq extends Mq with StrictLogging {
     cf.setNioParams(new NioParams().setNbIoThreads(nbNioThreads))
 
     val connection = cf.newConnection()
-    connections.add(connection)
     connection
   }
 
