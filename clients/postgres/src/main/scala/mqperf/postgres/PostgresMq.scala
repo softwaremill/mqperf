@@ -30,62 +30,34 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
   private val SenderPoolSize = "senderPoolSize"
   private val ReceiverPoolSize = "receiverPoolSize"
 
-  private var connectionFactory: Option[ConnectionFactory] = None
-
   override def init(config: Config): Unit = {
-    val host = config.mqConfig(HostConfigKey)
-    val port = config.mqConfig(PortConfigKey).toInt
     val table = config.mqConfig(TableConfigKey)
-
-    connectionFactory = Some(
-      new PostgresqlConnectionFactory(
-        PostgresqlConnectionConfiguration
-          .builder()
-          .host(host)
-          .port(port)
-          .username(MqUser)
-          .password(MqPass)
-          .database(MqDb)
-          .build()
-      )
-    )
-
-    connectionFactory.foreach(cf => {
-      val client: DatabaseClient = DatabaseClient
-        .builder()
-        .connectionFactory(cf)
-        .namedParameters(true)
-        .build()
-
-      client
-        .sql(s"create table if not exists $table(id uuid primary key, content text not null, next_delivery timestamptz not null)")
-        .fetch()
-        .rowsUpdated()
-        .flatMap(_ =>
-          client
-            .sql(s"create index if not exists next_delivery_idx on $table(next_delivery)")
-            .fetch()
-            .rowsUpdated()
-        )
-        .toFuture
-        .asScala
-        .andThen {
-          case Success(_)  => logger.info(s"Table $table created.")
-          case Failure(ex) => logger.error(s"Table $table creating failure.", ex)
-        }
-    })
-  }
-
-  override def cleanUp(config: Config): Unit = connectionFactory.foreach(cf => {
-    val table = config.mqConfig(TableConfigKey)
-
-    val client: DatabaseClient = DatabaseClient
-      .builder()
-      .connectionFactory(cf)
-      .namedParameters(true)
-      .build()
+    val client = databaseClient(config)
 
     client
+      .sql(s"create table if not exists $table(id uuid primary key, content text not null, next_delivery timestamptz not null)")
+      .fetch()
+      .rowsUpdated()
+      .flatMap(_ =>
+        client
+          .sql(s"create index if not exists next_delivery_idx on $table(next_delivery)")
+          .fetch()
+          .rowsUpdated()
+      )
+      .toFuture
+      .asScala
+      .andThen {
+        case Success(_)  => logger.info(s"Table $table created.")
+        case Failure(ex) => logger.error(s"Table $table creating failure.", ex)
+      }
+
+    ()
+  }
+
+  override def cleanUp(config: Config): Unit = {
+    val table = config.mqConfig(TableConfigKey)
+
+    databaseClient(config)
       .sql(s"drop table if exists $table")
       .fetch()
       .rowsUpdated()
@@ -95,31 +67,14 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         case Success(_)  => logger.info(s"Table $table dropped.")
         case Failure(ex) => logger.error(s"Table $table dropping failure.", ex)
       }
-  })
+
+    ()
+  }
 
   override def createSender(config: Config): MqSender = new MqSender {
 
-    private val poolSize = config.mqConfig(SenderPoolSize).toInt
-
-    private val senderPool: ConnectionPool = connectionFactory
-      .map(cf =>
-        new ConnectionPool(
-          ConnectionPoolConfiguration
-            .builder(cf)
-            .maxIdleTime(Duration.ofMinutes(5))
-            .initialSize(poolSize)
-            .maxSize(poolSize)
-            .minIdle(poolSize)
-            .build()
-        )
-      )
-      .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
-
-    private val client: DatabaseClient = DatabaseClient
-      .builder()
-      .connectionFactory(senderPool)
-      .namedParameters(true)
-      .build()
+    private val senderPool = connectionPool(config, config.mqConfig(SenderPoolSize).toInt)
+    private val client: DatabaseClient = pooledDatabaseClient(senderPool)
 
     override def send(msgs: Seq[String]): Future[Unit] = {
       val query = new StringBuilder("insert into jobs(id, content, next_delivery) values ")
@@ -147,28 +102,8 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     override type MsgId = UUID
 
-    private val poolSize = config.mqConfig(ReceiverPoolSize).toInt
-
-    private val receiverPool: ConnectionPool = connectionFactory
-      .map(cf =>
-        new ConnectionPool(
-          ConnectionPoolConfiguration
-            .builder(cf)
-            .maxIdleTime(Duration.ofMinutes(5))
-            .initialSize(poolSize)
-            .maxSize(poolSize)
-            .minIdle(poolSize)
-            .build()
-        )
-      )
-      .getOrElse(throw new RuntimeException("Did you initialize PostgresMq using /init endpoint?"))
-
-    private val client: DatabaseClient = DatabaseClient
-      .builder()
-      .connectionFactory(receiverPool)
-      .namedParameters(true)
-      .build()
-
+    private val receiverPool: ConnectionPool = connectionPool(config, config.mqConfig(ReceiverPoolSize).toInt)
+    private val client: DatabaseClient = pooledDatabaseClient(receiverPool)
     private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
 
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
@@ -214,7 +149,6 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
           .map(_ => ())
     }
 
-
     override def close(): Future[Unit] = {
       receiverPool
         .disposeLater()
@@ -223,4 +157,43 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .map(_ => ())
     }
   }
+
+  private def databaseClient(config: Config): DatabaseClient = {
+    DatabaseClient
+      .builder()
+      .connectionFactory(connectionFactory(config))
+      .namedParameters(true)
+      .build()
+  }
+
+  private def pooledDatabaseClient(connectionPool: ConnectionPool): DatabaseClient = {
+    DatabaseClient
+      .builder()
+      .connectionFactory(connectionPool)
+      .namedParameters(true)
+      .build()
+  }
+
+  private def connectionPool(config: Config, poolSize: Int): ConnectionPool =
+    new ConnectionPool(
+      ConnectionPoolConfiguration
+        .builder(connectionFactory(config))
+        .maxIdleTime(Duration.ofMinutes(5))
+        .initialSize(poolSize)
+        .maxSize(poolSize)
+        .minIdle(poolSize)
+        .build()
+    )
+
+  private def connectionFactory(config: Config): ConnectionFactory =
+    new PostgresqlConnectionFactory(
+      PostgresqlConnectionConfiguration
+        .builder()
+        .host(config.mqConfig(HostConfigKey))
+        .port(config.mqConfig(PortConfigKey).toInt)
+        .username(MqUser)
+        .password(MqPass)
+        .database(MqDb)
+        .build()
+    )
 }
