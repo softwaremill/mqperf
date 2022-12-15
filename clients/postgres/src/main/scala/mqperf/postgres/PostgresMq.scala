@@ -13,7 +13,8 @@ import reactor.core.publisher.Mono
 import java.time.{Duration, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, Future}
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import scala.jdk.FutureConverters.CompletionStageOps
 import scala.util.{Failure, Success}
@@ -34,41 +35,45 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     val table = config.mqConfig(TableConfigKey)
     val client = databaseClient(config)
 
-    client
-      .sql(s"create table if not exists $table(id uuid primary key, content text not null, next_delivery timestamptz not null)")
-      .fetch()
-      .rowsUpdated()
-      .flatMap(_ =>
-        client
-          .sql(s"create index if not exists next_delivery_idx on $table(next_delivery)")
-          .fetch()
-          .rowsUpdated()
-      )
-      .toFuture
-      .asScala
-      .andThen {
-        case Success(_)  => logger.info(s"Table $table created.")
-        case Failure(ex) => logger.error(s"Table $table creating failure.", ex)
-      }
-
-    ()
+    Await.result(
+      client
+        .sql(s"create table if not exists $table(id uuid primary key, content text not null, next_delivery timestamptz not null)")
+        .fetch()
+        .rowsUpdated()
+        .flatMap(_ =>
+          client
+            .sql(s"create index if not exists next_delivery_idx on $table(next_delivery)")
+            .fetch()
+            .rowsUpdated()
+        )
+        .toFuture
+        .asScala
+        .andThen {
+          case Success(_)  => logger.info(s"Table $table created.")
+          case Failure(ex) => logger.error(s"Table $table creating failure.", ex)
+        }
+        .map(_ => ()),
+      1.minute
+    )
   }
 
   override def cleanUp(config: Config): Unit = {
     val table = config.mqConfig(TableConfigKey)
 
-    databaseClient(config)
-      .sql(s"drop table if exists $table")
-      .fetch()
-      .rowsUpdated()
-      .toFuture
-      .asScala
-      .andThen {
-        case Success(_)  => logger.info(s"Table $table dropped.")
-        case Failure(ex) => logger.error(s"Table $table dropping failure.", ex)
-      }
-
-    ()
+    Await.result(
+      databaseClient(config)
+        .sql(s"drop table if exists $table")
+        .fetch()
+        .rowsUpdated()
+        .toFuture
+        .asScala
+        .andThen {
+          case Success(_)  => logger.info(s"Table $table dropped.")
+          case Failure(ex) => logger.error(s"Table $table dropping failure.", ex)
+        }
+        .map(_ => ()),
+      1.minute
+    )
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
