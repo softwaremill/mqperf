@@ -448,7 +448,11 @@ To test the senders/receivers using PostgresMQ, you might build the docker image
 sbt postgres/docker:publishLocal
 ```
 
-Then, go to `docker/postgres` and run `docker-compose up`. This will start the PostgreSQL server.
+Then, go to `docker/postgres` and run:
+```
+docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p postgres up
+```
+This will start the PostgreSQL server and the mqperf server.
 
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
