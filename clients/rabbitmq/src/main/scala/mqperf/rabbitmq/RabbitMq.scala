@@ -18,6 +18,7 @@ class RabbitMq extends Mq with StrictLogging {
   private val UsernameConfigKey = "username"
   private val PasswordConfigKey = "password"
   private val NbIoThreadsConfigKey = "nbNioThreads"
+  private val multipleAckConfigKey = "multipleAck"
 
   private val connections: mutable.Set[Connection] = mutable.Set()
 
@@ -39,33 +40,6 @@ class RabbitMq extends Mq with StrictLogging {
 
     connections.foreach(_.close())
     logger.info("Closed all active connections")
-  }
-
-  private def createConnection(config: Config): Connection = {
-    val host: String = config.mqConfig(HostsConfigKey)
-    val username: String = config.mqConfig(UsernameConfigKey)
-    val password: String = config.mqConfig(PasswordConfigKey)
-    val nbNioThreads: Int = config.mqConfig.get(NbIoThreadsConfigKey).map(_.toInt).getOrElse(1)
-
-    val cf = new ConnectionFactory()
-    cf.setHost(host)
-    cf.setUsername(username)
-    cf.setPassword(password)
-
-    cf.useNio()
-    cf.setNioParams(new NioParams().setNbIoThreads(nbNioThreads))
-
-    val connection = cf.newConnection()
-    connections.add(connection)
-    connection
-  }
-
-  private def newChannel(conn: Connection, queueName: String, passive: Boolean): Channel = {
-    val channel = conn.createChannel()
-    if (passive) channel.queueDeclarePassive(queueName)
-    else channel.queueDeclare(queueName, false, false, false, null)
-
-    channel
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
@@ -146,6 +120,8 @@ class RabbitMq extends Mq with StrictLogging {
     private val channel = newChannel(receiverConnection, queueName, passive = true)
     channel.basicQos(config.mqConfig("qos").toInt, false)
 
+    private val multipleAck = Option(config.mqConfig(multipleAckConfigKey)).exists(_.toBoolean)
+
     private val consumer = new DefaultConsumer(channel) {
       override def handleDelivery(
           consumerTag: String,
@@ -196,7 +172,6 @@ class RabbitMq extends Mq with StrictLogging {
       }
     }
 
-    private val multipleAck = Option(config.mqConfig("multipleAck")).exists(_.toBoolean)
 
     override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful {
       if (multipleAck) {
@@ -212,5 +187,33 @@ class RabbitMq extends Mq with StrictLogging {
         }
       }
     }
+  }
+
+
+  private def createConnection(config: Config): Connection = {
+    val host: String = config.mqConfig(HostsConfigKey)
+    val username: String = config.mqConfig(UsernameConfigKey)
+    val password: String = config.mqConfig(PasswordConfigKey)
+    val nbNioThreads: Int = Option(config.mqConfig(NbIoThreadsConfigKey)).map(_.toInt).getOrElse(1)
+
+    val cf = new ConnectionFactory()
+    cf.setHost(host)
+    cf.setUsername(username)
+    cf.setPassword(password)
+
+    cf.useNio()
+    cf.setNioParams(new NioParams().setNbIoThreads(nbNioThreads))
+
+    val connection = cf.newConnection()
+    connections.add(connection)
+    connection
+  }
+
+  private def newChannel(conn: Connection, queueName: String, passive: Boolean): Channel = {
+    val channel = conn.createChannel()
+    if (passive) channel.queueDeclarePassive(queueName)
+    else channel.queueDeclare(queueName, false, false, false, null)
+
+    channel
   }
 }
