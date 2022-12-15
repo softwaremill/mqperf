@@ -7,6 +7,7 @@ import mqperf.{Config, Mq, MqReceiver, MqSender}
 
 import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentNavigableMap, ConcurrentSkipListMap, LinkedBlockingQueue}
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise, blocking}
 
@@ -16,14 +17,35 @@ class RabbitMq extends Mq with StrictLogging {
   private val MaxPollAttemptsConfigKey = "maxPollAttempts"
   private val UsernameConfigKey = "username"
   private val PasswordConfigKey = "password"
+  private val NbIoThreadsConfigKey = "nbNioThreads"
 
-  var conn: Connection = _
+  private val connections: mutable.Set[Connection] = mutable.Set()
 
   override def init(config: Config): Unit = {
-    val host: String = config.mqConfig(HostsConfigKey)
     val queueName: String = config.mqConfig(QueueNameConfigKey)
+
+    val connection = createConnection(config)
+    newChannel(connection, queueName, passive = false)
+    logger.info(s"Created queue: $queueName")
+  }
+
+  override def cleanUp(config: Config): Unit = {
+    val queueName: String = config.mqConfig(QueueNameConfigKey)
+
+    Option(createConnection(config))
+      .map(newChannel(_, queueName, passive = true))
+      .foreach(_.queueDelete(queueName))
+    logger.info(s"Deleted queue $queueName")
+
+    connections.foreach(_.close())
+    logger.info("Closed all active connections")
+  }
+
+  private def createConnection(config: Config): Connection = {
+    val host: String = config.mqConfig(HostsConfigKey)
     val username: String = config.mqConfig(UsernameConfigKey)
     val password: String = config.mqConfig(PasswordConfigKey)
+    val nbNioThreads: Int = config.mqConfig.get(NbIoThreadsConfigKey).map(_.toInt).getOrElse(1)
 
     val cf = new ConnectionFactory()
     cf.setHost(host)
@@ -31,24 +53,14 @@ class RabbitMq extends Mq with StrictLogging {
     cf.setPassword(password)
 
     cf.useNio()
-    cf.setNioParams(new NioParams().setNbIoThreads(50))
+    cf.setNioParams(new NioParams().setNbIoThreads(nbNioThreads))
 
-    try {
-      conn = cf.newConnection()
-
-      newChannel(queueName, passive = false)
-      logger.info(s"Created queue $queueName")
-    } catch {
-      case e: Exception => logger.warn(s"Queue $queueName creation failed", e)
-    }
+    val connection = cf.newConnection()
+    connections.add(connection)
+    connection
   }
 
-  override def cleanUp(config: Config): Unit = {
-    logger.info("Closing connection")
-    conn.close()
-  }
-
-  private def newChannel(queueName: String, passive: Boolean): Channel = {
+  private def newChannel(conn: Connection, queueName: String, passive: Boolean): Channel = {
     val channel = conn.createChannel()
     if (passive) channel.queueDeclarePassive(queueName)
     else channel.queueDeclare(queueName, false, false, false, null)
@@ -65,8 +77,10 @@ class RabbitMq extends Mq with StrictLogging {
     private val maxChannelsNr: Int = maxSendInFlight / batchSizeSend
     logger.info(s"[Sender] - maxChannelsNr: $maxChannelsNr")
 
+    private val senderConnection: Connection = createConnection(config)
+
     for (_ <- 1 to maxChannelsNr) {
-      val channel = newChannel(queueName, passive = true)
+      val channel = newChannel(senderConnection, queueName, passive = true)
       channel.confirmSelect()
       channelPool.add(channel)
     }
@@ -126,10 +140,11 @@ class RabbitMq extends Mq with StrictLogging {
 
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
     private val maxPollAttempts: Int = Option(config.mqConfig(MaxPollAttemptsConfigKey)).map(_.toInt).getOrElse(0)
-    private val channel = newChannel(queueName, passive = true)
-    channel.basicQos(config.mqConfig("qos").toInt, false)
-
     private val queue = new ConcurrentLinkedQueue[(MsgId, String)]()
+
+    private val receiverConnection: Connection = createConnection(config)
+    private val channel = newChannel(receiverConnection, queueName, passive = true)
+    channel.basicQos(config.mqConfig("qos").toInt, false)
 
     private val consumer = new DefaultConsumer(channel) {
       override def handleDelivery(
