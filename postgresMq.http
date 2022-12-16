@@ -32,6 +32,9 @@ Content-Type: application/json
   "maxSendInFlight": 1000,
   "batchSizeReceive": -1,
   "mqConfig": {
+    "host": "postgres",
+    "port": "5432",
+    "table": "jobs",
     "senderPoolSize": "5"
   }
 }
@@ -50,6 +53,9 @@ Content-Type: application/json
   "maxSendInFlight": -1,
   "batchSizeReceive": 100,
   "mqConfig": {
+    "host": "postgres",
+    "port": "5432",
+    "table": "jobs",
     "receiverPoolSize": "5"
   }
 }
@@ -68,6 +74,9 @@ Content-Type: application/json
   "maxSendInFlight": -1,
   "batchSizeReceive": -1,
   "mqConfig": {
+    "host": "postgres",
+    "port": "5432",
+    "table": "jobs",
     "table": "jobs"
   }
 }
