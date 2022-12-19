@@ -21,13 +21,12 @@ import scala.util.{Failure, Success}
 
 class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
-  private val MqUser = "mquser"
-  private val MqPass = "mqpass"
-  private val MqDb = "mqdb"
-
   private val HostConfigKey = "host"
   private val PortConfigKey = "port"
   private val TableConfigKey = "table"
+  private val DatabaseConfigKey = "database"
+  private val UsernameConfigKey = "username"
+  private val PasswordConfigKey = "password"
   private val SenderPoolSize = "senderPoolSize"
   private val ReceiverPoolSize = "receiverPoolSize"
 
@@ -196,9 +195,9 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .builder()
         .host(config.mqConfig(HostConfigKey))
         .port(config.mqConfig(PortConfigKey).toInt)
-        .username(MqUser)
-        .password(MqPass)
-        .database(MqDb)
+        .username(config.mqConfig(UsernameConfigKey))
+        .password(config.mqConfig(PasswordConfigKey))
+        .database(config.mqConfig(DatabaseConfigKey))
         .build()
     )
 }
