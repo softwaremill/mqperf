@@ -2,6 +2,7 @@ package mqperf.postgres
 
 import com.typesafe.scalalogging.StrictLogging
 import io.r2dbc.pool.{ConnectionPool, ConnectionPoolConfiguration}
+import io.r2dbc.postgresql.client.SSLMode
 import io.r2dbc.postgresql.{PostgresqlConnectionConfiguration, PostgresqlConnectionFactory}
 import io.r2dbc.spi.ConnectionFactory
 import mqperf.{Config, Mq, MqReceiver, MqSender}
@@ -198,6 +199,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .username(config.mqConfig(UsernameConfigKey))
         .password(config.mqConfig(PasswordConfigKey))
         .database(config.mqConfig(DatabaseConfigKey))
+        .sslMode(SSLMode.REQUIRE)
         .build()
     )
 }
