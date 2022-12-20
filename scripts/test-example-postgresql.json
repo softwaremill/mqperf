@@ -1,0 +1,21 @@
+{
+  "testId": "test-1",
+  "testLengthSeconds": 30,
+  "msgsPerSecond": 1000,
+  "msgSizeBytes": 1024,
+  "batchSizeSend": 1000,
+  "batchSizeReceive": 1000,
+  "maxSendInFlight": 10000,
+  "mqConfig": {
+    "host": "mqperf-postgresql-cluster",
+    "port": "5432",
+    "table": "jobs",
+    "database":"mqperf",
+    "username": "mqperfuser",
+    "password": "NlBqErJcZlZaDSPoYGINFEXkwQXIkF1kkkPyFbv0yKenBUthSpFS0b56QSw7Kitz",
+    "senderPoolSize": "5",
+    "receiverPoolSize": "5",
+    "sslEnabled": "true"
+  },
+  "jobs": ["sender", "receiver", "receiver"]
+}
