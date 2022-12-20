@@ -28,8 +28,9 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
   private val DatabaseConfigKey = "database"
   private val UsernameConfigKey = "username"
   private val PasswordConfigKey = "password"
-  private val SenderPoolSize = "senderPoolSize"
-  private val ReceiverPoolSize = "receiverPoolSize"
+  private val SenderPoolSizeConfigKey = "senderPoolSize"
+  private val ReceiverPoolSizeConfigKey = "receiverPoolSize"
+  private val SslEnabledConfigKey = "sslEnabled"
 
   override def init(config: Config): Unit = {
     val table = config.mqConfig(TableConfigKey)
@@ -78,7 +79,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   override def createSender(config: Config): MqSender = new MqSender {
 
-    private val senderPool = connectionPool(config, config.mqConfig(SenderPoolSize).toInt)
+    private val senderPool = connectionPool(config, config.mqConfig(SenderPoolSizeConfigKey).toInt)
     private val client: DatabaseClient = pooledDatabaseClient(senderPool)
 
     override def send(msgs: Seq[String]): Future[Unit] = {
@@ -107,7 +108,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     override type MsgId = UUID
 
-    private val receiverPool: ConnectionPool = connectionPool(config, config.mqConfig(ReceiverPoolSize).toInt)
+    private val receiverPool: ConnectionPool = connectionPool(config, config.mqConfig(ReceiverPoolSizeConfigKey).toInt)
     private val client: DatabaseClient = pooledDatabaseClient(receiverPool)
     private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
 
@@ -199,7 +200,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         .username(config.mqConfig(UsernameConfigKey))
         .password(config.mqConfig(PasswordConfigKey))
         .database(config.mqConfig(DatabaseConfigKey))
-        .sslMode(SSLMode.REQUIRE)
+        .sslMode(if (config.mqConfig(SslEnabledConfigKey).toBoolean) SSLMode.REQUIRE else SSLMode.DISABLE)
         .build()
     )
 }

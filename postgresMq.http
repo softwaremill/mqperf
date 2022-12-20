@@ -1,6 +1,6 @@
 ### /init: "-1" means that value is not used
 
-POST http://localhost:8080/init
+POST http://{{host}}/init
 Content-Type: application/json
 
 {
@@ -12,42 +12,44 @@ Content-Type: application/json
   "maxSendInFlight": -1,
   "batchSizeReceive": -1,
   "mqConfig": {
-    "host": "postgres",
-    "port": "5432",
-    "table": "jobs",
-    "database":"mqperf",
-    "username": "mqperfuser",
-    "password": ""
+    "host": "{{mqConfigHost}}",
+    "port": "{{mqConfigPort}}",
+    "table": "{{mqConfigTable}}",
+    "database":"{{mqConfigDatabase}}",
+    "username": "{{mqConfigUsername}}",
+    "password": "{{mqConfigPassword}}",
+    "sslEnabled": "{{sslEnabled}}"
   }
 }
 
 ### /sender: "-1" means that value is not used
 
-POST http://localhost:8080/start/sender
+POST http://{{host}}/start/sender
 Content-Type: application/json
 
 {
   "testId": "test",
-  "testLengthSeconds": 3,
+  "testLengthSeconds": 10,
   "msgsPerSecond": 100,
   "msgSizeBytes": 1000,
   "batchSizeSend": 10,
   "maxSendInFlight": 1000,
   "batchSizeReceive": -1,
   "mqConfig": {
-    "host": "postgres",
-    "port": "5432",
-    "table": "jobs",
-    "senderPoolSize": "5",
-    "database":"mqperf",
-    "username": "mqperfuser",
-    "password": ""
+    "host": "{{mqConfigHost}}",
+    "port": "{{mqConfigPort}}",
+    "table": "{{mqConfigTable}}",
+    "database":"{{mqConfigDatabase}}",
+    "username": "{{mqConfigUsername}}",
+    "password": "{{mqConfigPassword}}",
+    "senderPoolSize": "{{mqConfigSenderPoolSize}}",
+    "sslEnabled": "{{sslEnabled}}"
   }
 }
 
 ### /receiver: "-1" means that value is not used
 
-POST http://localhost:8080/start/receiver
+POST http://{{host}}/start/receiver
 Content-Type: application/json
 
 {
@@ -57,21 +59,22 @@ Content-Type: application/json
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
   "maxSendInFlight": -1,
-  "batchSizeReceive": 100,
+  "batchSizeReceive": 10,
   "mqConfig": {
-    "host": "postgres",
-    "port": "5432",
-    "table": "jobs",
-    "receiverPoolSize": "5",
-    "database":"mqperf",
-    "username": "mqperfuser",
-    "password": ""
+    "host": "{{mqConfigHost}}",
+    "port": "{{mqConfigPort}}",
+    "table": "{{mqConfigTable}}",
+    "database":"{{mqConfigDatabase}}",
+    "username": "{{mqConfigUsername}}",
+    "password": "{{mqConfigPassword}}",
+    "receiverPoolSize": "{{mqConfigReceiverPoolSize}}",
+    "sslEnabled": "{{sslEnabled}}"
   }
 }
 
 ### /cleanup:  "-1" means that value is not used
 
-POST http://localhost:8080/cleanup
+POST http://{{host}}/cleanup
 Content-Type: application/json
 
 {
@@ -83,19 +86,20 @@ Content-Type: application/json
   "maxSendInFlight": -1,
   "batchSizeReceive": -1,
   "mqConfig": {
-    "host": "postgres",
-    "port": "5432",
-    "table": "jobs",
-    "database":"mqperf",
-    "username": "mqperfuser",
-    "password": ""
+    "host": "{{mqConfigHost}}",
+    "port": "{{mqConfigPort}}",
+    "table": "{{mqConfigTable}}",
+    "database":"{{mqConfigDatabase}}",
+    "username": "{{mqConfigUsername}}",
+    "password": "{{mqConfigPassword}}",
+    "sslEnabled": "{{sslEnabled}}"
   }
 }
 
 ### /in-progress
 
-GET http://localhost:8080/in-progress
+GET http://{{host}}/in-progress
 
 ### /metrics
 
-GET http://localhost:8080/metrics
+GET http://{{host}}/metrics
