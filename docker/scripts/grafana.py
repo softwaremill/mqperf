@@ -116,7 +116,7 @@ def fetch_panel_data(grafana_url, panel, start, end):
     return panel
 
 
-def save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end):
+def save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end, expire):
     # read dashboard
     dashboard = fetch_dashboard(grafana_url, grafana_mqperf_dashboard_id)
 
@@ -135,9 +135,11 @@ def save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end):
     snapshot_payload = {
         'dashboard': dashboard,
         'name': title,
-        'expires': 3600,  # remove to set 'never' expires
         'external': True
     }
+
+    if expire is not None:
+        snapshot_payload['expires'] = expire
 
     # https://grafana.com/docs/grafana/v9.3/developers/http_api/snapshot/#create-new-snapshot
     return requests.post(f'{grafana_url}/api/snapshots', json=snapshot_payload).json()

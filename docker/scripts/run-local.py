@@ -1,9 +1,10 @@
-import requests
 import json
-import time
 import sys
+import time
 from datetime import datetime, timedelta
-from pprint import pprint
+
+import requests
+
 from grafana import save_snapshot
 
 base_url = 'http://localhost:8080'
@@ -59,9 +60,26 @@ def run(test_file: str):
     # print("Receive latency histogram:")
     # pprint(query_metrics(start, end, RECEIVE_LATENCY_METRIC))
 
-    snapshot_link = save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end)
+    expire = None
+    if payload['grafana']['snapshot']['expire']:
+        expire = payload['grafana']['snapshot']['expire']
+
+    snapshot_start = start
+    if payload['grafana']['snapshot']['delayStartSec']:
+        snapshot_start = snapshot_start + timedelta(seconds=payload['grafana']['snapshot']['delayStartSec'])
+
+    snapshot_end = end
+    if payload['grafana']['snapshot']['trimEndSec']:
+        snapshot_end = snapshot_end - timedelta(seconds=payload['grafana']['snapshot']['trimEndSec'])
+
+    snapshot_link = save_snapshot(grafana_url, grafana_mqperf_dashboard_id, snapshot_start, snapshot_end, expire)
+
     print('Link to saved snapshot')
-    pprint(snapshot_link)
+    print(snapshot_link['url'])
+
+    print('Link to delete the saved snapshot')
+    print(snapshot_link['deleteUrl'])
+
 
 def check_if_ok(resp):
     if not resp.ok:
