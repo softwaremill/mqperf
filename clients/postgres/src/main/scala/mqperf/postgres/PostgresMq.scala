@@ -81,9 +81,10 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     private val senderPool = connectionPool(config, config.mqConfig(SenderPoolSizeConfigKey).toInt)
     private val client: DatabaseClient = pooledDatabaseClient(senderPool)
+    private val table = config.mqConfig(TableConfigKey)
 
     override def send(msgs: Seq[String]): Future[Unit] = {
-      val query = new StringBuilder("insert into jobs(id, content, next_delivery) values ")
+      val query = new StringBuilder(s"insert into $table(id, content, next_delivery) values ")
       query ++= s"('${UUID.randomUUID()}', '${msgs.head}', '${ZonedDateTime.now(clock)}')"
       msgs.tail.foreach(m => query ++= s", ('${UUID.randomUUID()}', '$m', '${ZonedDateTime.now(clock)}')")
 
@@ -111,13 +112,14 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     private val receiverPool: ConnectionPool = connectionPool(config, config.mqConfig(ReceiverPoolSizeConfigKey).toInt)
     private val client: DatabaseClient = pooledDatabaseClient(receiverPool)
     private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
+    private val table = config.mqConfig(TableConfigKey)
 
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
       val now = ZonedDateTime.now(clock)
       val nextDelivery = now.plusSeconds(100)
 
       client
-        .sql("select id, content from jobs where next_delivery <= :now for update skip locked limit :limit")
+        .sql(s"select id, content from $table where next_delivery <= :now for update skip locked limit :limit")
         .bind("now", now)
         .bind("limit", maxMsgCount)
         .map(row => (row.get("id", classOf[UUID]), row.get("content", classOf[String])))
@@ -129,7 +131,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
             Mono.just(Seq.empty[(MsgId, String)])
           case ids =>
             client
-              .sql("update jobs set next_delivery = :nextDelivery where id in (:inIds)")
+              .sql(s"update $table set next_delivery = :nextDelivery where id in (:inIds)")
               .bind("nextDelivery", nextDelivery)
               .bind("inIds", ids.map(_._1).asJava)
               .fetch()
@@ -146,7 +148,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
         Future.successful(())
       case vs =>
         client
-          .sql("delete from jobs where id in (:inIds)")
+          .sql(s"delete from $table where id in (:inIds)")
           .bind("inIds", vs.asJava)
           .fetch()
           .rowsUpdated()
