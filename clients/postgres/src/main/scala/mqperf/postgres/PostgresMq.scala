@@ -114,12 +114,18 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
     private val table = config.mqConfig(TableConfigKey)
 
+    private val selectQuery = client
+      .sql(s"select id, content from $table where next_delivery <= :now limit :limit for update skip locked")
+    private val updateQuery = client
+      .sql(s"update $table set next_delivery = :nextDelivery where id in (:inIds)")
+    private val deleteQuery = client
+      .sql(s"delete from $table where id in (:inIds)")
+
     override def receive(maxMsgCount: Int): Future[Seq[(MsgId, String)]] = {
       val now = ZonedDateTime.now(clock)
       val nextDelivery = now.plusSeconds(100)
 
-      client
-        .sql(s"select id, content from $table where next_delivery <= :now for update skip locked limit :limit")
+      selectQuery
         .bind("now", now)
         .bind("limit", maxMsgCount)
         .map(row => (row.get("id", classOf[UUID]), row.get("content", classOf[String])))
@@ -130,8 +136,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
           case Nil =>
             Mono.just(Seq.empty[(MsgId, String)])
           case ids =>
-            client
-              .sql(s"update $table set next_delivery = :nextDelivery where id in (:inIds)")
+            updateQuery
               .bind("nextDelivery", nextDelivery)
               .bind("inIds", ids.map(_._1).asJava)
               .fetch()
@@ -147,8 +152,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
       case Nil =>
         Future.successful(())
       case vs =>
-        client
-          .sql(s"delete from $table where id in (:inIds)")
+        deleteQuery
           .bind("inIds", vs.asJava)
           .fetch()
           .rowsUpdated()
