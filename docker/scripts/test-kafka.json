@@ -1,6 +1,6 @@
 {
   "testId": "test-1",
-  "testLengthSeconds": 300,
+  "testLengthSeconds": 60,
   "msgsPerSecond": 10,
   "msgSizeBytes": 1024,
   "batchSizeSend": 10,
