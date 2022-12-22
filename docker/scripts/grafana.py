@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -39,11 +39,7 @@ def prepare_query(start, end, expr, format_name, interval_factor, metric, ref_id
                 "step": step,
                 "datasource": datasource,
                 "queryType": "timeSeriesQuery",
-                "exemplar": False,
-                "requestId": "10A",
-                "utcOffsetSec": 3600,
-                "interval": "",
-                "intervalMs": 15000,
+                "intervalMs": 1000,
                 "maxDataPoints": 100
             }
         ],
@@ -51,12 +47,12 @@ def prepare_query(start, end, expr, format_name, interval_factor, metric, ref_id
             "from": f"{start.strftime(query_format)}",
             "to": f"{end.strftime(query_format)}",
             "raw": {
-                "from": f"{start}",
-                "to": f"{end}"
+                "from": f"{start.strftime(query_format)}",
+                "to": f"{end.strftime(query_format)}",
             }
         },
-        "from": f"{int(start.timestamp()) * 1000}",
-        "to": f"{int(end.timestamp()) * 1000}"
+        "from": f"{int(round(start.timestamp() * 1000))}",
+        "to": f"{int(round(end.timestamp() * 1000))}"
     }
 
 
@@ -125,8 +121,9 @@ def save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end, expire):
         panels.append(fetch_panel_data(grafana_url, panel, start, end))
 
     dashboard['panels'] = panels
-    dashboard['time']['from'] = start.isoformat()
-    dashboard['time']['to'] = end.isoformat()
+    dashboard['timezone'] = 'utc'
+    dashboard['time']['from'] = start.strftime(query_format)
+    dashboard['time']['to'] = end.strftime(query_format)
 
     # print(json.dumps(dashboard))
 

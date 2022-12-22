@@ -1,7 +1,8 @@
 import json
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from pprint import pprint
 
 import requests
 
@@ -35,7 +36,7 @@ def run(test_file: str):
     check_if_ok(requests.post(base_url + '/start/receiver', json=payload))
     print('Started receiver')
 
-    start = datetime.now()
+    start = datetime.now(timezone.utc)
 
     while True:
         in_progress = requests.get(base_url + '/in-progress').json()
@@ -45,7 +46,7 @@ def run(test_file: str):
             print('Still running:', in_progress)
             time.sleep(1)
 
-    end = datetime.now()
+    end = datetime.now(timezone.utc)
 
     print('Test time range:')
     print(start.isoformat())
@@ -54,25 +55,29 @@ def run(test_file: str):
     requests.post(base_url + '/cleanup', json=payload)
     print('Cleanup complete')
 
-    # print("Send latency histogram:")
-    # pprint(query_metrics(start, end, SEND_LATENCY_METRIC))
-    #
-    # print("Receive latency histogram:")
-    # pprint(query_metrics(start, end, RECEIVE_LATENCY_METRIC))
+    # Collect (based on Grafana dashboard
+    # - Avg of total receive rate
+    # - Avg of total sent rate
+    # - Max 95p of receive latency
+    # - Max 95p of send latency
 
     expire = None
     if payload['grafana']['snapshot']['expire']:
         expire = payload['grafana']['snapshot']['expire']
 
-    snapshot_start = start
     if payload['grafana']['snapshot']['delayStartSec']:
-        snapshot_start = snapshot_start + timedelta(seconds=payload['grafana']['snapshot']['delayStartSec'])
+        start = start + timedelta(seconds=payload['grafana']['snapshot']['delayStartSec'])
 
-    snapshot_end = end
     if payload['grafana']['snapshot']['trimEndSec']:
-        snapshot_end = snapshot_end - timedelta(seconds=payload['grafana']['snapshot']['trimEndSec'])
+        end = end - timedelta(seconds=payload['grafana']['snapshot']['trimEndSec'])
 
-    snapshot_link = save_snapshot(grafana_url, grafana_mqperf_dashboard_id, snapshot_start, snapshot_end, expire)
+    print("Send latency histogram:")
+    pprint(query_metrics(start, end, SEND_LATENCY_METRIC))
+
+    print("Receive latency histogram:")
+    pprint(query_metrics(start, end, RECEIVE_LATENCY_METRIC))
+
+    snapshot_link = save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end, expire)
 
     print('Link to saved snapshot')
     print(snapshot_link['url'])
@@ -88,15 +93,14 @@ def check_if_ok(resp):
 
 
 def query_metrics(start: datetime, end: datetime, metric_query: str):
-    td = timedelta(seconds=QUERY_DELAY_SEC)
-    start = start + td
-    end = end - td
     metrics_data = requests.get(f'{prometheus_url}/api/v1/query_range', {
-        'start': start.isoformat() + 'Z',
-        'end': end.isoformat() + 'Z',
+        'start': start.timestamp(),
+        'end': end.timestamp(),
         'step': METRICS_QUERY_STEP_SEC,
         'query': metric_query
     }).json()
+
+    pprint(metrics_data)
 
     return [e[1] for e in metrics_data['data']['result'][0]['values']]
 

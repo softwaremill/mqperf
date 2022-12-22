@@ -13,7 +13,10 @@ To test locally using Docker compose perform the below steps:
    ```
    and wait for a bit before starting the test (i.e. it takes a few minutes to start Kafka)
 4. Run the test `python run-local.py test-kafka.json` and wait till it finished
-5. tbc
+5. After shutting down Docker compose you can clear all the outstanding data using
+   ```
+   docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p kafka rm -svf
+   ```
 
 # Development
 
