@@ -9,8 +9,9 @@ Content-Type: application/json
   "msgsPerSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
-  "maxSendInFlight": -1,
+  "senderConcurrency": 4,
   "batchSizeReceive": -1,
+  "receiverConcurrency": 4,
   "mqConfig": {
     "host": "{{mqConfigHost}}",
     "port": "{{mqConfigPort}}",
@@ -30,11 +31,12 @@ Content-Type: application/json
 {
   "testId": "test",
   "testLengthSeconds": 10,
-  "msgsPerSecond": 100,
-  "msgSizeBytes": 1000,
+  "msgsPerSecond": 100000,
+  "msgSizeBytes": 100,
   "batchSizeSend": 10,
-  "maxSendInFlight": 1000,
+  "senderConcurrency": 4,
   "batchSizeReceive": -1,
+  "receiverConcurrency": 4,
   "mqConfig": {
     "host": "{{mqConfigHost}}",
     "port": "{{mqConfigPort}}",
@@ -42,7 +44,6 @@ Content-Type: application/json
     "database":"{{mqConfigDatabase}}",
     "username": "{{mqConfigUsername}}",
     "password": "{{mqConfigPassword}}",
-    "senderPoolSize": "{{mqConfigSenderPoolSize}}",
     "sslEnabled": "{{sslEnabled}}"
   }
 }
@@ -58,8 +59,10 @@ Content-Type: application/json
   "msgsPerSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
+  "senderConcurrency": 4,
   "maxSendInFlight": -1,
   "batchSizeReceive": 10,
+  "receiverConcurrency": 4,
   "mqConfig": {
     "host": "{{mqConfigHost}}",
     "port": "{{mqConfigPort}}",
@@ -67,7 +70,6 @@ Content-Type: application/json
     "database":"{{mqConfigDatabase}}",
     "username": "{{mqConfigUsername}}",
     "password": "{{mqConfigPassword}}",
-    "receiverPoolSize": "{{mqConfigReceiverPoolSize}}",
     "sslEnabled": "{{sslEnabled}}"
   }
 }
@@ -83,8 +85,10 @@ Content-Type: application/json
   "msgsPerSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
+  "senderConcurrency": 4,
   "maxSendInFlight": -1,
   "batchSizeReceive": -1,
+  "receiverConcurrency": 4,
   "mqConfig": {
     "host": "{{mqConfigHost}}",
     "port": "{{mqConfigPort}}",
