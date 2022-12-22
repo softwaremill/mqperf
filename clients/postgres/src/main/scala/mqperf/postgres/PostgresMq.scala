@@ -28,8 +28,6 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
   private val DatabaseConfigKey = "database"
   private val UsernameConfigKey = "username"
   private val PasswordConfigKey = "password"
-  private val SenderPoolSizeConfigKey = "senderPoolSize"
-  private val ReceiverPoolSizeConfigKey = "receiverPoolSize"
   private val SslEnabledConfigKey = "sslEnabled"
 
   override def init(config: Config): Unit = {
@@ -79,7 +77,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
   override def createSender(config: Config): MqSender = new MqSender {
 
-    private val senderPool = connectionPool(config, config.mqConfig(SenderPoolSizeConfigKey).toInt)
+    private val senderPool = connectionPool(config, config.senderConcurrency)
     private val client: DatabaseClient = pooledDatabaseClient(senderPool)
     private val table = config.mqConfig(TableConfigKey)
 
@@ -109,7 +107,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
 
     override type MsgId = UUID
 
-    private val receiverPool: ConnectionPool = connectionPool(config, config.mqConfig(ReceiverPoolSizeConfigKey).toInt)
+    private val receiverPool: ConnectionPool = connectionPool(config, config.receiverConcurrency)
     private val client: DatabaseClient = pooledDatabaseClient(receiverPool)
     private val txOperator: TransactionalOperator = TransactionalOperator.create(new R2dbcTransactionManager(receiverPool))
     private val table = config.mqConfig(TableConfigKey)
