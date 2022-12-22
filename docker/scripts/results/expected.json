@@ -1,0 +1,2878 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "snapshotData": [],
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 1,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "mqperf_received_total{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "__name__": "mqperf_received_total",
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                50,
+                200,
+                350,
+                500,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: mqperf_received_total\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "mqperf_received_total{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Receive total",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "hideTimeOverride": false,
+      "id": 9,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 15000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "sum(rate(mqperf_received_total[1m]))",
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: sum(rate(mqperf_received_total[1m]))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "sum(rate(mqperf_received_total[1m]))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Max of total receive rate",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "hideTimeOverride": false,
+      "id": 10,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 15000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "sum(rate(mqperf_received_total[1m]))",
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: sum(rate(mqperf_received_total[1m]))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "sum(rate(mqperf_received_total[1m]))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Avg of total receive rate",
+      "type": "stat"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 16,
+        "x": 0,
+        "y": 5
+      },
+      "hiddenSeries": false,
+      "id": 11,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "mqperf_sent_total{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "__name__": "mqperf_sent_total",
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                200,
+                500,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600,
+                600
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: mqperf_sent_total\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "mqperf_sent_total{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Send total",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 5
+      },
+      "hideTimeOverride": false,
+      "id": 13,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 15000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "sum(rate(mqperf_sent_total[1m]))",
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: sum(rate(mqperf_sent_total[1m]))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "sum(rate(mqperf_sent_total[1m]))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Max of total sent rate",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 5
+      },
+      "hideTimeOverride": false,
+      "id": 14,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 15000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "sum(rate(mqperf_sent_total[1m]))",
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: sum(rate(mqperf_sent_total[1m]))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "sum(rate(mqperf_sent_total[1m]))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Avg of total sent rate",
+      "type": "stat"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
+      "hiddenSeries": false,
+      "id": 3,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: rate(mqperf_received_total[1m])\n\n\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Receive rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "cumulative"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
+      "hiddenSeries": false,
+      "id": 7,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.863,
+                3.363,
+                5.862999999999999,
+                8.363,
+                9.152697503347515,
+                6.610169491525424,
+                4.06786555704334,
+                1.5254237288135593,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: rate(mqperf_received_total[1m])\n\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Receive rate over 1m",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                0.9713333333333334,
+                3.3463333333333334,
+                5.721333333333334,
+                8.096333333333332,
+                9.050492877845388,
+                9.050492877845388,
+                9.050492877845388,
+                8.771318301574201,
+                6.228823901353111,
+                3.686499282808872,
+                1.2966101694915249,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: quantile_over_time(0.95, mqperf_received_1m_rate[1m])\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "95% quantile of 1m receive rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 4,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le, host))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                167.63750000000005,
+                49.97679632912712,
+                48.88978290128152,
+                48.46587905160843,
+                47.5,
+                47.5,
+                47.5,
+                47.5,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le, host))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le, host))",
+          "refId": "A"
+        },
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                49.97679632912712,
+                48.46587905160843,
+                47.5,
+                47.5,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+          "refId": "B"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "95th percentile of receive latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 5,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.5, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                26.303577015330067,
+                25.508357395583385,
+                25,
+                25,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.5, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.5, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Median receive latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 16,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                5.060881314198371,
+                4.754190754383782,
+                4.4512820512820515,
+                4.277777777777779,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: rate(mqperf_receive_latency_ms_sum[1m]) / rate(mqperf_receive_latency_ms_count[1m])\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Average receive latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 20,
+        "y": 17
+      },
+      "id": 15,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 30000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                49.97679632912712,
+                48.46587905160843,
+                47.5,
+                47.5,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Max 95p of receive latency",
+      "type": "stat"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 16,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 15000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020325000,
+                1671020340000,
+                1671020355000,
+                1671020370000,
+                1671020385000,
+                1671020400000,
+                1671020415000,
+                1671020430000,
+                1671020445000,
+                1671020460000,
+                1671020475000,
+                1671020490000,
+                1671020505000,
+                1671020520000,
+                1671020535000,
+                1671020550000,
+                1671020565000,
+                1671020580000,
+                1671020595000,
+                1671020610000,
+                1671020625000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le, host))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                187.055,
+                49.97679632912711,
+                48.88978290128152,
+                48.46587905160843,
+                47.5,
+                47.5,
+                47.49999999999999,
+                47.49999999999999,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le, host))\nStep: 15s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le, host))",
+          "refId": "A"
+        },
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                49.97679632912711,
+                48.46587905160843,
+                47.5,
+                47.49999999999999,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+          "refId": "B"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "95th percentile of send latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 17,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "histogram_quantile(0.5, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+                "links": []
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                26.30357701533006,
+                25.508357395583385,
+                25,
+                25,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.5, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.5, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Median send latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 16,
+        "y": 24
+      },
+      "hiddenSeries": false,
+      "id": 18,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.3.1",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "interval": 30000,
+                "links": []
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "displayNameFromDS": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+                "links": []
+              },
+              "labels": {
+                "instance": "mqperf:8080",
+                "job": "mqperf",
+                "testId": "test-1"
+              },
+              "name": "Value",
+              "type": "number",
+              "values": [
+                4.362828719136528,
+                4.061165922784276,
+                3.7948717948717947,
+                3.666666666666666,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: rate(mqperf_send_latency_ms_sum[1m]) / rate(mqperf_send_latency_ms_count[1m])\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "{instance=\"mqperf:8080\", job=\"mqperf\", testId=\"test-1\"}",
+          "refId": "A"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Average send latency",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "rgb(31, 120, 193)",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 20,
+        "y": 24
+      },
+      "id": 19,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.3.1",
+      "snapshotData": [
+        {
+          "fields": [
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "interval": 30000,
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "name": "Time",
+              "type": "time",
+              "values": [
+                1671020340000,
+                1671020370000,
+                1671020400000,
+                1671020430000,
+                1671020460000,
+                1671020490000,
+                1671020520000,
+                1671020550000,
+                1671020580000,
+                1671020610000
+              ]
+            },
+            {
+              "config": {
+                "color": {
+                  "fixedColor": "rgb(31, 120, 193)",
+                  "mode": "fixed"
+                },
+                "displayNameFromDS": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "labels": {},
+              "name": "Value",
+              "type": "number",
+              "values": [
+                49.97679632912711,
+                48.46587905160843,
+                47.5,
+                47.49999999999999,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+              ]
+            }
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "matrix"
+            },
+            "executedQueryString": "Expr: histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))\nStep: 30s",
+            "preferredVisualisationType": "graph",
+            "type": "timeseries-many"
+          },
+          "name": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "targets": [],
+      "title": "Max 95p of send latency",
+      "type": "stat"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 37,
+  "snapshot": {
+    "timestamp": "2022-12-21T07:35:38.311Z"
+  },
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
+        },
+        "hide": 0,
+        "label": "Span",
+        "name": "span",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "skipUrlSync": false,
+        "type": "interval"
+      }
+    ]
+  },
+  "time": {
+    "from": "2022-12-14T12:18:30.000Z",
+    "raw": {
+      "from": "2022-12-14T12:18:30.000Z",
+      "to": "2022-12-14T12:23:59.000Z"
+    },
+    "to": "2022-12-14T12:23:59.000Z"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "MQPerf Dashboard",
+  "uid": "2",
+  "version": 1,
+  "weekStart": ""
+}

@@ -15,5 +15,12 @@
     "partitions": "10",
     "replicationFactor": "2"
   },
-  "jobs": ["sender", "receiver", "receiver"]
+  "jobs": ["sender", "receiver", "receiver"],
+  "grafana": {
+    "snapshot": {
+      "expire": 3600,
+      "delayStartSec": 15,
+      "trimEndSec": 0
+    }
+  }
 }
