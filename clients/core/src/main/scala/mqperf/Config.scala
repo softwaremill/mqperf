@@ -4,7 +4,7 @@ package mqperf
   * implementation.
   *
   * A sender should send up to [[msgsPerSecond]] messages, in batches of [[batchSizeSend]] messages, where each message has [[msgSizeBytes]]
-  * bytes. At most [[maxSendInFlight]] messages should be in flight (sent initiated, but not yet complete) at any given time.
+  * bytes. One sender sends at most [[senderConcurrency]] concurrent batches.
   *
   * A receiver should receive messages in batches of up to [[batchSizeReceive]]
   */
@@ -15,7 +15,7 @@ case class Config(
     msgSizeBytes: Int,
     batchSizeSend: Int,
     batchSizeReceive: Int,
-    maxSendInFlight: Int,
+    senderConcurrency: Int,
     mqConfig: Map[String, String]
 )
 
