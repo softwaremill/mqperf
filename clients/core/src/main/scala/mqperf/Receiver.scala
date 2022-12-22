@@ -20,17 +20,19 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   def run(): Future[Unit] = {
     val mqReceiver = mq.createReceiver(config)
-    run(mqReceiver, None).flatMap(_ => mqReceiver.close())
+    runIteration(mqReceiver).flatMap(_ => mqReceiver.close())
   }
 
-  private def run(mqReceiver: MqReceiver, lastMessage: Option[Long]): Future[Unit] = {
-    lastMessage match {
-      case Some(last) if clock.millis() - last > FinishWhenNoMessagesAfter.toMillis =>
+  private def runIteration(mqReceiver: MqReceiver): Future[Unit] = {
+    val batchSize = config.batchSizeReceive
+
+    def receive(lastActivity: Long): Future[Unit] = {
+      if (clock.millis() - lastActivity > FinishWhenNoMessagesAfter.toMillis) {
         logger.info(s"No messages received for ${FinishWhenNoMessagesAfter.toSeconds}s, stopping")
         Future.successful(())
-      case _ =>
+      } else {
         mqReceiver
-          .receive(config.batchSizeReceive)
+          .receive(batchSize)
           .flatMap { msgs =>
             val now = clock.millis()
             msgs.foreach { case (_, msg) =>
@@ -38,13 +40,20 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
               LocalMetrics.messageLatencyHistogram.observe((now - t).toDouble)
             }
             LocalMetrics.messageCounter.inc(msgs.size.toDouble)
-
             mqReceiver.ack(msgs.map(_._1)).map(_ => msgs.size)
           }
           .flatMap {
-            case 0 => run(mqReceiver, lastMessage)
-            case _ => run(mqReceiver, Some(clock.millis()))
+            case 0 => receive(lastActivity)
+            case _ => receive(clock.millis())
           }
+      }
     }
+
+    val receiverConcurrency = config.receiverConcurrency
+    Future
+      .sequence(
+        (1 to receiverConcurrency).map { _ => receive(clock.millis()) }
+      )
+      .map(_ => ())
   }
 }
