@@ -9,6 +9,7 @@ import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentNavigableMap, Conc
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise, blocking}
+import scala.util.{Failure, Success, Try}
 
 class RabbitMq extends Mq with StrictLogging {
   private val HostsConfigKey = "hosts"
@@ -18,7 +19,7 @@ class RabbitMq extends Mq with StrictLogging {
   private val PasswordConfigKey = "password"
   private val NbIoThreadsConfigKey = "nbNioThreads"
   private val multipleAckConfigKey = "multipleAck"
-
+  private val maxChannelsNrConfigKey = "maxChannelsNr"
 
   override def init(config: Config): Unit = {
     val queueName: String = config.mqConfig(QueueNameConfigKey)
@@ -34,23 +35,23 @@ class RabbitMq extends Mq with StrictLogging {
   override def cleanUp(config: Config): Unit = {
     val queueName: String = config.mqConfig(QueueNameConfigKey)
 
-    Option(createConnection(config))
-      .map(newChannel(_, queueName, passive = true))
-      .foreach(conn => {
-        conn.queueDelete(queueName)
-        conn.close()
+    val connection = createConnection(config)
+    Try(newChannel(connection, queueName, passive = true)) match {
+      case Success(channel) =>
+        channel.queuePurge(queueName)
+        channel.queueDelete(queueName)
         logger.info(s"Deleted queue $queueName")
-      })
+      case Failure(_) => logger.info(s"Queue $queueName does not exist - deleting nothing")
+    }
+
+    connection.close()
   }
 
   override def createSender(config: Config): MqSender = new MqSender {
     private val channelPool: LinkedBlockingQueue[Channel] = new LinkedBlockingQueue[Channel]()
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
 
-    private val maxSendInFlight: Int = config.maxSendInFlight
-    private val batchSizeSend: Int = config.batchSizeSend
-    private val maxChannelsNr: Int = maxSendInFlight / batchSizeSend
-    logger.info(s"[Sender] - maxChannelsNr: $maxChannelsNr")
+    private val maxChannelsNr: Int = Option(config.mqConfig(maxChannelsNrConfigKey)).map(_.toInt).getOrElse(2)
 
     private val senderConnection: Connection = createConnection(config)
 
@@ -217,7 +218,6 @@ class RabbitMq extends Mq with StrictLogging {
     val channel = conn.createChannel()
     if (passive) channel.queueDeclarePassive(queueName)
     else channel.queueDeclare(queueName, false, false, false, null)
-
     channel
   }
 }

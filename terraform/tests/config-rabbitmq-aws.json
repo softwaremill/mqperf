@@ -1,7 +1,7 @@
 {
     "instance": {
         "cloudprovider": "aws",
-        "bucket_name": "rabbit-bucket-mqperf",
+        "bucket_name": "rabbit-bucket-mqperf-test",
         "mq": "rabbitmq",
         "cluster_name": "rabbitmq",
         "app_image": "",
@@ -10,7 +10,7 @@
         "controller_max_nodes_number": "3",
         "controller_nodes_type": "t3.large",
         "queue_max_nodes_number": "3",
-        "queue_nodes_type": "t3.large",
+        "queue_nodes_type": "r5.2xlarge",
         "gke_app_preemptible": "true",
         "gke_controller_preemptible": "true",
         "gke_queue_preemptible": "true"
