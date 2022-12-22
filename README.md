@@ -355,6 +355,90 @@ To init, then start the sender/receiver, use the following commands, using appro
 curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
 ```
 
+## Working with AWS cluster
+
+0. Using `aws configure` set credentials and region (e.g. eu-central-1)
+
+1. Start the cluster according to the chosen config file:
+    ```
+    cd terraform
+    python3 script.py apply tests/config-kafka-aws.json
+    ```
+   NOTE: mqperf v1 used r5.2xlarge instances
+
+2. link kubectl to the cluster
+    ```
+    aws eks --region eu-central-1 update-kubeconfig --name kafka
+    ```
+3. Retrieve broker credentials:
+- RabbitMQ
+   ```
+  kubectl get secret rabbitmq-cluster-default-user -o yaml
+  ```
+  values are coded. In order to encode:
+   ```
+  echo -n <coded username/password> | base64 -d
+  ```
+   NOTE: after encoding the result will have a '%' sign at the end. It should be omitted.
+   NOTE 2: hostname: rabbitmq-cluster.default.svc
+
+- Postgress
+   ```
+  kubectl get secret/mqperfuser.mqperf-postgresql-cluster.credentials.postgresql.acid.zalan.do -o json
+  echo -n 'putBase64Here' | base64 -d
+  ```
+  
+4. Port-forwarding:
+- grafana (e.g. port 9090 locally) (admin/prom-operator)
+    ```   
+    kubectl port-forward services/kube-prometheus-stack-grafana 9090:80
+    ```
+- postgres cluster (e.g. 9543 port locally)
+    ```
+  kubectl port-forward services/mqperf-postgresql-cluster-0 9543:5432
+  ```
+  
+5. Useful commands:
+- display all pods:
+   ```
+  kubectl get pod
+   ```
+- display all services:
+  ```
+    kubectl get services
+   ```
+- display broker settings (including username and password)
+  ```
+   kubectl get secret
+  ```
+- restart app pods
+  ```
+    kubectl scale deployment app-deployment --replicas 0
+    kubectl scale deployment app-deployment --replicas <nr_of_app_nodes>
+   ```
+  NOTE: it is possible to refresh the cluster in order to use the newest version of the mqperf app docker image.
+        Add `imagePullPolicy: Always` to app.yml file
+- pulling the newest app image without imagePullPolicy: Always and without a need to restart the whole cluster
+    ```
+    kubectl get deployment app-deployment -o yaml > temp-deployment.yaml' # get current conf
+    # here modify downloaded configuration file `temp-deployment.yaml` as you need
+    kubectl delete deployment app-deployment # delete current conf
+    kubectl apply -f temp-deployment.yaml # apply `temp-deployment.yaml` as new conf
+    ``` 
+  And scale the deployment afterwards (restart app pods)
+- follow specific app node logs
+  Get pod name using `kubectl get pod`
+    ```
+    kubectl logs <pod_name> --follow
+    ```
+### FAQ
+1. Fedora 37 issues
+- python 3.11 not working at the moment - 3.10 works fine
+- install additional modules: kubernetes, portforward, wheel, golang
+
+2. After adding a new queue client, mqperf app does not get deployed to cluster
+Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.
+
 ## Copyright
 
 Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).
