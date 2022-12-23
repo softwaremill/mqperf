@@ -33,14 +33,19 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
       } else {
         mqReceiver
           .receive(batchSize)
-          .flatMap { msgs =>
+          .map { msgs =>
             val now = clock.millis()
             msgs.foreach { case (_, msg) =>
               val t = Timestamp.extract(msg)
               LocalMetrics.messageLatencyHistogram.observe((now - t).toDouble)
             }
             LocalMetrics.messageCounter.inc(msgs.size.toDouble)
-            mqReceiver.ack(msgs.map(_._1)).map(_ => msgs.size)
+            mqReceiver
+              .ack(msgs.map(_._1))
+              .andThen { case Failure(ex) =>
+                logger.error("Ack of received messages failure", ex)
+              }
+            msgs.size
           }
           .flatMap {
             case 0 => receive(lastActivity)
