@@ -4,9 +4,9 @@
   "msgsPerSecond": 10,
   "msgSizeBytes": 1024,
   "batchSizeSend": 10,
-  "senderConcurrency": 4,
+  "senderConcurrency": 200,
   "batchSizeReceive": 10,
-  "receiverConcurrency": 4,
+  "receiverConcurrency": 200,
   "mqConfig": {
     "hosts": "broker:29092",
     "topic": "mqperf-test-1",
