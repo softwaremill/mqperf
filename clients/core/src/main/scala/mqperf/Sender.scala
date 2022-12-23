@@ -7,7 +7,7 @@ import java.time.Clock
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, Future, blocking}
+import scala.concurrent.{Future, blocking}
 import scala.util.Failure
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
@@ -27,8 +27,12 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
       blocking {
         val end = clock.millis() + config.testLengthSeconds.seconds.toMillis
         while (clock.millis() < end) {
+          val iterationStart = clock.millis()
           logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-          Await.result(runIteration(mqSender), 1.minute) // lasts ~ 1 second
+          runIteration(mqSender)
+
+          val iterationEnd = clock.millis()
+          Thread.sleep(math.max(0, 1.second.toMillis - (iterationEnd - iterationStart)))
         }
 
         logger.info("Sending done, waiting for all messages to be flushed ...")
@@ -40,12 +44,9 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
   private def runIteration(mqSender: MqSender): Future[Unit] = {
     val batchSize = config.batchSizeSend
     val sentMessages = new AtomicInteger(0)
-    val iterationStart = clock.millis()
 
     def send(): Future[Unit] = {
       if (sentMessages.get() >= config.msgsPerSecond) {
-        val iterationEnd = clock.millis()
-        Thread.sleep(math.max(0, 1.second.toMillis - (iterationEnd - iterationStart)))
         Future.successful(())
       } else {
         val sendStart = clock.millis()
