@@ -7,6 +7,7 @@ import java.time.Clock
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
+import scala.util.Failure
 
 class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
@@ -45,6 +46,9 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
           .flatMap {
             case 0 => receive(lastActivity)
             case _ => receive(clock.millis())
+          }
+          .andThen {
+            case Failure(ex) => logger.error("Receiving iteration failure", ex)
           }
       }
     }

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future, blocking}
+import scala.util.Failure
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
@@ -62,6 +63,9 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
       .sequence(
         (1 to senderConcurrency).map { _ => send() }
       )
+      .andThen{
+        case Failure(ex) => logger.error("Sending iteration failure", ex)
+      }
       .map(_ => ())
   }
 
