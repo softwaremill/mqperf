@@ -6,8 +6,9 @@ import io.prometheus.client.{Counter, Histogram}
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Future, blocking}
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
@@ -24,44 +25,53 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
     Future {
       blocking {
-        val start = clock.millis()
-        val end = start + config.testLengthSeconds * 1000L
-
-        val permits = new AtomicInteger(config.maxSendInFlight)
-        val batchSize = config.batchSizeSend
-
+        val end = clock.millis() + config.testLengthSeconds.seconds.toMillis
         while (clock.millis() < end) {
           val iterationStart = clock.millis()
-          // we send at most `config.msgsPerSecond` messages, but no more than the number of available permits
-          val msgsToSend = math.min(config.msgsPerSecond, permits.getAndUpdate(p => math.max(0, p - config.msgsPerSecond)))
-          logger.info(s"Messages to send: $msgsToSend")
-          val batches = msgsToSend / batchSize
-          (1 to batches).foreach { _ =>
-            val sendStart = clock.millis()
-            mqSender.send(nextMessagesBatch()).onComplete { result =>
-              permits.addAndGet(batchSize)
-              LocalMetrics.messageCounter.inc(batchSize.toDouble)
-              LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
-              result match {
-                case Failure(t) => logger.error("Exception when sending a batch of messages", t)
-                case Success(_) =>
-              }
-            }
-          }
+          logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
+          runIterations(mqSender)
 
           val iterationEnd = clock.millis()
-          // a whole iteration should take at least a second
-          Thread.sleep(math.max(0, 1000L - (iterationEnd - iterationStart)))
+          Thread.sleep(math.max(0, 1.second.toMillis - (iterationEnd - iterationStart)))
         }
 
         logger.info("Sending done, waiting for all messages to be flushed ...")
-        Thread.sleep(3000L)
+        Thread.sleep(3.second.toMillis)
       }
     }.flatMap(_ => mqSender.close())
   }
 
-  private def nextMessagesBatch(): Seq[String] = {
-    (1 to config.batchSizeSend)
+  private def runIterations(mqSender: MqSender): Future[Unit] = {
+    val batchSize = config.batchSizeSend
+    val sentMessages = new AtomicInteger(0)
+
+    def send(): Future[Unit] = {
+      if (sentMessages.get() >= config.msgsPerSecond) {
+        Future.successful(())
+      } else {
+        val sendStart = clock.millis()
+        sentMessages.addAndGet(batchSize)
+        mqSender.send(nextMessagesBatch(batchSize)).flatMap { _ =>
+          LocalMetrics.messageCounter.inc(batchSize.toDouble)
+          LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
+          send()
+        }
+      }
+    }
+
+    val senderConcurrency = config.senderConcurrency
+    Future
+      .sequence(
+        (1 to senderConcurrency).map { _ => send() }
+      )
+      .andThen { case Failure(ex) =>
+        logger.error("Sending iteration failure", ex)
+      }
+      .map(_ => ())
+  }
+
+  private def nextMessagesBatch(batchSize: Int): Seq[String] = {
+    (1 to batchSize)
       .map(_ => messagesPool.nextMessage())
       .map(Timestamp.add(_, clock))
   }
