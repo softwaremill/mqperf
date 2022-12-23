@@ -57,6 +57,8 @@ lazy val kafka: Project = (project in file("clients/kafka"))
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(DockerPlugin)
 
+val doobieVersion = "1.0.0-RC2"
+
 lazy val postgres: Project = (project in file("clients/postgres"))
   .settings(commonSettings: _*)
   .settings(dockerSettings)
@@ -65,8 +67,8 @@ lazy val postgres: Project = (project in file("clients/postgres"))
     name := "postgres",
     libraryDependencies ++= Seq(
       "org.postgresql" % "r2dbc-postgresql" % "0.9.2.RELEASE",
-      "io.r2dbc" % "r2dbc-pool" % "0.9.2.RELEASE",
-      "org.springframework.data" % "spring-data-r2dbc" % "1.5.6",
+      "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+      "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       scalaTest
     )
   )
