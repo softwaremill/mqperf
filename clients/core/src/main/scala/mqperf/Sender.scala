@@ -64,8 +64,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
       .sequence(
         (1 to senderConcurrency).map { _ => send() }
       )
-      .andThen{
-        case Failure(ex) => logger.error("Sending iteration failure", ex)
+      .andThen { case Failure(ex) =>
+        logger.error("Sending iteration failure", ex)
       }
       .map(_ => ())
   }

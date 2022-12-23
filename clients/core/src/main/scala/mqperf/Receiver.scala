@@ -55,7 +55,7 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         (1 to receiverConcurrency).map { _ => receive(clock.millis()) }
       )
       .andThen {
-        case Success(_) => logger.info(s"No messages received for ${FinishWhenNoMessagesAfter.toSeconds}s, stopping")
+        case Success(_)  => logger.info(s"No messages received for ${FinishWhenNoMessagesAfter.toSeconds}s, stopping")
         case Failure(ex) => logger.error("Receiving iteration failure", ex)
       }
       .map(_ => ())
