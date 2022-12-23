@@ -19,7 +19,6 @@ class RabbitMq extends Mq with StrictLogging {
   private val PasswordConfigKey = "password"
   private val NbIoThreadsConfigKey = "nbNioThreads"
   private val multipleAckConfigKey = "multipleAck"
-  private val maxChannelsNrConfigKey = "maxChannelsNr"
 
   override def init(config: Config): Unit = {
     val queueName: String = config.mqConfig(QueueNameConfigKey)
@@ -41,7 +40,7 @@ class RabbitMq extends Mq with StrictLogging {
         channel.queuePurge(queueName)
         channel.queueDelete(queueName)
         logger.info(s"Deleted queue $queueName")
-      case Failure(_) => logger.info(s"Queue $queueName does not exist - deleting nothing")
+      case Failure(_) => logger.info(s"Queue $queueName does not exist - nothing to delete")
     }
 
     connection.close()
@@ -51,22 +50,19 @@ class RabbitMq extends Mq with StrictLogging {
     private val channelPool: LinkedBlockingQueue[Channel] = new LinkedBlockingQueue[Channel]()
     private val queueName: String = config.mqConfig(QueueNameConfigKey)
 
-    private val maxChannelsNr: Int = Option(config.mqConfig(maxChannelsNrConfigKey)).map(_.toInt).getOrElse(2)
-
     private val senderConnection: Connection = createConnection(config)
 
-    for (_ <- 1 to maxChannelsNr) {
+    for (_ <- 1 to config.senderConcurrency) {
       val channel = newChannel(senderConnection, queueName, passive = true)
       channel.confirmSelect()
       channelPool.add(channel)
     }
 
     /*
-      Send method uses channels pool in order to be able to send messages using the sender instance on multiple threads simultaneously.
-      In order not to be able to send more yet unacked messgages than the MaxSendInFlight setting allows the number of channels is set as a result
-      of a following calculation: maxSendInFlight / batchSizeSend.
-      If all of the available channels are used at a specific time for sending the other threads will actively wait for the channels to be available
-      in the pool again. Only after a succesful channel poll will they be able to publish more messages.
+          Send method uses channels pool in order to be able to send messages using the sender instance on multiple threads concurrently.
+          Number of channels is determined by the senderConcurrency value which is also the amount of sender threads.
+          If all of the available channels are used at a specific time for sending the other threads will actively wait for the channels to be available
+          in the pool again. Only after a successful channel poll will they be able to publish more messages.
      */
     override def send(msgs: Seq[String]): Future[Unit] = Future {
       blocking {
@@ -176,7 +172,6 @@ class RabbitMq extends Mq with StrictLogging {
       }
     }
 
-
     override def ack(ids: Seq[MsgId]): Future[Unit] = Future.successful {
       if (multipleAck) {
         if (ids.nonEmpty) {
@@ -194,7 +189,6 @@ class RabbitMq extends Mq with StrictLogging {
 
     override def close(): Future[Unit] = Future(receiverConnection.close())
   }
-
 
   private def createConnection(config: Config): Connection = {
     val host: String = config.mqConfig(HostsConfigKey)
