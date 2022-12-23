@@ -26,36 +26,44 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     Future {
       blocking {
         val end = clock.millis() + config.testLengthSeconds.seconds.toMillis
-        while (clock.millis() < end) {
-          val iterationStart = clock.millis()
-          logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-          runIterations(mqSender)
-
-          val iterationEnd = clock.millis()
-          Thread.sleep(math.max(0, 1.second.toMillis - (iterationEnd - iterationStart)))
-        }
+        runIterations(mqSender, end)
 
         logger.info("Sending done, waiting for all messages to be flushed ...")
-        Thread.sleep(3.second.toMillis)
+        Thread.sleep(3.seconds.toMillis)
       }
     }.flatMap(_ => mqSender.close())
   }
 
-  private def runIterations(mqSender: MqSender): Future[Unit] = {
+  private def runIterations(mqSender: MqSender, testEnd: Long): Future[Unit] = {
     val batchSize = config.batchSizeSend
     val sentMessages = new AtomicInteger(0)
+    val permits = new AtomicInteger(0)
 
     def send(): Future[Unit] = {
-      if (sentMessages.get() >= config.msgsPerSecond) {
+      if (clock.millis() >= testEnd) {
         Future.successful(())
-      } else {
+      } else if (sentMessages.get() < permits.get()) {
         val sendStart = clock.millis()
         sentMessages.addAndGet(batchSize)
-        mqSender.send(nextMessagesBatch(batchSize)).flatMap { _ =>
-          LocalMetrics.messageCounter.inc(batchSize.toDouble)
-          LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
-          send()
-        }
+        mqSender
+          .send(nextMessagesBatch(batchSize))
+          .map { _ =>
+            LocalMetrics.messageCounter.inc(batchSize.toDouble)
+            LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
+          }
+          .flatMap(_ => send())
+      } else {
+        // do nothing, just wait for either: increasing of the permits or the test end
+        send()
+      }
+    }
+
+    // increases permits number every second
+    Future {
+      while (clock.millis() < testEnd) {
+        permits.addAndGet(config.msgsPerSecond)
+        logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
+        Thread.sleep(math.max(0, 1.second.toMillis))
       }
     }
 
