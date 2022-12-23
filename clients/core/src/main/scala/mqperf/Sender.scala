@@ -29,7 +29,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         while (clock.millis() < end) {
           val iterationStart = clock.millis()
           logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-          runIteration(mqSender)
+          runIterations(mqSender)
 
           val iterationEnd = clock.millis()
           Thread.sleep(math.max(0, 1.second.toMillis - (iterationEnd - iterationStart)))
@@ -41,7 +41,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     }.flatMap(_ => mqSender.close())
   }
 
-  private def runIteration(mqSender: MqSender): Future[Unit] = {
+  private def runIterations(mqSender: MqSender): Future[Unit] = {
     val batchSize = config.batchSizeSend
     val sentMessages = new AtomicInteger(0)
 
