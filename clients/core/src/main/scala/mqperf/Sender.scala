@@ -4,15 +4,17 @@ import com.typesafe.scalalogging.StrictLogging
 import io.prometheus.client.{Counter, Histogram}
 
 import java.time.Clock
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Future, blocking}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.Failure
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   private val messagesPool = RandomMessagesPool(config.msgSizeBytes)
+  private val loopEc = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
 
   private object LocalMetrics {
     private val testIdLabelValue = config.testId
@@ -57,14 +59,16 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
     // increases permits number every second
     Future {
-      blocking {
-        while (clock.millis() < testEnd) {
-          permits.addAndGet(config.msgsPerSecond)
-          logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-          Thread.sleep(math.max(0, 1.second.toMillis))
+      while (clock.millis() < testEnd) {
+        val startTimestamp = clock.millis()
+        permits.addAndGet(config.msgsPerSecond)
+        logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
+        blocking {
+          val endTimestamp = clock.millis()
+          Thread.sleep(Math.max(0, 1.second.toMillis - (endTimestamp - startTimestamp)))
         }
       }
-    }
+    }(loopEc)
 
     val senderConcurrency = config.senderConcurrency
     Future
