@@ -22,16 +22,13 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   def run(): Future[Unit] = {
     val mqSender = mq.createSender(config)
-
-    Future {
-      blocking {
-        val end = clock.millis() + config.testLengthSeconds.seconds.toMillis
-        runIterations(mqSender, end)
-
+    val end = clock.millis() + config.testLengthSeconds.seconds.toMillis
+    runIterations(mqSender, end)
+      .map { _ =>
         logger.info("Sending done, waiting for all messages to be flushed ...")
         Thread.sleep(3.seconds.toMillis)
       }
-    }.flatMap(_ => mqSender.close())
+      .flatMap(_ => mqSender.close())
   }
 
   private def runIterations(mqSender: MqSender, testEnd: Long): Future[Unit] = {
@@ -60,10 +57,12 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
     // increases permits number every second
     Future {
-      while (clock.millis() < testEnd) {
-        permits.addAndGet(config.msgsPerSecond)
-        logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-        Thread.sleep(math.max(0, 1.second.toMillis))
+      blocking {
+        while (clock.millis() < testEnd) {
+          permits.addAndGet(config.msgsPerSecond)
+          logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
+          Thread.sleep(math.max(0, 1.second.toMillis))
+        }
       }
     }
 
