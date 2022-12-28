@@ -63,10 +63,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         val startTimestamp = clock.millis()
         permits.addAndGet(config.msgsPerSecond)
         logger.info(s"Messages to send: ${config.msgsPerSecond} (concurrency=${config.senderConcurrency})")
-        blocking {
-          val endTimestamp = clock.millis()
-          Thread.sleep(Math.max(0, 1.second.toMillis - (endTimestamp - startTimestamp)))
-        }
+        val endTimestamp = clock.millis()
+        Thread.sleep(Math.max(0, 1.second.toMillis - (endTimestamp - startTimestamp)))
       }
     }(loopEc)
 
