@@ -7,17 +7,13 @@ from pprint import pprint
 import requests
 
 from grafana import save_snapshot
+from prometheus import avg_receive_metric, avg_send_metric, send_latency_metric, receive_latency_metric
 
 base_url = 'http://localhost:8080'
 prometheus_url = 'http://localhost:9090'
 
 grafana_url = 'http://admin:admin@localhost:3000'
 grafana_mqperf_dashboard_id = 2
-
-METRICS_QUERY_STEP_SEC = 1
-SEND_LATENCY_METRIC = 'histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[1m])) by (le))'
-RECEIVE_LATENCY_METRIC = 'histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[1m])) by (le))'
-QUERY_DELAY_SEC = 60
 
 
 def run(test_file: str):
@@ -55,12 +51,6 @@ def run(test_file: str):
     requests.post(base_url + '/cleanup', json=payload)
     print('Cleanup complete')
 
-    # Collect (based on Grafana dashboard
-    # - Avg of total receive rate
-    # - Avg of total sent rate
-    # - Max 95p of receive latency
-    # - Max 95p of send latency
-
     expire = None
     if payload['grafana']['snapshot']['expire']:
         expire = payload['grafana']['snapshot']['expire']
@@ -71,11 +61,17 @@ def run(test_file: str):
     if payload['grafana']['snapshot']['trimEndSec']:
         end = end - timedelta(seconds=payload['grafana']['snapshot']['trimEndSec'])
 
-    print("Send latency histogram:")
-    pprint(query_metrics(start, end, SEND_LATENCY_METRIC))
+    print("Avg of total receive rate")
+    pprint(avg_receive_metric(prometheus_url, start, end))
 
-    print("Receive latency histogram:")
-    pprint(query_metrics(start, end, RECEIVE_LATENCY_METRIC))
+    print("Avg of total sent rate")
+    pprint(avg_send_metric(prometheus_url, start, end))
+
+    print("Max 95p of receive latency")
+    pprint(receive_latency_metric(prometheus_url, start, end))
+
+    print("Max 95p of send latency")
+    pprint(send_latency_metric(prometheus_url, start, end))
 
     snapshot_link = save_snapshot(grafana_url, grafana_mqperf_dashboard_id, start, end, expire)
 
@@ -90,19 +86,6 @@ def check_if_ok(resp):
     if not resp.ok:
         raise Exception(f'Request failed: {resp.status_code} - {resp.reason}')
     return resp
-
-
-def query_metrics(start: datetime, end: datetime, metric_query: str):
-    metrics_data = requests.get(f'{prometheus_url}/api/v1/query_range', {
-        'start': start.timestamp(),
-        'end': end.timestamp(),
-        'step': METRICS_QUERY_STEP_SEC,
-        'query': metric_query
-    }).json()
-
-    pprint(metrics_data)
-
-    return [e[1] for e in metrics_data['data']['result'][0]['values']]
 
 
 if __name__ == '__main__':
