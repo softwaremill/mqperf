@@ -14,10 +14,6 @@ include "envcommon" {
   path = "${dirname(find_in_parent_folders())}/../../_envcommon/storage.hcl"
 }
 
-include "envcommon" {
-  path = "${dirname(find_in_parent_folders())}/../../_envcommon/volume_delete.hcl"
-}
-
 dependency "eks" {
   config_path = "../eks"
   mock_outputs = {
