@@ -48,34 +48,33 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
     def sendRunner(state: Ref[IO, State], iterationNo: Int = 0): IO[Unit] = {
       def iteration(state: Ref[IO, State]): IO[Unit] = {
-        state.get.flatMap(s =>
-          if (s.sent >= s.permits) {
-            IO.unit
+        state.get
+          .flatMap(s =>
+            if (s.sent >= s.permits) {
+              IO.unit
+            } else {
+              for {
+                sendStart <- IO(clock.millis())
+                _ <- IO.fromFuture(IO(mqSender.send(nextMessagesBatch(batchSize))))
+                _ <- state.update { s => s.copy(sent = s.sent + batchSize) }
+                _ <- IO {
+                  LocalMetrics.messageCounter.inc(batchSize.toDouble)
+                  LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
+                }
+                result <- iteration(state)
+              } yield result
+            }
+          )
+          .handleErrorWith { e =>
+            IO(logger.error(s"Sender iteration[$iterationNo] failed ", e)) >>
+              iteration(state)
           }
-          else {
-            for {
-              sendStart <- IO(clock.millis())
-              _ <- IO.fromFuture(IO(mqSender.send(nextMessagesBatch(batchSize))))
-              _ <- state.update { s => s.copy(sent = s.sent + batchSize) }
-              _ <- IO {
-                LocalMetrics.messageCounter.inc(batchSize.toDouble)
-                LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
-              }
-              result <- iteration(state)
-            } yield result
-          }
-        )
-        .handleErrorWith{ e =>
-          IO(logger.error(s"Sender iteration[$iterationNo] failed ", e)) >>
-            iteration(state)
-        }
       }
 
       state.get.flatMap(s => {
-        if(iterationNo < s.currentIteration) {
+        if (iterationNo < s.currentIteration) {
           iteration(state) >> sendRunner(state, iterationNo + 1)
-        }
-        else {
+        } else {
           s.nextIterationHook.get.flatMap(isTestEnd => {
             if (isTestEnd) IO.unit
             else iteration(state) >> sendRunner(state, iterationNo + 1)
@@ -86,26 +85,24 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
     def loop(until: Long, state: Ref[IO, State], iterationNo: Int = 0): IO[Unit] = {
       if (clock.millis() >= until) {
-        state
-          .get
+        state.get
           .flatMap(_.nextIterationHook.complete(true))
           .void
-      }
-      else {
+      } else {
         for {
           nextIterationH <- Deferred[IO, Boolean]
-          _              <- state.get.flatMap(_.nextIterationHook.complete(false))
-          addedPermits   <- state.modify(s => {
-                              val p = newPermits(s.sent, s.permits)
-                              s.copy(
-                                permits = s.permits + p,
-                                currentIteration = s.currentIteration + 1,
-                                nextIterationHook = nextIterationH
-                              ) -> p
-                            })
-          _              <- IO(logger.info(s"Messages to send: $addedPermits (concurrency=${config.senderConcurrency})"))
-          _              <- IO.sleep(1.second)
-          result         <- loop(until, state, iterationNo + 1)
+          _ <- state.get.flatMap(_.nextIterationHook.complete(false))
+          addedPermits <- state.modify(s => {
+            val p = newPermits(s.sent, s.permits)
+            s.copy(
+              permits = s.permits + p,
+              currentIteration = s.currentIteration + 1,
+              nextIterationHook = nextIterationH
+            ) -> p
+          })
+          _ <- IO(logger.info(s"Messages to send: $addedPermits (concurrency=${config.senderConcurrency})"))
+          _ <- IO.sleep(1.second)
+          result <- loop(until, state, iterationNo + 1)
         } yield result
       }
     }
@@ -116,10 +113,10 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     }
 
     for {
-      initHook  <- Deferred[IO, Boolean]
+      initHook <- Deferred[IO, Boolean]
       initState <- Ref.of[IO, State](State(0, 0, 0, initHook))
-      testEnd   <- IO(clock.millis() + config.testLengthSeconds.seconds.toMillis)
-      runners   <- (loop(testEnd, initState) :: (1 to senderConcurrency).map(_ => sendRunner(initState)).toList).parSequence.void
+      testEnd <- IO(clock.millis() + config.testLengthSeconds.seconds.toMillis)
+      runners <- (loop(testEnd, initState) :: (1 to senderConcurrency).map(_ => sendRunner(initState)).toList).parSequence.void
     } yield runners
   }
 
