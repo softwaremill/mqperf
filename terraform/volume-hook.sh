@@ -2,7 +2,7 @@
 
 
 for INSTANCE_ID in $(aws ec2 describe-instances \
-    --filters Name=tag:Name,Values=queues-pool \
+    --filters "Name=tag:Name,Values=queues-pool" "Name=tag:eks:cluster-name,Values=$CLUSTER_NAME" \
     --query "Reservations[*].Instances[*].InstanceId" --output text )
 do
     device_name=$(aws ec2 describe-instances \
