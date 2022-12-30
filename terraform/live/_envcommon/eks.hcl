@@ -13,6 +13,8 @@ inputs = {
   org         = "SML"
   environment = get_env("CLUSTER_NAME")
 
+  azs = ["eu-central-1a"]
+
   eks_cluster_node_groups = {
     controllers-pool = {
       min_size       = 1
