@@ -6,7 +6,7 @@
   "batchSizeSend": 1000,
   "senderConcurrency": 200,
   "batchSizeReceive": 1000,
-  "receiverConcurrency": 200,
+  "receiverConcurrency": 8,
   "mqConfig": {
     "hosts": "my-cluster-kafka-bootstrap:9092",
     "topic": "mqperf-test-1",

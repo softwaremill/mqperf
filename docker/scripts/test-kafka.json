@@ -6,7 +6,7 @@
   "batchSizeSend": 10,
   "senderConcurrency": 200,
   "batchSizeReceive": 10,
-  "receiverConcurrency": 200,
+  "receiverConcurrency": 8,
   "mqConfig": {
     "hosts": "broker:29092",
     "topic": "mqperf-test-1",
