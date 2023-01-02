@@ -1,7 +1,7 @@
 {
     "instance": {
         "cloudprovider": "aws",
-        "bucket_name": "postgresql-bucket-mqperf",
+        "bucket_name": "aws-postgresql-bucket-mqperf",
         "mq": "postgresql",
         "cluster_name": "postgresql",
         "app_image": "",

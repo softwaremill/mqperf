@@ -31,6 +31,7 @@ inputs = {
   orchestrator_version           = "1.24.3"
   use_cluster_admins_group       = false
   private_cluster_enabled        = false
+  use_for_each                   = true
   agents_labels = {
     "node-group" = "controllers"
   }
