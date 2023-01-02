@@ -59,7 +59,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     val table = config.mqConfig(TableConfigKey)
     val tx = transactor(config)
 
-    (sql"drop table if exists " ++ const(table)).update.run
+    (fr"drop table if exists " ++ const(table)).update.run
       .transact(tx)
       .unsafeRunSync()
 
