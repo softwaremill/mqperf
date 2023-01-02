@@ -8,7 +8,7 @@ import io.prometheus.client.{Counter, Histogram}
 
 import java.time.Clock
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, DurationLong}
 
 class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
@@ -32,6 +32,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   def run(): Future[Unit] = {
     val mqSender = mq.createSender(config)
+    logger.info("Starting sender...")
 
     val senderRun = runParallel(mqSender, config.senderConcurrency) >>
       IO(logger.info("Sending done, waiting for all messages to be flushed ...")) >>
@@ -46,78 +47,42 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
   private def runParallel(mqSender: MqSender, senderConcurrency: Int): IO[Unit] = {
     val batchSize = config.batchSizeSend
 
-    def sendRunner(state: Ref[IO, State], iterationNo: Int = 0): IO[Unit] = {
-      def iteration(state: Ref[IO, State]): IO[Unit] = {
-        state.get
-          .flatMap(s =>
-            if (s.sent >= s.permits) {
-              IO.unit
-            } else {
-              for {
-                sendStart <- IO(clock.millis())
-                _ <- IO.fromFuture(IO(mqSender.send(nextMessagesBatch(batchSize))))
-                _ <- state.update { s => s.copy(sent = s.sent + batchSize) }
-                _ <- IO {
-                  LocalMetrics.messageCounter.inc(batchSize.toDouble)
-                  LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
-                }
-                result <- iteration(state)
-              } yield result
-            }
-          )
-          .handleErrorWith { e =>
-            IO(logger.error(s"Sender iteration[$iterationNo] failed ", e)) >>
-              iteration(state)
+    def sendRunner(permits: Long, testEnd: Long): IO[Unit] = {
+
+      def iteration(sent: Long, permits: Long, startTimestamp: Long): IO[Unit] = {
+        if (sent >= permits) {
+          for {
+            _ <- IO.sleep(Math.max(0, 1.second.toMillis - (clock.millis() - startTimestamp)).millis)
+            result <- if (startTimestamp >= testEnd) IO.unit else iteration(0, permits, clock.millis())
+          } yield result
+        } else
+          {
+            for {
+              sendStart <- IO(clock.millis())
+              _ <- IO.fromFuture(IO(mqSender.send(nextMessagesBatch(batchSize))))
+              _ <- IO {
+                LocalMetrics.messageCounter.inc(batchSize.toDouble)
+                LocalMetrics.messageLatencyHistogram.observe((clock.millis() - sendStart).toDouble)
+              }
+              result <- iteration(sent + batchSize, permits, startTimestamp)
+            } yield result
           }
+            .handleErrorWith { e =>
+              IO(logger.error(s"Sender process failed. Tries to continue... ", e)) >>
+                iteration(sent, permits, startTimestamp)
+            }
       }
 
-      state.get.flatMap(s => {
-        if (iterationNo < s.currentIteration) {
-          iteration(state) >> sendRunner(state, iterationNo + 1)
-        } else {
-          s.nextIterationHook.get.flatMap(isTestEnd => {
-            if (isTestEnd) IO.unit
-            else iteration(state) >> sendRunner(state, iterationNo + 1)
-          })
-        }
-      })
-    }
-
-    def loop(until: Long, state: Ref[IO, State], iterationNo: Int = 0): IO[Unit] = {
-      if (clock.millis() >= until) {
-        state.get
-          .flatMap(_.nextIterationHook.complete(true))
-          .void
-      } else {
-        for {
-          nextIterationH <- Deferred[IO, Boolean]
-          _ <- state.get.flatMap(_.nextIterationHook.complete(false))
-          addedPermits <- state.modify(s => {
-            val p = newPermits(s.sent, s.permits)
-            s.copy(
-              permits = s.permits + p,
-              currentIteration = s.currentIteration + 1,
-              nextIterationHook = nextIterationH
-            ) -> p
-          })
-          _ <- IO(logger.info(s"Messages to send: $addedPermits (concurrency=${config.senderConcurrency})"))
-          _ <- IO.sleep(1.second)
-          result <- loop(until, state, iterationNo + 1)
-        } yield result
-      }
-    }
-
-    def newPermits(sent: Long, permits: Long) = {
-      if (permits - sent > config.msgsPerSecond) 0
-      else config.msgsPerSecond
+      for {
+        startTimestamp <- IO(clock.millis())
+        result <- iteration(0, permits, startTimestamp)
+      } yield result
     }
 
     for {
-      initHook <- Deferred[IO, Boolean]
-      initState <- Ref.of[IO, State](State(0, 0, 0, initHook))
       testEnd <- IO(clock.millis() + config.testLengthSeconds.seconds.toMillis)
-      runners <- (loop(testEnd, initState) :: (1 to senderConcurrency).map(_ => sendRunner(initState)).toList).parSequence.void
-    } yield runners
+      result <- (1 to senderConcurrency).map(_ => sendRunner(config.msgsPerProcessInSecond.toLong, testEnd)).toList.parSequence.void
+    } yield result
   }
 
   private def nextMessagesBatch(batchSize: Int): Seq[String] = {

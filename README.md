@@ -318,7 +318,7 @@ The structure of the config JSON is:
 {
   "testId": "test",
   "testLengthSeconds": 10,
-  "msgsPerSecond": 10,
+  "msgsPerProcessInSecond": 10,
   "msgSizeBytes": 100,
   "batchSizeSend": 1,
   "senderConcurrency": 4,
