@@ -1,13 +1,12 @@
 #!/bin/bash
 
 
-for INSTANCE_ID in $(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=queues-pool" "Name=tag:eks:cluster-name,Values=$CLUSTER_NAME" "Name=instance-state-name,Values=running" \
-    --query "Reservations[*].Instances[*].InstanceId" --output text )
+for INSTANCE_ID in $(aws ec2 describe-volumes \
+    --filters "Name=tag:ebs.csi.aws.com/cluster,Values=true" "Name=tag:KubernetesCluster,Values=$CLUSTER_NAME" \
+    --query "Volumes[*].Attachments[*].InstanceId" --output text )
 do
-    device_name=$(aws ec2 describe-instances \
-    --instance-ids $INSTANCE_ID \
-    --query "Reservations[*].Instances[*].BlockDeviceMappings[*].DeviceName" --output text |  awk '{ print $2 }')
+    device_name=$(aws ec2 describe-volumes --filters "Name=attachment.instance-id,Values=$INSTANCE_ID" \
+    --query "Volumes[*].Attachments[*].Device" --output text |  tail -n 1)
 
     jq -n --arg var "$device_name" '[{"DeviceName":$var,"Ebs":{"DeleteOnTermination":true}}]' > mapping.json
 
