@@ -355,6 +355,14 @@ To init, then start the sender/receiver, use the following commands, using appro
 curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"batchSizeReceive":1,"maxSendInFlight":1,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
 ```
 
+### PostgresMQ
+
+Note, that to get best test result you should run it for a few minutes (10-15). It is because if `pg_stats` on
+`jobs` table suggests that there are enough random values in the table that meet `select ... where next_delivery <= $now...limit $limit`
+query, then seqScan is used instead of IndexScan. The total cost of fetching required number of sequential blocks from db
+is less than that of fetching the index blocks first and then the corresponding data blocks. As a result you will get
+increase of receiver rate, like: https://snapshots.raintank.io/dashboard/snapshot/3QsM6PbLBB77NyDaW5to2D67K5c4r2Wd
+
 ## Working with AWS cluster
 
 0. Using `aws configure` set credentials and region (e.g. eu-central-1)
