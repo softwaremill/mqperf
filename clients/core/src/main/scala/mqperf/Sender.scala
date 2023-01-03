@@ -21,15 +21,6 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     val messageLatencyHistogram: Histogram.Child = Metrics.Sender.messageLatencyHistogram.labels(testIdLabelValue)
   }
 
-  /*
-    sent - number of messages already sent
-    permits - number of messages which sender is allowed to send
-    currentIteration - number of iteration, 1 iteration lasts 1 second
-    nextIterationHook - allows sender to wait for next iteration without thread-blocking. If Deferred will evaluate to
-      false sender will start nextIteration, otherwise it will finish sending.
-   */
-  case class State(sent: Long, permits: Long, currentIteration: Int, nextIterationHook: Deferred[IO, Boolean])
-
   def run(): Future[Unit] = {
     val mqSender = mq.createSender(config)
     logger.info("Starting sender...")
