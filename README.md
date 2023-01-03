@@ -353,7 +353,7 @@ Confluent's control center (available at `http://localhost:9021`), and the mqper
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
 ```bash
-curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"senderConcurrency":200,"batchSizeReceive":1,"receiverConcurrency":200,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
+curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerProcessInSecond":10,"msgSizeBytes":100,"batchSizeSend":1,"senderConcurrency":200,"batchSizeReceive":1,"receiverConcurrency":200,"mqConfig":{"hosts":"broker:29092","topic":"mqperf-test","acks":"-1","groupId":"mqperf","commitMs":"1000","partitions":"10","replicationFactor":"1"}}' http://localhost:8080/init
 ```
 
 ## Working with AWS cluster
