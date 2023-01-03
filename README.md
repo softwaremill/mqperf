@@ -262,41 +262,41 @@ You can use the reusable storage-class module defined in `terraform/modules/stor
 To use this module create folder `storage-class` in `terraform/live/$MQ/$CLOUD_PROVIDER/`, where `$MQ` is your message queue service and `$CLOUD_PROVIDER` is your cloud provider of choice. In folder `terraform/live/$MQ/$CLOUD_PROVIDER/storage-class/` create file `terragrunt.hcl` and provide all necessary code for your terragrunt configuration. Additionally, in the inputs block define:
 
 1. Define variable eks_storage_classes:
-```yml
-eks_storage_classes = [
-    {
-      name                      = "mqperf-storageclass"
-      storage_class_provisioner = "ebs.csi.aws.com"
-      volume_binding_mode       = "WaitForFirstConsumer"
-      parameters = {
-        type   = "gp3"
-        fsType = "ext4"
-      }
-    }
-  ]
-```
-For the parameters details refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/#parameters).
+   ```yml
+   eks_storage_classes = [
+       {
+         name                      = "mqperf-storageclass"
+         storage_class_provisioner = "ebs.csi.aws.com"
+         volume_binding_mode       = "WaitForFirstConsumer"
+         parameters = {
+           type   = "gp3"
+           fsType = "ext4"
+         }
+       }
+     ]
+   ```
+   For the parameters details refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/#parameters).
 
 2. Define variables as in the example below:
 
-```
-aws_account_id    = get_aws_account_id()
-oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, "https://", "")
-cluster_name      = get_env("CLUSTER_NAME")
-```
-
-In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class for the [AWS EKS](https://aws.amazon.com/eks/). The [GCP](https://cloud.google.com/kubernetes-engine) configuration supports for now only the standard Storage Class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
-
-```
-inputs = {
-  storage_class = "mqperf-storageclass"
-  storage_size  = "20Gi"
-}
-```
-
-If you don't define these variables, the default values will be passed:
-- The **storage_class** variable has a default value `standard`.
-- The **storage_size** variable has a default value `20Gi`.
+   ```
+   aws_account_id    = get_aws_account_id()
+   oidc_provider_url = replace(dependency.eks.outputs.eks_cluster_oidc_issuer_url, "https://", "")
+   cluster_name      = get_env("CLUSTER_NAME")
+   ```
+   
+   In the `terraform/live/_envcommon/storage.hcl` you can define the values of the global variables: persistent volume capacity and preferred storage class for the [AWS EKS](https://aws.amazon.com/eks/). The [GCP](https://cloud.google.com/kubernetes-engine) configuration supports for now only the standard Storage Class. These variables will be applied to every MQ service. For the values, pass the name of the storage class and the size of the storage expressed as a Kubernetes resource quantity:
+   
+   ```
+   inputs = {
+     storage_class = "mqperf-storageclass"
+     storage_size  = "20Gi"
+   }
+   ```
+   
+   If you don't define these variables, the default values will be passed:
+   - The **storage_class** variable has a default value `standard`.
+   - The **storage_size** variable has a default value `20Gi`.
 
 
 ## MQ clients
@@ -371,70 +371,69 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":10,"msgsPerSecond":10,"msgSi
     aws eks --region eu-central-1 update-kubeconfig --name kafka
     ```
 3. Retrieve broker credentials:
-- RabbitMQ
-   ```
-  kubectl get secret rabbitmq-cluster-default-user -o yaml
-  ```
-  values are coded. In order to encode:
-   ```
-  echo -n <coded username/password> | base64 -d
-  ```
-   NOTE: after encoding the result will have a '%' sign at the end. It should be omitted.
-   NOTE 2: hostname: rabbitmq-cluster.default.svc
-
-- Postgress
-   ```
-  kubectl get secret/mqperfuser.mqperf-postgresql-cluster.credentials.postgresql.acid.zalan.do -o json
-  echo -n 'putBase64Here' | base64 -d
-  ```
+   - RabbitMQ
+      ```
+     kubectl get secret rabbitmq-cluster-default-user -o yaml
+     ```
+     values are coded. In order to encode:
+      ```
+     echo -n <coded username/password> | base64 -d
+     ```
+      NOTE: after encoding the result will have a '%' sign at the end. It should be omitted.
+      NOTE 2: hostname: rabbitmq-cluster.default.svc
+   
+   - Postgress
+      ```
+     kubectl get secret/mqperfuser.mqperf-postgresql-cluster.credentials.postgresql.acid.zalan.do -o json
+     echo -n 'putBase64Here' | base64 -d
+     ```
   
 4. Port-forwarding:
-- grafana (e.g. port 9090 locally) (admin/prom-operator)
-    ```   
-    kubectl port-forward services/kube-prometheus-stack-grafana 9090:80
-    ```
-- postgres cluster (e.g. 9543 port locally)
-    ```
-  kubectl port-forward services/mqperf-postgresql-cluster-0 9543:5432
-  ```
+   - grafana (e.g. port 9090 locally) (admin/prom-operator)
+     ```   
+     kubectl port-forward services/kube-prometheus-stack-grafana 9090:80
+     ```
+   - postgres cluster (e.g. 9543 port locally)
+     ```
+     kubectl port-forward services/mqperf-postgresql-cluster-0 9543:5432
+     ```
   
 5. Useful commands:
-- display all pods:
-   ```
-  kubectl get pod
-   ```
-- display all services:
-  ```
-    kubectl get services
-   ```
-- display broker settings (including username and password)
-  ```
-   kubectl get secret
-  ```
-- restart app pods
-  ```
-    kubectl scale deployment app-deployment --replicas 0
-    kubectl scale deployment app-deployment --replicas <nr_of_app_nodes>
-   ```
-  NOTE: it is possible to refresh the cluster in order to use the newest version of the mqperf app docker image.
-        Add `imagePullPolicy: Always` to app.yml file
-- pulling the newest app image without imagePullPolicy: Always and without a need to restart the whole cluster
-    ```
-    kubectl get deployment app-deployment -o yaml > temp-deployment.yaml' # get current conf
-    # here modify downloaded configuration file `temp-deployment.yaml` as you need
-    kubectl delete deployment app-deployment # delete current conf
-    kubectl apply -f temp-deployment.yaml # apply `temp-deployment.yaml` as new conf
-    ``` 
-  And scale the deployment afterwards (restart app pods)
-- follow specific app node logs
-  Get pod name using `kubectl get pod`
-    ```
-    kubectl logs <pod_name> --follow
-    ```
+   - display all pods:
+      ```
+     kubectl get pod
+      ```
+   - display all services:
+     ```
+       kubectl get services
+      ```
+   - display broker settings (including username and password)
+     ```
+      kubectl get secret
+     ```
+   - restart app pods
+     ```
+       kubectl scale deployment app-deployment --replicas 0
+       kubectl scale deployment app-deployment --replicas <nr_of_app_nodes>
+      ```
+     NOTE: it is possible to refresh the cluster in order to use the newest version of the mqperf app docker image.
+           Add `imagePullPolicy: Always` to app.yml file
+   - pulling the newest app image without imagePullPolicy: Always and without a need to restart the whole cluster
+       ```
+       kubectl get deployment app-deployment -o yaml > temp-deployment.yaml' # get current conf
+       # here modify downloaded configuration file `temp-deployment.yaml` as you need
+       kubectl delete deployment app-deployment # delete current conf
+       kubectl apply -f temp-deployment.yaml # apply `temp-deployment.yaml` as new conf
+       ``` 
+     And scale the deployment afterwards (restart app pods)
+   - follow specific app node logs, get pod name using `kubectl get pod`
+       ```
+       kubectl logs <pod_name> --follow
+       ```
 ### FAQ
 1. Fedora 37 issues
-- python 3.11 not working at the moment - 3.10 works fine
-- install additional modules: kubernetes, portforward, wheel, golang
+   - python 3.11 not working at the moment - 3.10 works fine
+   - install additional modules: kubernetes, portforward, wheel, golang
 
 2. After adding a new queue client, mqperf app does not get deployed to cluster
 Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.

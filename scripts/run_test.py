@@ -7,7 +7,7 @@ from kubernetes.stream import portforward
 import portforward
 import _portforward
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def run(test_file: str):
@@ -44,7 +44,7 @@ def run(test_file: str):
         check_if_ok(requests.post(url + '/start/' + job, json=payload))
         print(f'Job {job} started on {pod.metadata.name}')
 
-    start = datetime.utcnow()
+    start = datetime.now(timezone.utc)
 
     while True:
         jobs_in_progress = []
@@ -56,7 +56,7 @@ def run(test_file: str):
             print('Still running:', jobs_in_progress)
             time.sleep(10)
 
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
 
     print('Test time range:')
     print(start.isoformat())
@@ -65,7 +65,12 @@ def run(test_file: str):
     requests.post(base_url + '/cleanup', json=payload)
     print('Cleanup complete')
 
-    # TODO: acquire metrics, save dashboard, etc.
+    # TODO: use docker/scripts/grafana.py
+    #       use docker/scripts/prometheus.py
+    #       see docker/scripts/run-local.py how to use them
+
+    # TODO: save metrics in DB, the url to DB with credentials must be provided in the JSON config
+    #       this DB must accessible over the internet, DevOps will create a dedicate standalone instance
 
 
 def check_if_ok(resp):
