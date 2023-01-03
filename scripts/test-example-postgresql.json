@@ -1,7 +1,7 @@
 {
   "testId": "test-1s2r",
   "testLengthSeconds": 180,
-  "msgsPerSecond": 4000,
+  "msgsPerProcessInSecond": 4000,
   "msgSizeBytes": 100,
   "batchSizeSend": 10,
   "senderConcurrency": 4,
