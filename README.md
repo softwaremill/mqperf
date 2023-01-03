@@ -459,7 +459,7 @@ This will start the PostgreSQL server and the mqperf server.
 To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
 
 ```bash
-curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"host": "postgres", "port": "5432", "table": "jobs"}}' http://localhost:8080/init
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerProcessInSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"host": "postgres", "port": "5432", "table": "jobs"}}' http://localhost:8080/init
 ```
 
 You can also check sample requests in `postgresMq.http` file.

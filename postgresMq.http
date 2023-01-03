@@ -6,7 +6,7 @@ Content-Type: application/json
 {
   "testId": "test",
   "testLengthSeconds": -1,
-  "msgsPerSecond": -1,
+  "msgsPerProcessInSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
   "senderConcurrency": 4,
@@ -31,7 +31,7 @@ Content-Type: application/json
 {
   "testId": "test",
   "testLengthSeconds": 10,
-  "msgsPerSecond": 100000,
+  "msgsPerProcessInSecond": 1000,
   "msgSizeBytes": 100,
   "batchSizeSend": 10,
   "senderConcurrency": 4,
@@ -56,7 +56,7 @@ Content-Type: application/json
 {
   "testId": "test",
   "testLengthSeconds": -1,
-  "msgsPerSecond": -1,
+  "msgsPerProcessInSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
   "senderConcurrency": 4,
@@ -82,7 +82,7 @@ Content-Type: application/json
 {
   "testId": "test",
   "testLengthSeconds": -1,
-  "msgsPerSecond": -1,
+  "msgsPerProcessInSecond": -1,
   "msgSizeBytes": -1,
   "batchSizeSend": -1,
   "senderConcurrency": 4,
