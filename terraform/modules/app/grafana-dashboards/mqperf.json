@@ -33,10 +33,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -80,10 +77,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "mqperf_received_total",
           "format": "time_series",
           "interval": "",
@@ -125,10 +119,7 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -190,10 +181,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "sum(rate(mqperf_received_total[$span]))",
           "format": "time_series",
           "intervalFactor": 1,
@@ -207,10 +195,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -262,10 +247,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "sum(rate(mqperf_received_total[$span]))",
           "format": "time_series",
           "intervalFactor": 1,
@@ -283,10 +265,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -330,10 +309,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "mqperf_sent_total",
           "format": "time_series",
           "intervalFactor": 2,
@@ -372,10 +348,7 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -427,10 +400,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "sum(rate(mqperf_sent_total[$span]))",
           "format": "time_series",
           "intervalFactor": 1,
@@ -444,10 +414,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -499,10 +466,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "sum(rate(mqperf_sent_total[$span]))",
           "format": "time_series",
           "intervalFactor": 1,
@@ -520,10 +484,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -567,10 +528,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "rate(mqperf_received_total[$span])\n\n",
           "format": "time_series",
           "interval": "",
@@ -616,10 +574,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -663,10 +618,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "rate(mqperf_received_total[1m])\n",
           "format": "time_series",
           "interval": "",
@@ -712,10 +664,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -759,10 +708,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "quantile_over_time(0.95, mqperf_received_1m_rate[$span])",
           "format": "time_series",
           "interval": "",
@@ -808,10 +754,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -855,10 +798,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[$span])) by (le, host))",
           "format": "time_series",
           "hide": false,
@@ -869,10 +809,7 @@
           "step": 2
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
@@ -915,10 +852,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -962,10 +896,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.5, sum(rate(mqperf_receive_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1009,10 +940,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1056,10 +984,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "rate(mqperf_receive_latency_ms_sum[$span]) / rate(mqperf_receive_latency_ms_count[$span])",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1099,10 +1024,7 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1163,10 +1085,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_receive_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1182,10 +1101,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1229,10 +1145,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[$span])) by (le, host))",
           "format": "time_series",
           "hide": false,
@@ -1243,10 +1156,7 @@
           "step": 2
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1289,10 +1199,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1336,10 +1243,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.5, sum(rate(mqperf_send_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1383,10 +1287,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1430,10 +1331,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "rate(mqperf_send_latency_ms_sum[$span]) / rate(mqperf_send_latency_ms_count[$span])",
           "format": "time_series",
           "intervalFactor": 2,
@@ -1473,10 +1371,7 @@
       }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1537,10 +1432,7 @@
       "pluginVersion": "9.3.1",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
+          "datasource": "${DS_PROMETHEUS}",
           "expr": "histogram_quantile(0.95, sum(rate(mqperf_send_latency_ms_bucket[$span])) by (le))",
           "format": "time_series",
           "intervalFactor": 2,
