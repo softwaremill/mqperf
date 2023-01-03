@@ -15,5 +15,10 @@
     "partitions": "10",
     "replicationFactor": "2"
   },
-  "jobs": ["sender", "receiver", "receiver"]
+  "jobs": ["sender", "receiver", "receiver"],
+  "results": {
+    "db": {
+      "url": "url://to@database"
+    }
+  }
 }
