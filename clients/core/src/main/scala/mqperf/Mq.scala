@@ -8,6 +8,7 @@ trait Mq {
 
   //TODO: to discuss: should this function for multiple calls return the same instance of `MqSenderFactory`?
   def senderFactory(config: Config): MqSenderFactory = ???
+  def receiverFactory(config: Config): MqReceiverFactory = ???
 
   @Deprecated
   def createSender(config: Config): MqSender
@@ -21,6 +22,10 @@ trait MqSenderFactory {
 trait MqSender {
   def send(msgs: Seq[String]): Future[Unit]
   def close(): Future[Unit] = Future.successful(())
+}
+
+trait MqReceiverFactory {
+  def createReceiver(): MqReceiver
 }
 
 trait MqReceiver {

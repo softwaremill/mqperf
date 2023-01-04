@@ -19,6 +19,7 @@ case class Config(
     sendersNumbers: Int,
     senderConcurrency: Int,
     batchSizeReceive: Int,
+    receiversNumbers: Int,
     receiverConcurrency: Int,
     mqConfig: Map[String, String]
 )
