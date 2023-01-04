@@ -5,10 +5,10 @@ import com.rabbitmq.client.impl.nio.NioParams
 import com.typesafe.scalalogging.StrictLogging
 import mqperf.{Config, Mq, MqReceiver, MqSender}
 
-import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentNavigableMap, ConcurrentSkipListMap, LinkedBlockingQueue}
+import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise, blocking}
+import scala.concurrent.{Future, blocking}
 import scala.util.{Failure, Success, Try}
 
 class RabbitMq extends Mq with StrictLogging {
@@ -67,42 +67,13 @@ class RabbitMq extends Mq with StrictLogging {
     override def send(msgs: Seq[String]): Future[Unit] = Future {
       blocking {
         val channel = channelPool.take()
-        val publishSeqNoPromiseMap: ConcurrentNavigableMap[Long, Promise[Unit]] =
-          new ConcurrentSkipListMap() // publishSeqNo are ordered asc
+        for (msg <- msgs) {
+          channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
+        }
 
-        channel.addConfirmListener(new ConfirmListener {
-          override def handleAck(deliveryTag: Long, multiple: Boolean): Unit = {
-            // if multiple = true - all messages with publishSeqNo <= deliveryTag has been acked
-            if (multiple) {
-              publishSeqNoPromiseMap
-                .headMap(deliveryTag, true)
-                .values()
-                .forEach(promise => promise.success())
-            } else Option(publishSeqNoPromiseMap.get(deliveryTag)).foreach(_.success())
-
-            publishSeqNoPromiseMap.headMap(deliveryTag, true).clear()
-          }
-
-          override def handleNack(deliveryTag: Long, multiple: Boolean): Unit = {
-            throw new IllegalStateException(s"NACK for deliveryTag: $deliveryTag")
-          }
-        })
-
-        Future
-          .sequence {
-            for (msg <- msgs) yield {
-              val promise = Promise[Unit]()
-              val nextPublishSeqNo = channel.getNextPublishSeqNo
-              publishSeqNoPromiseMap.put(nextPublishSeqNo, promise)
-
-              channel.basicPublish("", queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes)
-              promise.future
-            }
-          }
-          .map(_ => {
-            channelPool.add(channel)
-            ()
-          })
+        channel.waitForConfirms()
+        channelPool.add(channel)
+        ()
       }
     }
 

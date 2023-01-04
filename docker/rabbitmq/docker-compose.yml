@@ -15,3 +15,27 @@ services:
       - 8080:8080
     hostname: mqperf
     container_name: mqperf
+
+  mqperf2:
+    image: softwaremill/mqperf-rabbitmq:latest
+    environment:
+      - http.port=8081
+    depends_on:
+      - rabbitmq
+    ports:
+      - 8081:8081
+    hostname: mqperf2
+    container_name: mqperf2
+
+  mqperf3:
+    image: softwaremill/mqperf-rabbitmq:latest
+    environment:
+      - http.port=8082
+    depends_on:
+      - rabbitmq
+    ports:
+      - 8082:8082
+    hostname: mqperf3
+    container_name: mqperf3
+
+
