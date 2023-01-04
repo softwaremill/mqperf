@@ -16,6 +16,7 @@ case class Config(
     msgSizeBytes: Int,
     batchSizeSend: Int,
     msgsPerProcessInSecond: Int,
+    sendersNumbers: Int,
     senderConcurrency: Int,
     batchSizeReceive: Int,
     receiverConcurrency: Int,

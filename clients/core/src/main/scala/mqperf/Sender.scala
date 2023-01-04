@@ -22,7 +22,7 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
   }
 
   def run(): Future[Unit] = {
-    val mqSender = mq.createSender(config)
+    val mqSender = mq.senderFactory(config).createSender()
     logger.info("Starting sender...")
 
     val senderRun = runParallel(mqSender, config.senderConcurrency) >>
