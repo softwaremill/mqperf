@@ -1,5 +1,5 @@
 terraform {
-  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.3"
+  source = "git::https://github.com/softwaremill/terraform-eks-bootstrap//?ref=v0.0.5"
 
 
   before_hook "select workspace" {
@@ -12,6 +12,8 @@ inputs = {
 
   org         = "SML"
   environment = get_env("CLUSTER_NAME")
+
+  eks_single_az = true
 
   eks_cluster_node_groups = {
     controllers-pool = {
