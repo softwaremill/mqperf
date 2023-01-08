@@ -20,9 +20,10 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
   private val FinishWhenNoMessagesAfter = 60.seconds
 
   def run(): Future[Unit] = {
+    val receiverFactory = mq.createReceiverFactory(config)
     Future.sequence {
       (1 to config.receiversNumbers).map(_ => {
-        mq.receiverFactory(config).createReceiver()
+        receiverFactory.createReceiver()
       }) // prepare n receivers (n = receiversNumbers)
         .map(receiver => { // run iteration for each receiver on a separate future and close the connection afterwards
         runIterations(receiver)

@@ -8,9 +8,9 @@ trait Mq {
 
   /** returns new instance of MqSenderFactory each time */
   def createSenderFactory(config: Config): MqSenderFactory
-  def receiverFactory(config: Config): MqReceiverFactory = ???
 
-  def createReceiver(config: Config): MqReceiver
+  /** returns new instance of MqReceiverFactory each time */
+  def createReceiverFactory(config: Config): MqReceiverFactory
 }
 
 trait MqSenderFactory {
