@@ -1,7 +1,7 @@
 package mqperf.kafka
 
 import com.typesafe.scalalogging.StrictLogging
-import mqperf.{Config, Mq, MqReceiver, MqSender, MqSenderFactory}
+import mqperf.{Config, Mq, MqReceiver, MqReceiverFactory, MqSender, MqSenderFactory}
 import org.apache.kafka.clients.admin.{Admin, NewTopic}
 import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
@@ -87,7 +87,7 @@ class KafkaMq(clock: Clock) extends Mq with StrictLogging {
     }
   }
 
-  override def createReceiver(config: Config): MqReceiver = new MqReceiver {
+  override def createReceiverFactory(config: Config): MqReceiverFactory = () => new MqReceiver {
     val hosts: String = config.mqConfig(HostsConfigKey)
     val topic: String = config.mqConfig(TopicConfigKey)
     val groupId: String = config.mqConfig("groupId")
