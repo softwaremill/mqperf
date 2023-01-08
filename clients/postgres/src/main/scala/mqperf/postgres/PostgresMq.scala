@@ -12,7 +12,7 @@ import doobie.postgres.implicits._
 import doobie.util.fragment.Fragment.const
 import doobie.util.fragments.in
 import doobie._
-import mqperf.{Config, Mq, MqReceiver, MqSender}
+import mqperf.{Config, Mq, MqReceiver, MqReceiverFactory, MqSender, MqSenderFactory}
 
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -66,7 +66,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     logger.info(s"Table $table dropped.")
   }
 
-  override def createSender(config: Config): MqSender = new MqSender {
+  override def createSenderFactory(config: Config): MqSenderFactory = () => new MqSender {
 
     private val table = config.mqConfig(TableConfigKey)
     private val (tx, closure) = pooledTransactor(config, config.senderConcurrency).allocated.unsafeRunSync()
@@ -89,7 +89,7 @@ class PostgresMq(clock: java.time.Clock) extends Mq with StrictLogging {
     }
   }
 
-  override def createReceiver(config: Config): MqReceiver = new MqReceiver {
+  override def createReceiverFactory(config: Config): MqReceiverFactory = () => new MqReceiver {
 
     override type MsgId = UUID
 
