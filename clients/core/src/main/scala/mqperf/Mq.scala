@@ -6,12 +6,10 @@ trait Mq {
   def init(config: Config): Unit
   def cleanUp(config: Config): Unit
 
-  //TODO: to discuss: should this function for multiple calls return the same instance of `MqSenderFactory`?
-  def senderFactory(config: Config): MqSenderFactory = ???
+  /** returns new instance of MqSenderFactory each time */
+  def createSenderFactory(config: Config): MqSenderFactory
   def receiverFactory(config: Config): MqReceiverFactory = ???
 
-  @Deprecated
-  def createSender(config: Config): MqSender
   def createReceiver(config: Config): MqReceiver
 }
 
