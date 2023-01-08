@@ -8,8 +8,8 @@ package mqperf
   * up to [[sendersNumber]] * [[senderConcurrency]] * [[msgsPerProcessInSecond]] messages, in batches of [[batchSizeSend]] messages. Each
   * message has [[msgSizeBytes]] bytes.
   *
-  * A receiver should receive messages in batches of up to [[batchSizeReceive]]. One receiver receives at most [[receiverConcurrency]]
-  * concurrent batches.
+  * A receiver node will start [[receiversNumber]] instances of mqReceiver. Each mqReceiver will receive messages in batches of up to
+  * [[batchSizeReceive]]. One receiver receives at most [[receiverConcurrency]] concurrent batches.
   */
 case class Config(
     testId: String,
@@ -20,7 +20,7 @@ case class Config(
     sendersNumber: Int,
     senderConcurrency: Int,
     batchSizeReceive: Int,
-    receiversNumbers: Int,
+    receiversNumber: Int,
     receiverConcurrency: Int,
     mqConfig: Map[String, String]
 )
