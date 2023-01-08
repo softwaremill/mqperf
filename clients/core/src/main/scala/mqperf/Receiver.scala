@@ -21,15 +21,18 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   def run(): Future[Unit] = {
     val receiverFactory = mq.createReceiverFactory(config)
-    Future.sequence {
-      (1 to config.receiversNumber).map(_ => {
-        receiverFactory.createReceiver()
-      }) // prepare n receivers (n = receiversNumbers)
-        .map(receiver => { // run iteration for each receiver on a separate future and close the connection afterwards
-        runIterations(receiver)
-          .flatMap(_ => receiver.close())
-      })
-    }.map(_ => ())
+    Future
+      .sequence {
+        (1 to config.receiversNumber)
+          .map(_ => {
+            receiverFactory.createReceiver()
+          }) // prepare n receivers (n = receiversNumbers)
+          .map(receiver => { // run iteration for each receiver on a separate future and close the connection afterwards
+            runIterations(receiver)
+              .flatMap(_ => receiver.close())
+          })
+      }
+      .map(_ => ())
   }
 
   private def runIterations(mqReceiver: MqReceiver): Future[Unit] = {
@@ -59,9 +62,6 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
             case 0 => receive(lastActivity)
             case _ => receive(clock.millis())
           }
-          .flatMap(lastActivitiesSeq => {
-            receive(lastActivitiesSeq.max)
-          })
       }
     }
 
