@@ -4,8 +4,10 @@
   "msgsPerProcessInSecond": 10,
   "msgSizeBytes": 1024,
   "batchSizeSend": 10,
+  "sendersNumber": 1,
   "senderConcurrency": 200,
   "batchSizeReceive": 10,
+  "receiversNumber": 1,
   "receiverConcurrency": 8,
   "mqConfig": {
     "hosts": "broker:29092",
