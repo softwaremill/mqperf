@@ -15,6 +15,10 @@ trait Mq {
 
 trait MqSenderFactory {
   def createSender(): MqSender
+
+  /** close resources which are shared between senders within one factory */
+  def close(): Future[Unit] = Future.successful(())
+
 }
 
 trait MqSender {
@@ -24,6 +28,9 @@ trait MqSender {
 
 trait MqReceiverFactory {
   def createReceiver(): MqReceiver
+
+  /** close resources which are shared between receivers within one factory */
+  def close(): Future[Unit] = Future.successful(())
 }
 
 trait MqReceiver {

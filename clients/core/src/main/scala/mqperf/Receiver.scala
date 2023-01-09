@@ -32,6 +32,9 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
               .flatMap(_ => receiver.close())
           })
       }
+      .flatMap { _ =>
+        receiverFactory.close()
+      }
       .map(_ => ())
   }
 

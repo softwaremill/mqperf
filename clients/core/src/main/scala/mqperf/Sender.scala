@@ -40,6 +40,9 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         senderProgram(id).handleError(e => logger.error(s"Sender[$id] failed", e))
       }
       .parSequence
+      .flatMap { _ =>
+        IO(mqSenderFactory.close())
+      }
       .void
       .unsafeToFuture()
   }
