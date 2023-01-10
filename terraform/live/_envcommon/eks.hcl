@@ -13,7 +13,7 @@ inputs = {
   org         = "SML"
   environment = get_env("CLUSTER_NAME")
 
-  eks_single_az = true
+  eks_single_az = false
 
   eks_cluster_node_groups = {
     controllers-pool = {
