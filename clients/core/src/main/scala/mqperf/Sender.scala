@@ -41,9 +41,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
       }
       .parSequence
       .flatMap { _ =>
-        IO(mqSenderFactory.close())
+        IO.fromFuture(IO(mqSenderFactory.close()))
       }
-      .void
       .unsafeToFuture()
   }
 
