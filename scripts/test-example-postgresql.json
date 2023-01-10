@@ -4,9 +4,11 @@
   "msgsPerProcessInSecond": 4000,
   "msgSizeBytes": 100,
   "batchSizeSend": 10,
-  "senderConcurrency": 4,
+  "sendersNumber": 1,
+  "senderConcurrency": 1,
   "batchSizeReceive": 10,
-  "receiverConcurrency": 4,
+  "receiversNumber": 1,
+  "receiverConcurrency": 1,
   "mqConfig": {
     "host": "mqperf-postgresql-cluster",
     "port": "5432",
