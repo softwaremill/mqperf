@@ -17,7 +17,7 @@
     "maxPollAttempts":"10",
     "qos":"100",
     "multipleAck":"true",
-    "nbNioThreads":"50"
+    "nbNioThreads":"15"
   },
   "jobs": ["sender", "receiver", "receiver"]
 }
