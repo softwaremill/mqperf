@@ -1,5 +1,5 @@
 terraform {
-  source = "git::https://github.com/softwaremill/terraform-aks-bootstrap//"
+  source = "git::https://github.com/softwaremill/terraform-aks-bootstrap//?ref=v0.0.1"
 
 
   before_hook "select workspace" {
