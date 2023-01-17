@@ -1,11 +1,14 @@
 {
   "testId": "test-1",
   "testLengthSeconds": 300,
-  "msgsPerSecond": 100000,
+  "msgsPerProcessInSecond": 1000,
   "msgSizeBytes": 1024,
   "batchSizeSend": 1000,
+  "sendersNumber": 1,
+  "senderConcurrency": 200,
   "batchSizeReceive": 1000,
-  "maxSendInFlight": 10000,
+  "receiversNumber": 1,
+  "receiverConcurrency": 8,
   "mqConfig": {
     "hosts": "my-cluster-kafka-bootstrap:9092",
     "topic": "mqperf-test-1",

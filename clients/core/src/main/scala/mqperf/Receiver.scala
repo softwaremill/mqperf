@@ -7,6 +7,7 @@ import java.time.Clock
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
+import scala.util.{Failure, Success}
 
 class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
@@ -19,19 +20,30 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
   private val FinishWhenNoMessagesAfter = 60.seconds
 
   def run(): Future[Unit] = {
-    val mqReceiver = mq.createReceiver(config)
-    run(mqReceiver, None).flatMap(_ => mqReceiver.close())
+    val receiverFactory = mq.createReceiverFactory(config)
+    Future
+      .sequence {
+        (1 to config.receiversNumber)
+          .map(_ => receiverFactory.createReceiver()) // prepare n receivers (n = receiversNumbers)
+          .map(receiver => { // run iteration for each receiver on a separate future and close the connection afterwards
+            runIterations(receiver)
+              .andThen(_ => receiver.close())
+          })
+      }
+      .andThen { _ => receiverFactory.close() }
+      .map(_ => ())
   }
 
-  private def run(mqReceiver: MqReceiver, lastMessage: Option[Long]): Future[Unit] = {
-    lastMessage match {
-      case Some(last) if clock.millis() - last > FinishWhenNoMessagesAfter.toMillis =>
-        logger.info(s"No messages received for ${FinishWhenNoMessagesAfter.toSeconds}s, stopping")
+  private def runIterations(mqReceiver: MqReceiver): Future[Unit] = {
+    val batchSize = config.batchSizeReceive
+
+    def receive(lastActivity: Long): Future[Unit] = {
+      if (clock.millis() - lastActivity > FinishWhenNoMessagesAfter.toMillis) {
         Future.successful(())
-      case _ =>
+      } else {
         mqReceiver
-          .receive(config.batchSizeReceive)
-          .flatMap { msgs =>
+          .receive(batchSize)
+          .map { msgs =>
             val now = clock.millis()
             msgs.foreach { case (_, msg) =>
               val t = Timestamp.extract(msg)
@@ -39,12 +51,31 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
             }
             LocalMetrics.messageCounter.inc(msgs.size.toDouble)
 
-            mqReceiver.ack(msgs.map(_._1)).map(_ => msgs.size)
+            // `ack` intentionally runs asynchronously
+            mqReceiver
+              .ack(msgs.map(_._1))
+              .andThen { case Failure(ex) =>
+                logger.error("Ack of received messages failure", ex)
+              }
+
+            msgs.size
           }
           .flatMap {
-            case 0 => run(mqReceiver, lastMessage)
-            case _ => run(mqReceiver, Some(clock.millis()))
+            case 0 => receive(lastActivity)
+            case _ => receive(clock.millis())
           }
+      }
     }
+
+    val receiverConcurrency = config.receiverConcurrency
+    Future
+      .sequence(
+        (1 to receiverConcurrency).map { _ => receive(clock.millis()) }
+      )
+      .andThen {
+        case Success(_)  => logger.info(s"No messages received for ${FinishWhenNoMessagesAfter.toSeconds}s, stopping")
+        case Failure(ex) => logger.error("Receiving iteration failure", ex)
+      }
+      .map(_ => ())
   }
 }

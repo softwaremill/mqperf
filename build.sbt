@@ -36,6 +36,8 @@ lazy val core: Project = (project in file("clients/core"))
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-prometheus-metrics" % tapirVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
+      "org.typelevel" %% "cats-effect" % "3.4.4",
+      "org.typelevel" %% "cats-core" % "2.9.0",
       scalaTest
     )
   )
