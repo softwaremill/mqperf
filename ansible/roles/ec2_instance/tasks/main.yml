@@ -1,27 +1,27 @@
 ---
 
 - name: Provision a set of instances
-  ec2:
+  ec2_instance:
     key_name: "{{ key_name }}"
-    group: "{{ ec2_groups }}"
     instance_type: "{{ aws_instance_type }}"
-    image: "{{ aws_ami_id }}"
+    image_id: "{{ aws_ami_id }}"
     vpc_subnet_id: "{{ subnet_external }}"
     region: "{{ aws_region }}"
-    zone: "{{ aws_zone }}"
     wait: true
     exact_count: "{{ count }}"
-    assign_public_ip: true
-    count_tag:
-      group: "{{ ec2_tag_group }}"
-    instance_tags:
+    network:
+      assign_public_ip: true
+      groups: "{{ ec2_groups }}"
+    filters:
+      "tag:group": "{{ ec2_tag_group }}"
+    tags:
       group: "{{ ec2_tag_group }}"
       kind: "mqperf-instance"
   register: ec2
 
 - name: Wait for SSH to come up
   wait_for: 
-    host: "{{ item.public_dns_name }}"
+    host: "{{ item.network_interfaces.0.public_dns_name }}"
     port: 22
     delay: 10
     timeout: 640
@@ -31,7 +31,7 @@
 
 - name: Provision and attach EBS volume
   ec2_vol:
-    instance: "{{ item.id }}"
+    instance: "{{ item.instance_id }}"
     region: "{{ aws_region }}"
     zone: "{{ aws_zone }}"
     volume_size: "{{ volume_size }}"

@@ -1,0 +1,17 @@
+- Used pyenv to install python 3.9.5 then pyenv global 3.9.5
+- Ran pip install boto3
+- Migrated roles/ec2_instance/tasks/main.yml from ec2 to ec2_instance
+- Ran pip install 'ansible==2.10.7' (in order to be able to use ansible-galaxy collection list)
+- Ran ansible-galaxy collection install amazon.aws:==3.0.0
+- Set vpc range for mqperf-vpc in all.yml 172.42.0.0/16 and subnet 42.1.0/24
+- Updated ec2.yml
+- Updated all.yml
+- Added the following to ~/.bash_profile
+    export AWS_ACCESS_KEY_ID='<id>'
+    export AWS_SECRET_ACCESS_KEY='<key>'
+    export AWS_REGION='eu-west-2'
+- set elasticache = False in ec2.ini 
+- set force_valid_group_names = always in ansible.cfg
+- Found the right ami ID for a t2.micro running Amazon Linux and updated the ec2_instance/defaults/main.yml 
+- Ran ansible-playbook -i inventory provision_mqperf_nodes.yml (-i inventory is a hack to make ec2_instance run with the local python3 exe)
+- Edited run_tests.yml to switch tests
