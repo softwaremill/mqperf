@@ -8,5 +8,5 @@ terraform {
 
 inputs = {
   storage_class = "mqperf-storageclass"
-  storage_size  = "20Gi"
+  storage_size  = "100Gi"
 }

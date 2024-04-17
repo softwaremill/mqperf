@@ -1,0 +1,24 @@
+{
+  "testId": "test-1",
+  "testLengthSeconds": 60,
+  "msgsPerProcessInSecond": 5000,
+  "msgSizeBytes": 100,
+  "batchSizeSend": 10,
+  "batchSizeReceive": 10,
+  "sendersNumber": 15,
+  "senderConcurrency": 1,
+  "receiversNumber": 15,
+  "receiverConcurrency": 1,
+  "mqConfig": {
+    "hosts":"rabbitmq-cluster.default.svc",
+    "username":"",
+    "password":"",
+    "queueName":"mqperf-test",
+    "maxPollAttempts":"10",
+    "qos":"100",
+    "multipleAck":"true",
+    "nbNioThreads":"15"
+  },
+  "jobs": ["sender", "receiver", "receiver"]
+}
+

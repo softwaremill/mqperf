@@ -24,7 +24,7 @@ lazy val dockerSettings = Seq(
 lazy val rootProject = (project in file("."))
   .settings(commonSettings: _*)
   .settings(publishArtifact := false, name := "root")
-  .aggregate(core, kafka)
+  .aggregate(core, kafka, rabbitmq)
 
 lazy val core: Project = (project in file("clients/core"))
   .settings(commonSettings: _*)
@@ -50,6 +50,21 @@ lazy val kafka: Project = (project in file("clients/kafka"))
     name := "kafka",
     libraryDependencies ++= Seq(
       "org.apache.kafka" % "kafka-clients" % "3.2.3",
+      scalaTest
+    )
+  )
+  .dependsOn(core)
+  .enablePlugins(JavaServerAppPackaging)
+  .enablePlugins(DockerPlugin)
+
+lazy val rabbitmq: Project = (project in file("clients/rabbitmq"))
+  .settings(commonSettings: _*)
+  .settings(dockerSettings)
+  .settings(Docker / packageName := "mqperf-rabbitmq")
+  .settings(
+    name := "rabbitmq",
+    libraryDependencies ++= Seq(
+      "com.rabbitmq" % "amqp-client" % "5.16.0",
       scalaTest
     )
   )
