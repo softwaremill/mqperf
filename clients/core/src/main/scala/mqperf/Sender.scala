@@ -29,10 +29,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     val senderProgram = (id: Int) =>
       for {
         mqSender <- IO(mqSenderFactory.createSender())
-        _ <- runMqSender(id, mqSender, config.senderConcurrency)
-        _ <- IO(logger.info(s"Sender[$id] done, waiting for all messages to be flushed ..."))
-        closed <- IO.fromFuture(IO(mqSender.close()))
-      } yield closed
+        r <- runMqSender(id, mqSender, config.senderConcurrency)
+      } yield r
 
     List
       .range(0, config.sendersNumber)
@@ -40,9 +38,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         senderProgram(id).handleError(e => logger.error(s"Sender[$id] failed", e))
       }
       .parSequence
-      .flatMap { _ =>
-        IO.fromFuture(IO(mqSenderFactory.close()))
-      }
+      .guarantee(IO.fromFuture(IO(mqSenderFactory.close())))
+      .void
       .unsafeToFuture()
   }
 
@@ -53,6 +50,9 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
         .range(0, senderConcurrency)
         .map(_ => startConcurrentRunner(senderId, mqSender, config.msgsPerProcessInSecond.toLong, testEnd))
         .parSequence
+        .flatMap(_ => IO(logger.info(s"Sender[$senderId] done, waiting for all messages to be flushed ...")))
+        .flatMap(_ => IO.sleep(3.seconds))
+        .guarantee(IO.fromFuture(IO(mqSender.close())))
         .void
     } yield result
   }

@@ -5,6 +5,8 @@ metadata:
 spec:
   teamId: "mqperf"
   numberOfInstances: ${REPLICAS_NUMBER}
+  patroni:
+    synchronous_mode: true
   users: # Application/Robot users
     mqperfuser:
       - superuser
@@ -13,6 +15,9 @@ spec:
     mqperf: mqperfuser # dbname: owner}
   postgresql:
     version: "14"
+    parameters:
+      synchronous_standby_names: 'ANY 1 ("mqperf-postgresql-cluster-1", "mqperf-postgresql-cluster-2")'
+      synchronous_commit:  "remote_write"
   volume:
     size: ${STORAGE_SIZE}
     storageClass: ${STORAGE_CLASS}
