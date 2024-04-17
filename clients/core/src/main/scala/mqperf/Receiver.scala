@@ -1,7 +1,7 @@
 package mqperf
 
 import com.typesafe.scalalogging.StrictLogging
-import io.prometheus.client.{Counter, Histogram}
+import io.prometheus.metrics.core.datapoints.{CounterDataPoint, DistributionDataPoint}
 
 import java.time.Clock
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -13,8 +13,8 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   private object LocalMetrics {
     private val testIdLabelValue = config.testId
-    val messageCounter: Counter.Child = Metrics.Receiver.messageCounter.labels(testIdLabelValue)
-    val messageLatencyHistogram: Histogram.Child = Metrics.Receiver.messageLatencyHistogram.labels(testIdLabelValue)
+    val messageCounter: CounterDataPoint = Metrics.Receiver.messageCounter.labelValues(testIdLabelValue)
+    val messageLatencyHistogram: DistributionDataPoint = Metrics.Receiver.messageLatencyHistogram.labelValues(testIdLabelValue)
   }
 
   private val FinishWhenNoMessagesAfter = 60.seconds

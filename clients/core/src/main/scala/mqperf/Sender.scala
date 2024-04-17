@@ -2,9 +2,9 @@ package mqperf
 
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.prometheus.client.{Counter, Histogram}
+import io.prometheus.metrics.core.datapoints.{CounterDataPoint, DistributionDataPoint}
 
 import java.time.Clock
 import scala.concurrent.Future
@@ -17,8 +17,8 @@ class Sender(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
 
   private object LocalMetrics {
     private val testIdLabelValue = config.testId
-    val messageCounter: Counter.Child = Metrics.Sender.messageCounter.labels(testIdLabelValue)
-    val messageLatencyHistogram: Histogram.Child = Metrics.Sender.messageLatencyHistogram.labels(testIdLabelValue)
+    val messageCounter: CounterDataPoint = Metrics.Sender.messageCounter.labelValues(testIdLabelValue)
+    val messageLatencyHistogram: DistributionDataPoint = Metrics.Sender.messageLatencyHistogram.labelValues(testIdLabelValue)
   }
 
   def run(): Future[Unit] = {

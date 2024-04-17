@@ -15,4 +15,4 @@ scrape_configs:
     scrape_interval: 1s
     honor_labels: true
     static_configs:
-      - targets: ['mqperf:8080']
+      - targets: ['host.docker.internal:8080']

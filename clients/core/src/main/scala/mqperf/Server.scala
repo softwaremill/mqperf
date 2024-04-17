@@ -1,16 +1,15 @@
 package mqperf
 
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import sttp.model.StatusCode
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.netty.{NettyFutureServer, NettyFutureServerBinding, NettyFutureServerOptions}
 
-import java.net.InetSocketAddress
 import java.time.Clock
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.ListBuffer
@@ -24,7 +23,7 @@ object Server extends StrictLogging {
   private val Sender = "sender"
   private val Receiver = "receiver"
 
-  def start(mq: Mq): Future[NettyFutureServerBinding[InetSocketAddress]] = {
+  def start(mq: Mq): Future[NettyFutureServerBinding] = {
     val inProgress = new AtomicReference[ListBuffer[String]](ListBuffer.empty)
 
     def initEndpoint(mq: Mq): ServerEndpoint[Any, Future] = infallibleEndpoint.post
