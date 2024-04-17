@@ -24,17 +24,13 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
     Future
       .sequence {
         (1 to config.receiversNumber)
-          .map(_ => {
-            receiverFactory.createReceiver()
-          }) // prepare n receivers (n = receiversNumbers)
+          .map(_ => receiverFactory.createReceiver()) // prepare n receivers (n = receiversNumbers)
           .map(receiver => { // run iteration for each receiver on a separate future and close the connection afterwards
             runIterations(receiver)
-              .flatMap(_ => receiver.close())
+              .andThen(_ => receiver.close())
           })
       }
-      .flatMap { _ =>
-        receiverFactory.close()
-      }
+      .andThen { _ => receiverFactory.close() }
       .map(_ => ())
   }
 
@@ -54,11 +50,14 @@ class Receiver(config: Config, mq: Mq, clock: Clock) extends StrictLogging {
               LocalMetrics.messageLatencyHistogram.observe((now - t).toDouble)
             }
             LocalMetrics.messageCounter.inc(msgs.size.toDouble)
+
+            // `ack` intentionally runs asynchronously
             mqReceiver
               .ack(msgs.map(_._1))
               .andThen { case Failure(ex) =>
                 logger.error("Ack of received messages failure", ex)
               }
+
             msgs.size
           }
           .flatMap {
