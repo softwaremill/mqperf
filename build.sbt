@@ -24,7 +24,7 @@ lazy val dockerSettings = Seq(
 lazy val rootProject = (project in file("."))
   .settings(commonSettings: _*)
   .settings(publishArtifact := false, name := "root")
-  .aggregate(core, kafka, rabbitmq)
+  .aggregate(core, kafka, rabbitmq, postgres)
 
 lazy val core: Project = (project in file("clients/core"))
   .settings(commonSettings: _*)
@@ -65,6 +65,25 @@ lazy val rabbitmq: Project = (project in file("clients/rabbitmq"))
     name := "rabbitmq",
     libraryDependencies ++= Seq(
       "com.rabbitmq" % "amqp-client" % "5.16.0",
+      scalaTest
+    )
+  )
+  .dependsOn(core)
+  .enablePlugins(JavaServerAppPackaging)
+  .enablePlugins(DockerPlugin)
+
+val doobieVersion = "1.0.0-RC2"
+
+lazy val postgres: Project = (project in file("clients/postgres"))
+  .settings(commonSettings: _*)
+  .settings(dockerSettings)
+  .settings(Docker / packageName := "mqperf-postgres")
+  .settings(
+    name := "postgres",
+    libraryDependencies ++= Seq(
+      "org.postgresql" % "r2dbc-postgresql" % "0.9.2.RELEASE",
+      "org.tpolecat" %% "doobie-postgres" % doobieVersion,
+      "org.tpolecat" %% "doobie-hikari" % doobieVersion,
       scalaTest
     )
   )

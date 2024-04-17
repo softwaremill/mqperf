@@ -470,6 +470,28 @@ curl -XPOST -d'{"testId":"test","testLengthSeconds":60,"msgsPerProcessInSecond":
    Answer: Remember to add the `terragrunt.hcl` file to `terraform/live/:queueName/aws/app`. Content of the file is common for all queues so you can copy it for example from `terraform/live/kafka/aws/app`.
 
 
+### PostgresMQ
+
+To test the senders/receivers using PostgresMQ, you might build the docker image locally using:
+
+```
+sbt postgres/docker:publishLocal
+```
+
+Then, go to `docker/postgres` and run:
+```
+docker-compose -f ../metrics/docker-compose.metrics.yml -f docker-compose.yml -p postgres up
+```
+This will start the PostgreSQL server and the mqperf server.
+
+To init, then start the sender/receiver, use the following commands, using appropriate endpoints:
+
+```bash
+curl -XPOST -d'{"testId":"test","testLengthSeconds":20,"msgsPerProcessInSecond":40,"msgSizeBytes":100,"batchSizeSend":10,"batchSizeReceive":1,"maxSendInFlight":40,"mqConfig":{"host": "postgres", "port": "5432", "table": "jobs"}}' http://localhost:8080/init
+```
+
+You can also check sample requests in `postgresMq.http` file.
+
 ## Copyright
 
 Copyright (C) 2013-2022 SoftwareMill [https://softwaremill.com](https://softwaremill.com).

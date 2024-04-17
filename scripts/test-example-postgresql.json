@@ -1,0 +1,22 @@
+{
+  "testId": "test-1s2r",
+  "testLengthSeconds": 180,
+  "msgsPerProcessInSecond": 4000,
+  "msgSizeBytes": 100,
+  "batchSizeSend": 10,
+  "sendersNumber": 1,
+  "senderConcurrency": 1,
+  "batchSizeReceive": 10,
+  "receiversNumber": 1,
+  "receiverConcurrency": 1,
+  "mqConfig": {
+    "host": "mqperf-postgresql-cluster",
+    "port": "5432",
+    "table": "jobs",
+    "database":"mqperf",
+    "username": "mqperfuser",
+    "password": "iSJqDmg4ov64hfrapdi8rmLCiovZOiCOo3WOftyrBsUKoAAgYJmTYx3ww43SjDCV",
+    "sslEnabled": "true"
+  },
+  "jobs": ["sender", "receiver", "receiver"]
+}
